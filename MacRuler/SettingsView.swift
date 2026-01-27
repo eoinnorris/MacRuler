@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @Environment(RulerSettingsViewModel.self) private var rulerSettingsViewModel
+    @Binding var rulerSettingsViewModel:RulerSettingsViewModel
 
     var body: some View {
         Form {

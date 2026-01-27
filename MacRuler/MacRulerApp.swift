@@ -15,8 +15,7 @@ struct MacOSRulerApp: App {
     var body: some Scene {
         // No default window; we’ll drive our own panels.
         Settings {
-            SettingsView()
-                .environment(appDelegate.rulerSettingsViewModel)
+            SettingsView(rulerSettingsViewModel: appDelegate.$rulerSettingsViewModel)
         }
     }
 }
@@ -28,12 +27,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var verticalController: NSWindowController?
     private let horizontalResizeDelegate = FixedHeightResizeDelegate(fixedHeight: 44)
     private let horizontalRulerView  = HorizontalRulerView()
-    let rulerSettingsViewModel = RulerSettingsViewModel()
+    @State var rulerSettingsViewModel = RulerSettingsViewModel()
 
     
     func makeHorizontalRulerView() -> some View {
         HorizontalRulerView()
-            .frame(height: 44)
+            .frame(height: 96)
             .fixedSize(horizontal: false, vertical: true)
             .environment(rulerSettingsViewModel)
     }
@@ -41,7 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Optional: make it behave like a menu-bar-ish utility app (no Dock icon)
         // Comment this out if you *do* want a normal app presence.
-        NSApp.setActivationPolicy(.accessory)
+//        NSApp.setActivationPolicy(.accessory)
 
         guard let screen = NSScreen.main else { return }
         let vf = screen.visibleFrame  // avoids menu bar + dock

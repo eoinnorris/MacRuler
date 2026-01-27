@@ -22,17 +22,17 @@ struct HorizontalRulerView: View {
                 // ✅ Invisible window reader (tracks backing scale)
                 WindowScaleReader(backingScale: $overlayViewModel.backingScale)
                     .frame(width: 0, height: 0)
+                
             }
             .frame(maxWidth: .infinity)
 
             HStack(spacing: 12) {
                 PixelReadout(overlayViewModel: overlayViewModel)
                 Spacer()
-                SettingsButton()
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(.ultraThinMaterial)
+            .padding(.horizontal, 0)
+            .padding(.vertical, 0)
+            .background(Color.clear)
         }
         .onTapGesture { location in
             withAnimation(.easeInOut(duration: 0.2)) {
