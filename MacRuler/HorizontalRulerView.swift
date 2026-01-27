@@ -10,8 +10,14 @@ import SwiftUI
 import AppKit
 
 struct HorizontalRulerView: View {
-    @State private var pixelWidth: Int = 0
     @State private var backingScale: CGFloat = 1.0
+    @State private var leftDividerX: CGFloat?
+    @State private var rightDividerX: CGFloat?
+
+    private var dividerDistancePixels: Int {
+        guard let leftDividerX, let rightDividerX else { return 0 }
+        return Int((abs(rightDividerX - leftDividerX) * backingScale).rounded())
+    }
 
     var body: some View {
         ZStack {
@@ -59,10 +65,16 @@ struct HorizontalRulerView: View {
             .padding(.horizontal, -1)
             .padding(.vertical,-1)
 
+            OverlayHorizontalView(
+                leftDividerX: $leftDividerX,
+                rightDividerX: $rightDividerX,
+                backingScale: backingScale
+            )
+
             // ✅ Pixel width readout (top-left)
             VStack {
                 HStack {
-                    Text("\(pixelWidth) px")
+                    Text("\(dividerDistancePixels) px")
                         .font(.system(.headline, design: .rounded))
                         .foregroundStyle(.black.opacity(0.85))
                         .padding(.horizontal, 10)
@@ -73,24 +85,12 @@ struct HorizontalRulerView: View {
                 Spacer()
             }
             .padding(10)
+            .allowsHitTesting(false)
 
             // ✅ Invisible window reader (tracks backing scale)
             WindowScaleReader(backingScale: $backingScale)
                 .frame(width: 0, height: 0)
         }
-        .overlay(
-            GeometryReader { geometry in
-                Color.clear
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                let clampedX = min(max(0, value.location.x), geometry.size.width)
-                                pixelWidth = Int((clampedX * backingScale).rounded())
-                            }
-                    )
-            }
-        )
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .padding(6)
     }
