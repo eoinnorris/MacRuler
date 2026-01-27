@@ -8,7 +8,6 @@
 import SwiftUI
 
 
-
 struct OverlayHorizontalView: View {
     let overlayViewModel:OverlayViewModel
 
