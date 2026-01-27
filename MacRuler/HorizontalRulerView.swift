@@ -15,13 +15,24 @@ struct HorizontalRulerView: View {
 
 
     var body: some View {
-        ZStack {
-            RulerBackGround(rulerType: .horizontal)
-            OverlayHorizontalView(overlayViewModel: overlayViewModel)
-            PixelReadout(overlayViewModel: overlayViewModel)
-            // ✅ Invisible window reader (tracks backing scale)
-            WindowScaleReader(backingScale: $overlayViewModel.backingScale)
-                .frame(width: 0, height: 0)
+        VStack(spacing: 0) {
+            ZStack {
+                RulerBackGround(rulerType: .horizontal)
+                OverlayHorizontalView(overlayViewModel: overlayViewModel)
+                // ✅ Invisible window reader (tracks backing scale)
+                WindowScaleReader(backingScale: $overlayViewModel.backingScale)
+                    .frame(width: 0, height: 0)
+            }
+            .frame(maxWidth: .infinity)
+
+            HStack(spacing: 12) {
+                PixelReadout(overlayViewModel: overlayViewModel)
+                Spacer()
+                SettingsButton()
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial)
         }
         .onTapGesture { location in
             withAnimation(.easeInOut(duration: 0.2)) {
@@ -30,6 +41,21 @@ struct HorizontalRulerView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .padding(6)
+    }
+}
+
+private struct SettingsButton: View {
+    var body: some View {
+        Button {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        } label: {
+            Image(systemName: "gearshape")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.black.opacity(0.85))
+                .padding(6)
+                .background(.white.opacity(0.35), in: Circle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
