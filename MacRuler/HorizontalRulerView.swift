@@ -11,6 +11,7 @@ import AppKit
 
 struct HorizontalRulerView: View {
     @State private var pixelWidth: Int = 0
+    @State private var backingScale: CGFloat = 1.0
 
     var body: some View {
         ZStack {
@@ -73,10 +74,23 @@ struct HorizontalRulerView: View {
             }
             .padding(10)
 
-            // ✅ Invisible window reader (updates pixelWidth as you resize)
-            WindowPixelWidthReader(pixelWidth: $pixelWidth)
+            // ✅ Invisible window reader (tracks backing scale)
+            WindowScaleReader(backingScale: $backingScale)
                 .frame(width: 0, height: 0)
         }
+        .overlay(
+            GeometryReader { geometry in
+                Color.clear
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                let clampedX = min(max(0, value.location.x), geometry.size.width)
+                                pixelWidth = Int((clampedX * backingScale).rounded())
+                            }
+                    )
+            }
+        )
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .padding(6)
     }
@@ -84,11 +98,11 @@ struct HorizontalRulerView: View {
 
 // MARK: - Bridge to NSWindow resize events -> pixel width
 
-struct WindowPixelWidthReader: NSViewRepresentable {
-    @Binding var pixelWidth: Int
+struct WindowScaleReader: NSViewRepresentable {
+    @Binding var backingScale: CGFloat
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(pixelWidth: $pixelWidth)
+        Coordinator(backingScale: $backingScale)
     }
 
     func makeNSView(context: Context) -> NSView {
@@ -108,34 +122,34 @@ struct WindowPixelWidthReader: NSViewRepresentable {
     }
 
     final class Coordinator: NSObject, NSWindowDelegate {
-        private var pixelWidth: Binding<Int>
+        private var backingScale: Binding<CGFloat>
         private weak var window: NSWindow?
 
-        init(pixelWidth: Binding<Int>) {
-            self.pixelWidth = pixelWidth
+        init(backingScale: Binding<CGFloat>) {
+            self.backingScale = backingScale
         }
 
         func attach(to window: NSWindow) {
             guard self.window !== window else { return }
             self.window = window
             window.delegate = self
-            updatePixelWidth(for: window)
+            updateBackingScale(for: window)
         }
 
         func windowDidResize(_ notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
-            updatePixelWidth(for: window)
+            updateBackingScale(for: window)
         }
 
         func windowDidChangeBackingProperties(_ notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
-            updatePixelWidth(for: window)
+            updateBackingScale(for: window)
         }
 
-        private func updatePixelWidth(for window: NSWindow) {
-            let scale = window.screen?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2.0
-            let points = window.frame.size.width
-            pixelWidth.wrappedValue = Int((points * scale).rounded())
+        private func updateBackingScale(for window: NSWindow) {
+            backingScale.wrappedValue = window.screen?.backingScaleFactor
+                ?? NSScreen.main?.backingScaleFactor
+                ?? 2.0
         }
     }
 }
