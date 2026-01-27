@@ -18,18 +18,21 @@ struct MacOSRulerApp: App {
     }
 }
 
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
     private let horizontalResizeDelegate = FixedHeightResizeDelegate(fixedHeight: 44)
     private let horizontalRulerView  = HorizontalRulerView()
+    private let rulerSettingsViewModel = RulerSettingsViewModel()
 
     
     func makeHorizontalRulerView() -> some View {
         HorizontalRulerView()
             .frame(height: 44)
             .fixedSize(horizontal: false, vertical: true)
+            .environment(rulerSettingsViewModel)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {

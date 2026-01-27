@@ -9,6 +9,7 @@
 import SwiftUI
 import AppKit
 
+
 struct HorizontalRulerView: View {
     @State private var overlayViewModel = OverlayViewModel()
 
