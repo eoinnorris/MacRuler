@@ -14,7 +14,10 @@ struct MacOSRulerApp: App {
 
     var body: some Scene {
         // No default window; we’ll drive our own panels.
-        Settings { EmptyView() }
+        Settings {
+            SettingsView()
+                .environment(appDelegate.rulerSettingsViewModel)
+        }
     }
 }
 
@@ -25,7 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var verticalController: NSWindowController?
     private let horizontalResizeDelegate = FixedHeightResizeDelegate(fixedHeight: 44)
     private let horizontalRulerView  = HorizontalRulerView()
-    private let rulerSettingsViewModel = RulerSettingsViewModel()
+    let rulerSettingsViewModel = RulerSettingsViewModel()
 
     
     func makeHorizontalRulerView() -> some View {

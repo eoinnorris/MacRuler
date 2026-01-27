@@ -13,8 +13,21 @@ final class RulerSettingsViewModel {
     var unitType: UnitTyoes = .pixels
 }
 
-enum UnitTyoes {
+enum UnitTyoes: String, CaseIterable, Identifiable {
     case mm
     case inches
     case pixels
+
+    var id: Self { self }
+
+    var displayName: String {
+        switch self {
+        case .mm:
+            return "Millimeters"
+        case .inches:
+            return "Inches"
+        case .pixels:
+            return "Pixels"
+        }
+    }
 }
