@@ -42,7 +42,7 @@ private struct DividerLine: View {
     let backingScale: CGFloat
 
     private var lineWidth: CGFloat {
-        max(1, 3 / backingScale)
+        max(3, 5 / backingScale)
     }
 
     var body: some View {
