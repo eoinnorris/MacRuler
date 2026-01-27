@@ -35,7 +35,7 @@ extension UnitTyoes {
                 pointsPerUnit: 1,
                 minorEveryInUnits: 10,
                 majorEveryInUnits: 50,
-                labelEveryInUnits: 250,
+                labelEveryInUnits: 200,
                 labelFormatter: { value in "\(Int(value.rounded()))" }
             )
         case .mm:
@@ -78,16 +78,16 @@ extension UnitTyoes {
         }
     }
 
-    func formattedDistance(points: CGFloat) -> String {
+    func formattedDistance(points: CGFloat, screenScale: Double) -> String {
         let unitValue = points / tickConfiguration.pointsPerUnit
         let formatted: String
         switch self {
         case .pixels:
             formatted = String(Int(unitValue.rounded()))
         case .mm:
-            formatted = String(format: "%.1f", unitValue)
+            formatted = String(format: "%.1f", unitValue / screenScale)
         case .cm, .inches:
-            formatted = String(format: "%.2f", unitValue)
+            formatted = String(format: "%.2f", unitValue /  screenScale)
         }
         return formatted
     }

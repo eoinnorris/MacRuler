@@ -15,7 +15,7 @@ struct PixelReadout: View {
     var body: some View {
         let unitType = rulerSettingsViewModel.unitType
         let distancePoints = CGFloat(overlayViewModel.dividerDistancePixels)
-        let displayValue = unitType.formattedDistance(points: distancePoints)
+        let displayValue = unitType.formattedDistance(points: distancePoints, screenScale: overlayViewModel.backingScale)
         Text("\(displayValue) \(unitType.unitSymbol)")
             .font(.system(.body, design: .rounded))
             .fontWeight(.medium)
