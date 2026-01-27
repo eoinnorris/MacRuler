@@ -10,14 +10,8 @@ import SwiftUI
 import AppKit
 
 struct HorizontalRulerView: View {
-    @State private var backingScale: CGFloat = 1.0
-    @State private var leftDividerX: CGFloat?
-    @State private var rightDividerX: CGFloat?
+    @State private var overlayViewModel = OverlayViewModel()
 
-    private var dividerDistancePixels: Int {
-        guard let leftDividerX, let rightDividerX else { return 0 }
-        return Int((abs(rightDividerX - leftDividerX) * backingScale).rounded())
-    }
 
     var body: some View {
         ZStack {
@@ -65,16 +59,12 @@ struct HorizontalRulerView: View {
             .padding(.horizontal, -1)
             .padding(.vertical,-1)
 
-            OverlayHorizontalView(
-                leftDividerX: $leftDividerX,
-                rightDividerX: $rightDividerX,
-                backingScale: backingScale
-            )
+            OverlayHorizontalView(overlayViewModel: overlayViewModel)
 
             // ✅ Pixel width readout (top-left)
             VStack {
                 HStack {
-                    Text("\(dividerDistancePixels) px")
+                    Text("\(overlayViewModel.dividerDistancePixels) px")
                         .font(.system(.headline, design: .rounded))
                         .foregroundStyle(.black.opacity(0.85))
                         .padding(.horizontal, 10)
@@ -88,8 +78,16 @@ struct HorizontalRulerView: View {
             .allowsHitTesting(false)
 
             // ✅ Invisible window reader (tracks backing scale)
-            WindowScaleReader(backingScale: $backingScale)
+            WindowScaleReader(backingScale: $overlayViewModel.backingScale)
                 .frame(width: 0, height: 0)
+        }
+        .onTapGesture { location in
+            let x = location.x
+//            let clampedX = min(max(0, x), geometry.size.width)
+            
+            withAnimation(.easeInOut(duration: 0.2)) {
+                overlayViewModel.updateDividers(with: x)
+            }
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .padding(6)

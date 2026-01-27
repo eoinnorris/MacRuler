@@ -7,77 +7,31 @@
 
 import SwiftUI
 
+
+
 struct OverlayHorizontalView: View {
-    @Binding var leftDividerX: CGFloat?
-    @Binding var rightDividerX: CGFloat?
-    let backingScale: CGFloat
+    let overlayViewModel:OverlayViewModel
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                if let leftDividerX {
+                if let leftDividerX  = overlayViewModel.leftDividerX {
                     DividerLine(
                         x: leftDividerX,
                         height: geometry.size.height,
-                        backingScale: backingScale
+                        backingScale: overlayViewModel.backingScale
                     )
                 }
 
-                if let rightDividerX {
+                if let rightDividerX  = overlayViewModel.rightDividerX {
                     DividerLine(
                         x: rightDividerX,
                         height: geometry.size.height,
-                        backingScale: backingScale
+                        backingScale: overlayViewModel.backingScale
                     )
                 }
             }
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        let clampedX = min(max(0, value.location.x), geometry.size.width)
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            updateDividers(with: clampedX)
-                        }
-                    }
-            )
-        }
-    }
-
-    private func updateDividers(with x: CGFloat) {
-        if leftDividerX == nil {
-            leftDividerX = x
-            return
-        }
-
-        if rightDividerX == nil {
-            if let leftDividerX, x < leftDividerX {
-                rightDividerX = leftDividerX
-                leftDividerX = x
-            } else {
-                rightDividerX = x
-            }
-            return
-        }
-
-        guard let leftDividerX, let rightDividerX else { return }
-
-        if x <= leftDividerX {
-            self.leftDividerX = x
-            return
-        }
-
-        if x >= rightDividerX {
-            self.rightDividerX = x
-            return
-        }
-
-        let leftDistance = abs(x - leftDividerX)
-        let rightDistance = abs(rightDividerX - x)
-        if leftDistance <= rightDistance {
-            self.leftDividerX = x
-        } else {
-            self.rightDividerX = x
         }
     }
 }
