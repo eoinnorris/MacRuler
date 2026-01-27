@@ -14,6 +14,7 @@ final class RulerSettingsViewModel {
 }
 
 enum UnitTyoes: String, CaseIterable, Identifiable {
+    case cm
     case mm
     case inches
     case pixels
@@ -22,12 +23,14 @@ enum UnitTyoes: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
+        case .cm:
+            return "Centimeters"
         case .mm:
             return "Millimeters"
         case .inches:
             return "Inches"
         case .pixels:
-            return "Pixels"
+            return "Points"
         }
     }
 }
