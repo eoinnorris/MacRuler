@@ -29,7 +29,7 @@ struct RulerBackGround : View {
             // ✅ Tick marks
             Canvas { context, size in
                 let h = size.height
-                let tickConfig = tickConfiguration(for: rulerSettingsViewModel.unitType)
+                let tickConfig = rulerSettingsViewModel.unitType.tickConfiguration
                 let minorEvery = tickConfig.minorEveryInPoints
                 let majorStep = tickConfig.majorStep
                 let labelStep = tickConfig.labelStep
@@ -54,7 +54,10 @@ struct RulerBackGround : View {
                 context.stroke(major, with: .color(.black.opacity(0.65)), lineWidth: 1.2)
 
                 if labelStep > 0 {
-                    for tickIndex in 0...totalTicks where tickIndex.isMultiple(of: labelStep) && tickIndex > 0 {
+                    for tickIndex in 0...totalTicks
+                    where tickIndex.isMultiple(of: labelStep)
+                        && tickIndex.isMultiple(of: majorStep)
+                        && tickIndex > 0 {
                         let x = CGFloat(tickIndex) * minorEvery
                         let unitValue = CGFloat(tickIndex) * tickConfig.minorEveryInUnits
                         let label = tickConfig.labelFormatter(unitValue)
@@ -95,60 +98,4 @@ struct RulerBackGround : View {
         }
     }
 
-    private func tickConfiguration(for unitType: UnitTyoes) -> TickConfiguration {
-        switch unitType {
-        case .pixels:
-            return TickConfiguration(
-                pointsPerUnit: 1,
-                minorEveryInUnits: 10,
-                majorEveryInUnits: 50,
-                labelEveryInUnits: 250,
-                labelFormatter: { value in "\(Int(value.rounded()))" }
-            )
-        case .mm:
-            return TickConfiguration(
-                pointsPerUnit: 72 / 25.4,
-                minorEveryInUnits: 1,
-                majorEveryInUnits: 5,
-                labelEveryInUnits: 10,
-                labelFormatter: { value in "\(Int(value.rounded()))" }
-            )
-        case .cm:
-            return TickConfiguration(
-                pointsPerUnit: 72 / 2.54,
-                minorEveryInUnits: 0.1,
-                majorEveryInUnits: 0.5,
-                labelEveryInUnits: 1,
-                labelFormatter: { value in "\(Int(value.rounded()))" }
-            )
-        case .inches:
-            return TickConfiguration(
-                pointsPerUnit: 72,
-                minorEveryInUnits: 0.125,
-                majorEveryInUnits: 0.25,
-                labelEveryInUnits: 1,
-                labelFormatter: { value in "\(Int(value.rounded()))" }
-            )
-        }
-    }
-}
-
-private struct TickConfiguration {
-    let pointsPerUnit: CGFloat
-    let minorEveryInUnits: CGFloat
-    let majorEveryInUnits: CGFloat
-    let labelEveryInUnits: CGFloat
-    let labelFormatter: (CGFloat) -> String
-
-    var minorEveryInPoints: CGFloat {
-        pointsPerUnit * minorEveryInUnits
-    }
-
-    var majorStep: Int {
-        max(Int((majorEveryInUnits / minorEveryInUnits).rounded()), 1)
-    }
-
-    var labelStep: Int {
-        max(Int((labelEveryInUnits / minorEveryInUnits).rounded()), 1)
-    }
 }

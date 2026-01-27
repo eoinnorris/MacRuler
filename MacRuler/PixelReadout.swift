@@ -10,9 +10,13 @@ import SwiftUI
 
 struct PixelReadout: View {
     let overlayViewModel: OverlayViewModel
+    @Environment(RulerSettingsViewModel.self) private var rulerSettingsViewModel
 
     var body: some View {
-        Text("\(overlayViewModel.dividerDistancePixels) px")
+        let unitType = rulerSettingsViewModel.unitType
+        let distancePoints = CGFloat(overlayViewModel.dividerDistancePixels)
+        let displayValue = unitType.formattedDistance(points: distancePoints)
+        Text("\(displayValue) \(unitType.unitSymbol)")
             .font(.system(.body, design: .rounded))
             .fontWeight(.medium)
             .foregroundStyle(.primary)
