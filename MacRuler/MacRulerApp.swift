@@ -18,6 +18,16 @@ struct MacOSRulerApp: App {
         Settings {
             SettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
         }
+        .commands {
+            CommandMenu("Go") {
+                Button("Key Left") {
+                    DividerKeyNotification.post(direction: .left, isDouble: false)
+                }
+                Button("Key Right") {
+                    DividerKeyNotification.post(direction: .right, isDouble: false)
+                }
+            }
+        }
     }
 }
 
