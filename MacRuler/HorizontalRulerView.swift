@@ -156,10 +156,6 @@ final class HorizontalRulerWindowDelegate: NSObject, NSWindowDelegate {
         return NSSize(width: width, height: fixedHeight + 10.0)
     }
 
-    func windowDidMove(_ notification: Notification) {
-        saveFrame(from: notification)
-    }
-
     func windowDidResize(_ notification: Notification) {
         saveFrame(from: notification)
     }
@@ -167,7 +163,7 @@ final class HorizontalRulerWindowDelegate: NSObject, NSWindowDelegate {
     private func saveFrame(from notification: Notification) {
         guard let window = notification.object as? NSWindow else { return }
         UserDefaults.standard.set(
-            NSStringFromRect(window.frame),
+            window.frame.width,
             forKey: PersistenceKeys.horizontalRulerFrame
         )
     }

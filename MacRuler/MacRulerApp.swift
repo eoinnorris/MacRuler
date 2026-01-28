@@ -45,16 +45,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let screen = NSScreen.main else { return }
         let vf = screen.visibleFrame  // avoids menu bar + dock
 
-        // Horizontal panel (top area)
-        let hSize = NSSize(width: min(450, vf.width - 40), height: Constants.horizontalHeight)
+        // Horizontal panel (top third area)
+        let defaultWidth = min(450, vf.width - 40)
+        let hWidth = storedHorizontalWidth(
+            defaultWidth: defaultWidth,
+            screenWidth: vf.width
+        )
+        let hSize = NSSize(width: hWidth, height: Constants.horizontalHeight)
+        let topThirdMinY = vf.minY + (vf.height * (2.0 / 3.0))
+        let topThirdHeight = vf.height / 3.0
         let hOrigin = NSPoint(
             x: vf.minX + (vf.width - hSize.width) / 2,
-            y: vf.maxY - hSize.height
+            y: topThirdMinY + (topThirdHeight - hSize.height) / 2
         )
         let hPanel = makePanel(
-            frame: storedHorizontalFrame(
-                defaultFrame: NSRect(origin: hOrigin, size: hSize)
-            ),
+            frame: NSRect(origin: hOrigin, size: hSize),
             rootView: makeHorizontalRulerView()
         )
         horizontalController = NSWindowController(window: hPanel)
@@ -122,18 +127,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return panel
     }
 
-    private func storedHorizontalFrame(defaultFrame: NSRect) -> NSRect {
-        guard let stored = UserDefaults.standard.string(forKey: PersistenceKeys.horizontalRulerFrame) else {
-            return defaultFrame
+    private func storedHorizontalWidth(defaultWidth: CGFloat, screenWidth: CGFloat) -> CGFloat {
+        let storedWidth = UserDefaults.standard.double(forKey: PersistenceKeys.horizontalRulerFrame)
+        var width = storedWidth > 0 ? storedWidth : defaultWidth
+        if width > screenWidth * 0.8 {
+            width = screenWidth / 3.0
         }
-        let rect = NSRectFromString(stored)
-        guard rect.width > 0, rect.height > 0 else {
-            return defaultFrame
-        }
-        return NSRect(
-            origin: rect.origin,
-            size: NSSize(width: rect.width, height: defaultFrame.height)
-        )
+        width = max(width, Constants.minHRulerWidth)
+        return min(width, screenWidth)
     }
 }
 
