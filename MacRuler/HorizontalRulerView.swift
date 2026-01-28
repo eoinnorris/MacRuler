@@ -43,15 +43,6 @@ struct HorizontalRulerView: View {
                 
             }
             .frame(maxWidth: .infinity)
-
-//            HStack(spacing: 12) {
-//                PixelReadout(overlayViewModel: overlayViewModel,
-//                             rulerSettingsViewModel: settings)
-//                .frame(height:30.0)
-//            }
-//            .padding(.horizontal, 0)
-//            .padding(.bottom, 30)
-//            .background(Color.red)
         }
         .onTapGesture { location in
             withAnimation(.easeInOut(duration: 0.2)) {
