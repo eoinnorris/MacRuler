@@ -20,6 +20,12 @@ struct OverlayHorizontalView: View {
                         height: geometry.size.height,
                         backingScale: overlayViewModel.backingScale
                     )
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                overlayViewModel.leftDividerX = value.location.x
+                            }
+                    )
                 }
 
                 if let rightDividerX  = overlayViewModel.rightDividerX {
@@ -27,6 +33,12 @@ struct OverlayHorizontalView: View {
                         x: rightDividerX,
                         height: geometry.size.height,
                         backingScale: overlayViewModel.backingScale
+                    )
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                overlayViewModel.rightDividerX = value.location.x
+                            }
                     )
                 }
             }
@@ -41,14 +53,24 @@ private struct DividerLine: View {
     let backingScale: CGFloat
 
     private var lineWidth: CGFloat {
-        max(3, 5 / backingScale)
+        max(5, 7 / backingScale)
     }
 
     var body: some View {
         Rectangle()
-            .fill(Color.black.opacity(0.75))
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0.4),
+                        Color.black.opacity(0.9),
+                        Color.black.opacity(0.4)
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
             .frame(width: lineWidth, height: height)
-            .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 0)
+            .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 0)
             .position(x: x, y: height / 2)
     }
 }
