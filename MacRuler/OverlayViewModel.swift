@@ -12,9 +12,6 @@ final class OverlayViewModel {
     private let defaults: UserDefaults
     private var keyDownObserver: NSObjectProtocol?
 
-    var leftDividerHover: Bool = false
-    var rightDividerHover: Bool = false
-
     
     
     var leftDividerX: CGFloat? {
@@ -119,11 +116,8 @@ final class OverlayViewModel {
         let pixelStep = isDouble ? 10 : 1
         let delta = CGFloat(pixelStep) / max(backingScale, 0.1)
 
-        if leftDividerHover, let leftDividerX {
-            applyDelta(delta, direction: direction, to: leftDividerX, setter: { self.leftDividerX = $0 })
-        } else if rightDividerHover, let rightDividerX {
-            applyDelta(delta, direction: direction, to: rightDividerX, setter: { self.rightDividerX = $0 })
-        }
+        guard let leftDividerX else { return }
+        applyDelta(delta, direction: direction, to: leftDividerX, setter: { self.leftDividerX = $0 })
     }
 
     private func applyDelta(_ delta: CGFloat, direction: DividerKeyDirection, to currentValue: CGFloat, setter: (CGFloat) -> Void) {

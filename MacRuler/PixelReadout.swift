@@ -25,6 +25,15 @@ struct PixelReadout: View {
                 }
             }
             Divider()
+            Menu("Go") {
+                Button("Key Left") {
+                    DividerKeyNotification.post(direction: .left, isDouble: false)
+                }
+                Button("Key Right") {
+                    DividerKeyNotification.post(direction: .right, isDouble: false)
+                }
+            }
+            Divider()
             SettingsLink {
                 Text("Settings…")
             }
