@@ -7,6 +7,32 @@
 
 import SwiftUI
 
+enum DividerHandle: String, CaseIterable, Identifiable {
+    case left
+    case right
+
+    var id: String { rawValue }
+    var displayName: String {
+        switch self {
+        case .left:
+            return "Select left handle"
+        case .right:
+            return "Select right handle"
+        }
+    }
+}
+
+enum DividerStep: Int, CaseIterable, Identifiable {
+    case one = 1
+    case five = 5
+    case ten = 10
+
+    var id: Int { rawValue }
+    var displayName: String {
+        "\(rawValue)px"
+    }
+}
+
 @Observable
 final class OverlayViewModel {
     private let defaults: UserDefaults
@@ -24,12 +50,30 @@ final class OverlayViewModel {
             storeDividerValue(rightDividerX, forKey: PersistenceKeys.rightDividerX)
         }
     }
+    var selectedHandle: DividerHandle {
+        didSet {
+            defaults.set(selectedHandle.rawValue, forKey: PersistenceKeys.selectedHandle)
+        }
+    }
+    var selectedPoints: DividerStep {
+        didSet {
+            defaults.set(selectedPoints.rawValue, forKey: PersistenceKeys.selectedPoints)
+        }
+    }
     var backingScale: CGFloat = 1.0
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.leftDividerX = loadDividerValue(forKey: PersistenceKeys.leftDividerX)
         self.rightDividerX = loadDividerValue(forKey: PersistenceKeys.rightDividerX)
+        if let storedHandle = defaults.string(forKey: PersistenceKeys.selectedHandle),
+           let handle = DividerHandle(rawValue: storedHandle) {
+            self.selectedHandle = handle
+        } else {
+            self.selectedHandle = .left
+        }
+        let storedPoints = defaults.integer(forKey: PersistenceKeys.selectedPoints)
+        self.selectedPoints = DividerStep(rawValue: storedPoints) ?? .one
         startObservingKeyInputs()
     }
 
@@ -113,11 +157,17 @@ final class OverlayViewModel {
         }
 
         let isDouble = notification.userInfo?[DividerKeyNotification.isDoubleKey] as? Bool ?? false
-        let pixelStep = isDouble ? 10 : 1
+        let pixelStep = selectedPoints.rawValue * (isDouble ? 2 : 1)
         let delta = CGFloat(pixelStep) / max(backingScale, 0.1)
 
-        guard let leftDividerX else { return }
-        applyDelta(delta, direction: direction, to: leftDividerX, setter: { self.leftDividerX = $0 })
+        switch selectedHandle {
+        case .left:
+            guard let leftDividerX else { return }
+            applyDelta(delta, direction: direction, to: leftDividerX, setter: { self.leftDividerX = $0 })
+        case .right:
+            guard let rightDividerX else { return }
+            applyDelta(delta, direction: direction, to: rightDividerX, setter: { self.rightDividerX = $0 })
+        }
     }
 
     private func applyDelta(_ delta: CGFloat, direction: DividerKeyDirection, to currentValue: CGFloat, setter: (CGFloat) -> Void) {

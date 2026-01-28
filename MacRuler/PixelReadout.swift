@@ -10,7 +10,7 @@ import SwiftUI
 
 
 struct PixelReadout: View {
-    let overlayViewModel: OverlayViewModel
+    @Bindable var overlayViewModel: OverlayViewModel
     @Bindable var rulerSettingsViewModel:RulerSettingsViewModel
 
 
@@ -26,6 +26,19 @@ struct PixelReadout: View {
             }
             Divider()
             Menu("Go") {
+                Picker("Handle", selection: $overlayViewModel.selectedHandle) {
+                    ForEach(DividerHandle.allCases) { handle in
+                        Text(handle.displayName).tag(handle)
+                    }
+                }
+                Menu("Points") {
+                    Picker("Points", selection: $overlayViewModel.selectedPoints) {
+                        ForEach(DividerStep.allCases) { step in
+                            Text(step.displayName).tag(step)
+                        }
+                    }
+                }
+                Divider()
                 Button("Key Left") {
                     DividerKeyNotification.post(direction: .left, isDouble: false)
                 }
