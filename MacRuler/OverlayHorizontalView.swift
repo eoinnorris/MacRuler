@@ -52,8 +52,15 @@ private struct DividerLine: View {
     let height: CGFloat
     let backingScale: CGFloat
 
+    @State private var isHovering: Bool = false
+    
+    
     private var lineWidth: CGFloat {
-        max(5, 7 / backingScale)
+        if isHovering {
+            return max(7, 10 / backingScale)
+        } else {
+            return max(5, 7 / backingScale)
+        }
     }
 
     var body: some View {
@@ -62,15 +69,17 @@ private struct DividerLine: View {
                 LinearGradient(
                     colors: [
                         Color.black.opacity(0.4),
-                        Color.black.opacity(0.9),
-                        Color.black.opacity(0.4)
+                        Color.gray.opacity(0.9),
+                        Color.white.opacity(0.4)
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
+            .onHover(perform: { value in
+                isHovering =  value
+            })
             .frame(width: lineWidth, height: height)
-            .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 0)
             .position(x: x, y: height / 2)
     }
 }

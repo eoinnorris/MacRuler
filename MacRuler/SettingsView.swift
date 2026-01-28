@@ -13,10 +13,6 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Settings")
-                .font(.title)
-                .fontWeight(.semibold)
-
             Form {
                 UnitsSettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
                 Divider()
@@ -26,7 +22,7 @@ struct SettingsView: View {
             }
         }
         .padding(20)
-        .frame(minWidth: 280)
+        .frame(width: 270)
     }
 }
 
@@ -41,6 +37,7 @@ fileprivate struct UnitsSettingsView: View {
                 }
             }
             .pickerStyle(.radioGroup)
+            .padding(.top)
         }
     }
 }
@@ -55,6 +52,8 @@ fileprivate struct RulerSettingsView: View {
                 Text("Large").tag("Large")
             }
             .pickerStyle(.radioGroup)
+            .padding(.top)
+
         }
     }
 }
@@ -64,6 +63,7 @@ fileprivate struct AdvancedSettingsView: View {
         Section("Advanced") {
             Text("This is the Advanced section.")
                 .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top)
         }
     }
 }
