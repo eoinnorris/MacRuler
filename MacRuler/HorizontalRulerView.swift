@@ -17,25 +17,41 @@ struct HorizontalRulerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            Spacer()
             ZStack {
                 RulerBackGround(rulerType: .horizontal,
                                 rulerSettingsViewModel: settings)
+                .frame(height: 44.0)
                 OverlayHorizontalView(overlayViewModel: overlayViewModel)
                 // ✅ Invisible window reader (tracks backing scale)
                 WindowScaleReader(backingScale: $overlayViewModel.backingScale)
                     .frame(width: 0, height: 0)
                 
+                VStack {
+                    Spacer()
+                    HStack(spacing: 0) {
+                        PixelReadout(overlayViewModel: overlayViewModel,
+                                     rulerSettingsViewModel: settings)
+                        Spacer()
+                    }
+                    .frame(height: 24.0)
+                    .padding(.horizontal, 0)
+                    .padding(.bottom,20 )
+                    .background(Color.clear)
+                }
+               
+                
             }
             .frame(maxWidth: .infinity)
 
-            HStack(spacing: 12) {
-                PixelReadout(overlayViewModel: overlayViewModel,
-                             rulerSettingsViewModel: settings)
-                Spacer()
-            }
-            .padding(.horizontal, 0)
-            .padding(.vertical, 0)
-            .background(Color.clear)
+//            HStack(spacing: 12) {
+//                PixelReadout(overlayViewModel: overlayViewModel,
+//                             rulerSettingsViewModel: settings)
+//                .frame(height:30.0)
+//            }
+//            .padding(.horizontal, 0)
+//            .padding(.bottom, 30)
+//            .background(Color.red)
         }
         .onTapGesture { location in
             withAnimation(.easeInOut(duration: 0.2)) {

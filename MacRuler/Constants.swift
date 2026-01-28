@@ -17,7 +17,7 @@ struct Constants {
         return 2.0
     }
     
-    static let horizontalHeight = 100.0
+    static let horizontalHeight = 144.0
     static let minHRulerWidth = 100.0
     static let verticalWidth = 44.0
 
