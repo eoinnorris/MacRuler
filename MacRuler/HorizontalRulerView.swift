@@ -12,12 +12,14 @@ import AppKit
 
 struct HorizontalRulerView: View {
     @State private var overlayViewModel = OverlayViewModel()
+    @Bindable var settings: RulerSettingsViewModel
 
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                RulerBackGround(rulerType: .horizontal)
+                RulerBackGround(rulerType: .horizontal,
+                                rulerSettingsViewModel: settings)
                 OverlayHorizontalView(overlayViewModel: overlayViewModel)
                 // ✅ Invisible window reader (tracks backing scale)
                 WindowScaleReader(backingScale: $overlayViewModel.backingScale)
@@ -27,7 +29,8 @@ struct HorizontalRulerView: View {
             .frame(maxWidth: .infinity)
 
             HStack(spacing: 12) {
-                PixelReadout(overlayViewModel: overlayViewModel)
+                PixelReadout(overlayViewModel: overlayViewModel,
+                             rulerSettingsViewModel: settings)
                 Spacer()
             }
             .padding(.horizontal, 0)

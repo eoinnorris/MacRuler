@@ -11,7 +11,8 @@ import SwiftUI
 
 struct PixelReadout: View {
     let overlayViewModel: OverlayViewModel
-    @Environment(RulerSettingsViewModel.self) private var rulerSettingsViewModel
+    @Bindable var rulerSettingsViewModel:RulerSettingsViewModel
+
 
     var body: some View {
         let unitType = rulerSettingsViewModel.unitType
@@ -24,8 +25,8 @@ struct PixelReadout: View {
                 }
             }
             Divider()
-            Button("Settings…") {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            SettingsLink {
+                Text("Settings…")
             }
         } label: {
             Text("\(displayValue) \(unitType.unitSymbol)")

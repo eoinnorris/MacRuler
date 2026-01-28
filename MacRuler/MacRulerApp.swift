@@ -27,14 +27,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
-    private let horizontalRulerView  = HorizontalRulerView()
+//    private let horizontalRulerView:HorizontalRulerView
 
     
     func makeHorizontalRulerView() -> some View {
-        HorizontalRulerView()
+        HorizontalRulerView(settings: RulerSettingsViewModel.shared)
             .frame(height: Constants.horizontalHeight)
             .fixedSize(horizontal: false, vertical: true)
-            .environment( RulerSettingsViewModel.shared)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {

@@ -10,7 +10,7 @@ import SwiftUI
 struct RulerBackGround : View {
     
     let rulerType:RulerType
-    @Environment(RulerSettingsViewModel.self) private var rulerSettingsViewModel
+    @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
     
     var body: some View {
          switch rulerType {
