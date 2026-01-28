@@ -21,9 +21,6 @@ struct OverlayHorizontalView: View {
                         height: geometry.size.height,
                         backingScale: overlayViewModel.backingScale
                     )
-                    .onHover { value in
-                        overlayViewModel.leftDividerHover  = value
-                    }
                     .gesture(
                         DragGesture()
                             .onChanged { value in
@@ -39,9 +36,6 @@ struct OverlayHorizontalView: View {
                         height: geometry.size.height,
                         backingScale: overlayViewModel.backingScale
                     )
-                    .onHover { value in
-                        overlayViewModel.rightDividerHover  = value
-                    }
                     .gesture(
                         DragGesture()
                             .onChanged { value in
