@@ -10,6 +10,7 @@ import SwiftUI
 @Observable
 final class OverlayViewModel {
     private let defaults: UserDefaults
+    private var keyDownObserver: NSObjectProtocol?
 
     var leftDividerHover: Bool = false
     var rightDividerHover: Bool = false
@@ -32,6 +33,13 @@ final class OverlayViewModel {
         self.defaults = defaults
         self.leftDividerX = loadDividerValue(forKey: PersistenceKeys.leftDividerX)
         self.rightDividerX = loadDividerValue(forKey: PersistenceKeys.rightDividerX)
+        startObservingKeyInputs()
+    }
+
+    deinit {
+        if let keyDownObserver {
+            NotificationCenter.default.removeObserver(keyDownObserver)
+        }
     }
 
     var dividerDistancePixels: Int {
@@ -86,6 +94,44 @@ final class OverlayViewModel {
             defaults.set(Double(value), forKey: key)
         } else {
             defaults.removeObject(forKey: key)
+        }
+    }
+
+    private func startObservingKeyInputs() {
+        keyDownObserver = NotificationCenter.default.addObserver(
+            forName: DividerKeyNotification.name,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleDividerKeyNotification(notification)
+        }
+    }
+
+    private func handleDividerKeyNotification(_ notification: Notification) {
+        guard
+            let directionRaw = notification.userInfo?[DividerKeyNotification.directionKey] as? String,
+            let direction = DividerKeyDirection(rawValue: directionRaw)
+        else {
+            return
+        }
+
+        let isDouble = notification.userInfo?[DividerKeyNotification.isDoubleKey] as? Bool ?? false
+        let pixelStep = isDouble ? 10 : 1
+        let delta = CGFloat(pixelStep) / max(backingScale, 0.1)
+
+        if leftDividerHover, let leftDividerX {
+            applyDelta(delta, direction: direction, to: leftDividerX, setter: { self.leftDividerX = $0 })
+        } else if rightDividerHover, let rightDividerX {
+            applyDelta(delta, direction: direction, to: rightDividerX, setter: { self.rightDividerX = $0 })
+        }
+    }
+
+    private func applyDelta(_ delta: CGFloat, direction: DividerKeyDirection, to currentValue: CGFloat, setter: (CGFloat) -> Void) {
+        switch direction {
+        case .left:
+            setter(currentValue - delta)
+        case .right:
+            setter(currentValue + delta)
         }
     }
 }

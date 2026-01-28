@@ -19,6 +19,8 @@ struct HorizontalRulerView: View {
         VStack(spacing: 0) {
             Spacer()
             ZStack {
+                DividerKeyCaptureView()
+                    .frame(width: 0, height: 0)
                 RulerBackGround(rulerType: .horizontal,
                                 rulerSettingsViewModel: settings)
                 .frame(height: 44.0)
