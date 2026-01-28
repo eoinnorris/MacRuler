@@ -26,13 +26,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
-    private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: 44)
+    private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
     private let horizontalRulerView  = HorizontalRulerView()
 
     
     func makeHorizontalRulerView() -> some View {
         HorizontalRulerView()
-            .frame(height: 96)
+            .frame(height: Constants.horizontalHeight)
             .fixedSize(horizontal: false, vertical: true)
             .environment( RulerSettingsViewModel.shared)
     }
@@ -46,10 +46,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let vf = screen.visibleFrame  // avoids menu bar + dock
 
         // Horizontal panel (top area)
-        let hSize = NSSize(width: min(450, vf.width - 40), height: 44)
+        let hSize = NSSize(width: min(450, vf.width - 40), height: Constants.horizontalHeight)
         let hOrigin = NSPoint(
             x: vf.minX + (vf.width - hSize.width) / 2,
-            y: vf.maxY - hSize.height - 10
+            y: vf.maxY - hSize.height
         )
         let hPanel = makePanel(
             frame: storedHorizontalFrame(
@@ -59,16 +59,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         horizontalController = NSWindowController(window: hPanel)
         horizontalController?.showWindow(nil)
-                    
-        
-        
+
         
         hPanel.delegate = horizontalResizeDelegate
-        hPanel.maxSize = NSSize(width: 1000, height: 44)
-        hPanel.contentMaxSize = NSSize(width: 1000, height: 44)
+        hPanel.maxSize = NSSize(width: 1000, height: Constants.horizontalHeight)
+        hPanel.contentMaxSize = NSSize(width: 1000, height: Constants.horizontalHeight)
 
         // Vertical panel (left area)
-        let vSize = NSSize(width: 44, height: min(700, vf.height - 40))
+        let vSize = NSSize(width: Constants.verticalWidth , height: min(700, vf.height - 40))
         let vOrigin = NSPoint(
             x: vf.minX + 10,
             y: vf.minY + (vf.height - vSize.height) / 2

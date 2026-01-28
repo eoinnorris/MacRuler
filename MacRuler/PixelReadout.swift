@@ -17,33 +17,7 @@ struct PixelReadout: View {
         let distancePoints = CGFloat(overlayViewModel.dividerDistancePixels)
         let displayValue = unitType.formattedDistance(points: distancePoints, screenScale: overlayViewModel.backingScale)
         Text("\(displayValue) \(unitType.unitSymbol)")
-            .modifier(PixelReadoutTextStyle())
+            .pixelReadoutTextStyle()
     }
 }
 
-private struct PixelReadoutTextStyle: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .font(.system(.body, design: .rounded))
-            .fontWeight(.medium)
-            .foregroundStyle(.primary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background {
-                Capsule()
-                    .fill(.ultraThinMaterial)
-                    .overlay {
-                        Capsule()
-                            .stroke(
-                                .white.opacity(0.25),
-                                lineWidth: 0.5
-                            )
-                    }
-            }
-            .shadow(
-                color: .black.opacity(0.15),
-                radius: 6,
-                y: 2
-            )
-    }
-}

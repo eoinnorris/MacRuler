@@ -152,7 +152,8 @@ final class HorizontalRulerWindowDelegate: NSObject, NSWindowDelegate {
     }
 
     func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
-        NSSize(width: frameSize.width, height: fixedHeight)
+        let width = frameSize.width < Constants.minHRulerWidth ? Constants.minHRulerWidth : frameSize.width
+        return NSSize(width: width, height: fixedHeight + 10.0)
     }
 
     func windowDidMove(_ notification: Notification) {
