@@ -16,10 +16,14 @@ struct OverlayHorizontalView: View {
             ZStack {
                 if let leftDividerX  = overlayViewModel.leftDividerX {
                     DividerLine(
+                        type: .left,
                         x: leftDividerX,
                         height: geometry.size.height,
                         backingScale: overlayViewModel.backingScale
                     )
+                    .onHover { value in
+                        overlayViewModel.leftDividerHover  = value
+                    }
                     .gesture(
                         DragGesture()
                             .onChanged { value in
@@ -30,10 +34,14 @@ struct OverlayHorizontalView: View {
 
                 if let rightDividerX  = overlayViewModel.rightDividerX {
                     DividerLine(
+                        type: .right,
                         x: rightDividerX,
                         height: geometry.size.height,
                         backingScale: overlayViewModel.backingScale
                     )
+                    .onHover { value in
+                        overlayViewModel.rightDividerHover  = value
+                    }
                     .gesture(
                         DragGesture()
                             .onChanged { value in
@@ -47,7 +55,13 @@ struct OverlayHorizontalView: View {
     }
 }
 
+enum DividerLineType {
+    case left
+    case right
+}
+
 private struct DividerLine: View {
+    let type:DividerLineType
     let x: CGFloat
     let height: CGFloat
     let backingScale: CGFloat

@@ -11,6 +11,11 @@ import SwiftUI
 final class OverlayViewModel {
     private let defaults: UserDefaults
 
+    var leftDividerHover: Bool = false
+    var rightDividerHover: Bool = false
+
+    
+    
     var leftDividerX: CGFloat? {
         didSet {
             storeDividerValue(leftDividerX, forKey: PersistenceKeys.leftDividerX)
