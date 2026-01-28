@@ -10,10 +10,26 @@ import SwiftUI
 
 @Observable
 final class RulerSettingsViewModel {
-    
+
     static var shared = RulerSettingsViewModel()
-    
-    var unitType: UnitTyoes = .pixels
+
+    private let defaults: UserDefaults
+
+    var unitType: UnitTyoes {
+        didSet {
+            defaults.set(unitType.rawValue, forKey: PersistenceKeys.unitType)
+        }
+    }
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let storedValue = defaults.string(forKey: PersistenceKeys.unitType),
+           let storedUnit = UnitTyoes(rawValue: storedValue) {
+            self.unitType = storedUnit
+        } else {
+            self.unitType = .pixels
+        }
+    }
 }
 
 enum UnitTyoes: String, CaseIterable, Identifiable {

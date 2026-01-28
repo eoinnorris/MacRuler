@@ -84,9 +84,10 @@ struct WindowScaleReader: NSViewRepresentable {
         }
     }
 
-    final class Coordinator: NSObject, NSWindowDelegate {
+    final class Coordinator: NSObject {
         private var backingScale: Binding<CGFloat>
         private weak var window: NSWindow?
+        private var observers: [NSObjectProtocol] = []
 
         init(backingScale: Binding<CGFloat>) {
             self.backingScale = backingScale
@@ -95,18 +96,8 @@ struct WindowScaleReader: NSViewRepresentable {
         func attach(to window: NSWindow) {
             guard self.window !== window else { return }
             self.window = window
-            window.delegate = self
             updateBackingScale(for: window)
-        }
-
-        func windowDidResize(_ notification: Notification) {
-            guard let window = notification.object as? NSWindow else { return }
-            updateBackingScale(for: window)
-        }
-
-        func windowDidChangeBackingProperties(_ notification: Notification) {
-            guard let window = notification.object as? NSWindow else { return }
-            updateBackingScale(for: window)
+            startObserving(window: window)
         }
 
         private func updateBackingScale(for window: NSWindow) {
@@ -114,10 +105,46 @@ struct WindowScaleReader: NSViewRepresentable {
                 ?? NSScreen.main?.backingScaleFactor
                 ?? 2.0
         }
+
+        private func startObserving(window: NSWindow) {
+            removeObservers()
+            let center = NotificationCenter.default
+            observers = [
+                center.addObserver(
+                    forName: NSWindow.didResizeNotification,
+                    object: window,
+                    queue: .main
+                ) { [weak self] notification in
+                    self?.handleWindowNotification(notification)
+                },
+                center.addObserver(
+                    forName: NSWindow.didChangeBackingPropertiesNotification,
+                    object: window,
+                    queue: .main
+                ) { [weak self] notification in
+                    self?.handleWindowNotification(notification)
+                }
+            ]
+        }
+
+        private func handleWindowNotification(_ notification: Notification) {
+            guard let window = notification.object as? NSWindow else { return }
+            updateBackingScale(for: window)
+        }
+
+        private func removeObservers() {
+            let center = NotificationCenter.default
+            observers.forEach { center.removeObserver($0) }
+            observers.removeAll()
+        }
+
+        deinit {
+            removeObservers()
+        }
     }
 }
 
-final class FixedHeightResizeDelegate: NSObject, NSWindowDelegate {
+final class HorizontalRulerWindowDelegate: NSObject, NSWindowDelegate {
     let fixedHeight: CGFloat
 
     init(fixedHeight: CGFloat) {
@@ -126,5 +153,21 @@ final class FixedHeightResizeDelegate: NSObject, NSWindowDelegate {
 
     func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
         NSSize(width: frameSize.width, height: fixedHeight)
+    }
+
+    func windowDidMove(_ notification: Notification) {
+        saveFrame(from: notification)
+    }
+
+    func windowDidResize(_ notification: Notification) {
+        saveFrame(from: notification)
+    }
+
+    private func saveFrame(from notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        UserDefaults.standard.set(
+            NSStringFromRect(window.frame),
+            forKey: PersistenceKeys.horizontalRulerFrame
+        )
     }
 }
