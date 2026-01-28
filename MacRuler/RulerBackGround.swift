@@ -58,14 +58,20 @@ struct RulerBackGround : View {
                     where tickIndex.isMultiple(of: labelStep)
                         && tickIndex.isMultiple(of: majorStep)
                         && tickIndex > 0 {
-                        let x = CGFloat(tickIndex) * minorEvery
+                        let x = (CGFloat(tickIndex) * minorEvery)
                         let unitValue = CGFloat(tickIndex) * tickConfig.minorEveryInUnits
                         let label = tickConfig.labelFormatter(unitValue)
+                        let labelSize = Constants.approximateLabelSize(
+                                text: label,
+                                fontSize: 9,
+                                screenScale: Constants.screenScale
+                        )
+                        let delta = labelSize.width / 2.0
                         context.draw(
                             Text(label)
                                 .font(labelFont)
                                 .foregroundStyle(Color.black.opacity(0.7)),
-                            at: CGPoint(x: x + 2, y: h * 0.1),
+                            at: CGPoint(x: x - delta , y: h * 0.1),
                             anchor: .topLeading
                         )
                     }

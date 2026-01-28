@@ -10,6 +10,9 @@ import SwiftUI
 
 @Observable
 final class RulerSettingsViewModel {
+    
+    static var shared = RulerSettingsViewModel()
+    
     var unitType: UnitTyoes = .pixels
 }
 

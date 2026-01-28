@@ -11,11 +11,12 @@ import AppKit
 @main
 struct MacOSRulerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @State var rulerSettingsViewModel = RulerSettingsViewModel.shared
 
     var body: some Scene {
         // No default window; we’ll drive our own panels.
         Settings {
-            SettingsView(rulerSettingsViewModel: appDelegate.$rulerSettingsViewModel)
+            SettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
         }
     }
 }
@@ -27,14 +28,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var verticalController: NSWindowController?
     private let horizontalResizeDelegate = FixedHeightResizeDelegate(fixedHeight: 44)
     private let horizontalRulerView  = HorizontalRulerView()
-    @State var rulerSettingsViewModel = RulerSettingsViewModel()
 
     
     func makeHorizontalRulerView() -> some View {
         HorizontalRulerView()
             .frame(height: 96)
             .fixedSize(horizontal: false, vertical: true)
-            .environment(rulerSettingsViewModel)
+            .environment( RulerSettingsViewModel.shared)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -82,8 +82,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func makePanel<Content: View>(
         frame: NSRect,
         rootView: Content
-    ) -> NSWindow {
-        let panel = NSWindow(
+    ) -> NSPanel {
+        let panel = NSPanel(
             contentRect: frame,
             styleMask: [
                 .titled,
@@ -140,3 +140,4 @@ struct VerticalRulerView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+
