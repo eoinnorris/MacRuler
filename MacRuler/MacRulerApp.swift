@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
-    private let horizontalResizeDelegate = FixedHeightResizeDelegate(fixedHeight: 44)
+    private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: 44)
     private let horizontalRulerView  = HorizontalRulerView()
 
     
@@ -52,7 +52,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             y: vf.maxY - hSize.height - 10
         )
         let hPanel = makePanel(
-            frame: NSRect(origin: hOrigin, size: hSize),
+            frame: storedHorizontalFrame(
+                defaultFrame: NSRect(origin: hOrigin, size: hSize)
+            ),
             rootView: makeHorizontalRulerView()
         )
         horizontalController = NSWindowController(window: hPanel)
@@ -121,6 +123,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         return panel
     }
+
+    private func storedHorizontalFrame(defaultFrame: NSRect) -> NSRect {
+        guard let stored = UserDefaults.standard.string(forKey: PersistenceKeys.horizontalRulerFrame) else {
+            return defaultFrame
+        }
+        let rect = NSRectFromString(stored)
+        guard rect.width > 0, rect.height > 0 else {
+            return defaultFrame
+        }
+        return NSRect(
+            origin: rect.origin,
+            size: NSSize(width: rect.width, height: defaultFrame.height)
+        )
+    }
 }
 
 
@@ -140,4 +156,3 @@ struct VerticalRulerView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
-

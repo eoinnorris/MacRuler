@@ -9,9 +9,25 @@ import SwiftUI
 
 @Observable
 final class OverlayViewModel {
-   var leftDividerX: CGFloat?
-   var rightDividerX: CGFloat?
-   var backingScale: CGFloat = 1.0
+    private let defaults: UserDefaults
+
+    var leftDividerX: CGFloat? {
+        didSet {
+            storeDividerValue(leftDividerX, forKey: PersistenceKeys.leftDividerX)
+        }
+    }
+    var rightDividerX: CGFloat? {
+        didSet {
+            storeDividerValue(rightDividerX, forKey: PersistenceKeys.rightDividerX)
+        }
+    }
+    var backingScale: CGFloat = 1.0
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        self.leftDividerX = loadDividerValue(forKey: PersistenceKeys.leftDividerX)
+        self.rightDividerX = loadDividerValue(forKey: PersistenceKeys.rightDividerX)
+    }
 
     var dividerDistancePixels: Int {
         guard let leftDividerX, let rightDividerX else { return 0 }
@@ -54,5 +70,17 @@ final class OverlayViewModel {
             self.rightDividerX = x
         }
     }
-    
+
+    private func loadDividerValue(forKey key: String) -> CGFloat? {
+        guard defaults.object(forKey: key) != nil else { return nil }
+        return CGFloat(defaults.double(forKey: key))
+    }
+
+    private func storeDividerValue(_ value: CGFloat?, forKey key: String) {
+        if let value {
+            defaults.set(Double(value), forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
+        }
+    }
 }
