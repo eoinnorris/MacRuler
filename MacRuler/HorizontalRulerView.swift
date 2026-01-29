@@ -13,6 +13,7 @@ import AppKit
 struct HorizontalRulerView: View {
     @Bindable var overlayViewModel:OverlayViewModel
     @Bindable var settings: RulerSettingsViewModel
+    @State private var rulerFrame: CGRect = .zero
 
 
     var body: some View {
@@ -22,6 +23,11 @@ struct HorizontalRulerView: View {
                 RulerBackGround(rulerType: .horizontal,
                                 rulerSettingsViewModel: settings)
                 .frame(height: 44.0)
+                .background(
+                    RulerFrameReader { frame in
+                        rulerFrame = frame
+                    }
+                )
                 OverlayHorizontalView(overlayViewModel: overlayViewModel)
                 // ✅ Invisible window reader (tracks backing scale)
                 WindowScaleReader(backingScale: $overlayViewModel.backingScale)
@@ -43,6 +49,12 @@ struct HorizontalRulerView: View {
                 
             }
             .frame(maxWidth: .infinity)
+            .overlay(
+                RulerMagnifierView(
+                    magnifierSize: 140,
+                    rulerFrame: $rulerFrame
+                )
+            )
         }
         .onTapGesture { location in
             withAnimation(.easeInOut(duration: 0.2)) {
