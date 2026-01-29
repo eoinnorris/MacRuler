@@ -73,6 +73,7 @@ final class OverlayViewModel {
     }
     
     var backingScale: CGFloat = 1.0
+    var windowFrame: CGRect = .zero
 
     private init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

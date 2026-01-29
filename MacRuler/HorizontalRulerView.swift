@@ -13,6 +13,7 @@ import AppKit
 struct HorizontalRulerView: View {
     @Bindable var overlayViewModel:OverlayViewModel
     @Bindable var settings: RulerSettingsViewModel
+    @Bindable var debugSettings: DebugSettingsModel
     @State private var rulerFrame: CGRect = .zero
 
 
@@ -30,7 +31,10 @@ struct HorizontalRulerView: View {
                 )
                 OverlayHorizontalView(overlayViewModel: overlayViewModel)
                 // ✅ Invisible window reader (tracks backing scale)
-                WindowScaleReader(backingScale: $overlayViewModel.backingScale)
+                WindowScaleReader(
+                    backingScale: $overlayViewModel.backingScale,
+                    windowFrame: $overlayViewModel.windowFrame
+                )
                     .frame(width: 0, height: 0)
                 
                 VStack {
@@ -62,6 +66,11 @@ struct HorizontalRulerView: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))
+        .background(
+            debugSettings.showWindowBackground
+            ? Color.black.opacity(0.15)
+            : Color.clear
+        )
         .padding(6)
     }
 }
@@ -85,9 +94,13 @@ private struct SettingsButton: View {
 
 struct WindowScaleReader: NSViewRepresentable {
     @Binding var backingScale: CGFloat
+    @Binding var windowFrame: CGRect
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(backingScale: $backingScale)
+        Coordinator(
+            backingScale: $backingScale,
+            windowFrame: $windowFrame
+        )
     }
 
     func makeNSView(context: Context) -> NSView {
@@ -108,24 +121,27 @@ struct WindowScaleReader: NSViewRepresentable {
 
     final class Coordinator: NSObject {
         private var backingScale: Binding<CGFloat>
+        private var windowFrame: Binding<CGRect>
         private weak var window: NSWindow?
         private var observers: [NSObjectProtocol] = []
 
-        init(backingScale: Binding<CGFloat>) {
+        init(backingScale: Binding<CGFloat>, windowFrame: Binding<CGRect>) {
             self.backingScale = backingScale
+            self.windowFrame = windowFrame
         }
 
         func attach(to window: NSWindow) {
             guard self.window !== window else { return }
             self.window = window
-            updateBackingScale(for: window)
+            updateWindowProperties(for: window)
             startObserving(window: window)
         }
 
-        private func updateBackingScale(for window: NSWindow) {
+        private func updateWindowProperties(for window: NSWindow) {
             backingScale.wrappedValue = window.screen?.backingScaleFactor
                 ?? NSScreen.main?.backingScaleFactor
                 ?? 2.0
+            windowFrame.wrappedValue = window.frame
         }
 
         private func startObserving(window: NSWindow) {
@@ -151,7 +167,7 @@ struct WindowScaleReader: NSViewRepresentable {
 
         private func handleWindowNotification(_ notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
-            updateBackingScale(for: window)
+            updateWindowProperties(for: window)
         }
 
         private func removeObservers() {
