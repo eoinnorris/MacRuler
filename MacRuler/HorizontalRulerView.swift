@@ -25,7 +25,9 @@ struct HorizontalRulerView: View {
                 .frame(height: 44.0)
                 .background(
                     RulerFrameReader { frame in
-                        rulerFrame = frame
+                        Task { @MainActor in
+                            rulerFrame = frame
+                        }
                     }
                 )
                 OverlayHorizontalView(overlayViewModel: overlayViewModel)
@@ -51,7 +53,7 @@ struct HorizontalRulerView: View {
             .frame(maxWidth: .infinity)
             .overlay(
                 RulerMagnifierView(
-                    magnifierSize: 140,
+                    magnifierSize: 280,
                     rulerFrame: $rulerFrame
                 )
             )

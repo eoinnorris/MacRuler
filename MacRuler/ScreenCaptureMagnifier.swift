@@ -10,9 +10,9 @@ import CoreMedia
 import ScreenCaptureKit
 import SwiftUI
 
-@MainActor
-final class RulerMagnifierController: NSObject, ObservableObject {
-    @Published var frameImage: CGImage?
+@Observable
+final class RulerMagnifierController: NSObject {
+   var frameImage: CGImage?
 
     private let captureQueue = DispatchQueue(label: "ScreenCaptureMagnifier.Capture")
     private let ciContext = CIContext()
@@ -32,7 +32,7 @@ final class RulerMagnifierController: NSObject, ObservableObject {
             configureStream()
             guard let contentFilter else { return }
             let stream = SCStream(filter: contentFilter, configuration: configuration, delegate: self)
-            try await stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: captureQueue)
+            try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: captureQueue)
             try await stream.startCapture()
             self.stream = stream
             isRunning = true
@@ -69,6 +69,7 @@ final class RulerMagnifierController: NSObject, ObservableObject {
         guard rect != currentCaptureRect else { return }
         currentCaptureRect = rect
         configuration.sourceRect = rect
+        configuration.scalesToFit = false
         configuration.width = Int(rect.width * screenScale)
         configuration.height = Int(rect.height * screenScale)
         if let stream {
@@ -82,15 +83,15 @@ final class RulerMagnifierController: NSObject, ObservableObject {
 
     private func configureStream() {
         configuration.queueDepth = 4
-        configuration.minimumFrameInterval = CMTime(value: 1, timescale: 60)
+        configuration.minimumFrameInterval = CMTime(value: 5, timescale: 60)
         configuration.showsCursor = false
         configuration.pixelFormat = kCVPixelFormatType_32BGRA
         if currentCaptureRect == .zero {
             currentCaptureRect = CGRect(x: 0, y: 0, width: 120, height: 120)
         }
         configuration.sourceRect = currentCaptureRect
-        configuration.width = Int(currentCaptureRect.width * screenScale)
-        configuration.height = Int(currentCaptureRect.height * screenScale)
+        configuration.width = Int(currentCaptureRect.width * screenScale * 4.0)
+        configuration.height = Int(currentCaptureRect.height * screenScale * 4.0)
     }
 }
 
@@ -115,12 +116,12 @@ extension RulerMagnifierController: SCStreamDelegate {
 struct RulerMagnifierView: View {
     let magnifierSize: CGFloat
     @Binding var rulerFrame: CGRect
-    @StateObject private var controller = RulerMagnifierController()
+    @State private var controller = RulerMagnifierController()
 
     var body: some View {
         ZStack {
             if let frameImage = controller.frameImage {
-                Image(decorative: frameImage, scale: 1.0)
+                Image(decorative: frameImage, scale: 4.0)
                     .resizable()
                     .scaledToFill()
             } else {
@@ -147,7 +148,7 @@ struct RulerMagnifierView: View {
         .onDisappear {
             controller.stop()
         }
-        .onChange(of: rulerFrame) { newValue in
+        .onChange(of: rulerFrame) { _, newValue in
             controller.updateCaptureRect(centeredOn: newValue, magnifierSize: magnifierSize)
         }
     }
