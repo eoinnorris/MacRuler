@@ -13,6 +13,7 @@ struct MacOSRulerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State var rulerSettingsViewModel = RulerSettingsViewModel.shared
     @State private var overlayViewModel = OverlayViewModel.shared
+    @State private var debugSettings = DebugSettingsModel.shared
     
     var body: some Scene {
         // No default window; we’ll drive our own panels.
@@ -49,6 +50,11 @@ struct MacOSRulerApp: App {
                 }
                 Divider()
             }
+#if DEBUG
+            CommandMenu("Debug") {
+                Toggle("Show Window Background", isOn: $debugSettings.showWindowBackground)
+            }
+#endif
         }
     }
 }
@@ -63,7 +69,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     
     func makeHorizontalRulerView() -> some View {
         HorizontalRulerView(overlayViewModel: OverlayViewModel.shared,
-                            settings: RulerSettingsViewModel.shared)
+                            settings: RulerSettingsViewModel.shared,
+                            debugSettings: DebugSettingsModel.shared)
             .frame(height: Constants.horizontalHeight)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -109,7 +116,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         let vPanel = makePanel(
             frame: NSRect(origin: vOrigin, size: vSize),
-            rootView: VerticalRulerView()
+            rootView: VerticalRulerView(debugSettings: DebugSettingsModel.shared)
         )
         verticalController = NSWindowController(window: vPanel)
         verticalController?.showWindow(nil)
@@ -172,6 +179,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 
 struct VerticalRulerView: View {
+    @Bindable var debugSettings: DebugSettingsModel
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
@@ -184,5 +193,10 @@ struct VerticalRulerView: View {
             .padding(.vertical, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            debugSettings.showWindowBackground
+            ? Color.black.opacity(0.15)
+            : Color.clear
+        )
     }
 }
