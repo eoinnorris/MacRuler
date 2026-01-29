@@ -11,7 +11,7 @@ import AppKit
 
 
 struct HorizontalRulerView: View {
-    @State private var overlayViewModel = OverlayViewModel()
+    @Bindable var overlayViewModel:OverlayViewModel
     @Bindable var settings: RulerSettingsViewModel
 
 

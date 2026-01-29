@@ -12,7 +12,8 @@ import AppKit
 struct MacOSRulerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State var rulerSettingsViewModel = RulerSettingsViewModel.shared
-
+    @State private var overlayViewModel = OverlayViewModel.shared
+    
     var body: some Scene {
         // No default window; we’ll drive our own panels.
         Settings {
@@ -20,12 +21,33 @@ struct MacOSRulerApp: App {
         }
         .commands {
             CommandMenu("Go") {
-                Button("Key Left") {
+                Toggle("Select left handle", isOn: $overlayViewModel.leftHandleSelected)
+                    .keyboardShortcut("1", modifiers: [.command])
+                Toggle("Select right handle", isOn: $overlayViewModel.rightHandleSelected)
+                    .keyboardShortcut("2", modifiers: [.command])
+                Divider()
+                
+                Button("Move Left") {
                     DividerKeyNotification.post(direction: .left, isDouble: false)
                 }
-                Button("Key Right") {
+                .keyboardShortcut(.leftArrow, modifiers: [.command])
+                Button("Move Right") {
                     DividerKeyNotification.post(direction: .right, isDouble: false)
                 }
+                .keyboardShortcut(.rightArrow, modifiers: [.command])
+                Divider()
+                Picker("Points", selection: $overlayViewModel.selectedPoints) {
+                    ForEach(DividerStep.allCases) { step in
+                        Text(step.displayName).tag(step)
+                    }
+                }
+                Divider()
+                Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {
+                    ForEach(UnitTyoes.allCases) { unit in
+                        Text(unit.displayName).tag(unit)
+                    }
+                }
+                Divider()
             }
         }
     }
@@ -37,11 +59,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
-//    private let horizontalRulerView:HorizontalRulerView
 
     
     func makeHorizontalRulerView() -> some View {
-        HorizontalRulerView(settings: RulerSettingsViewModel.shared)
+        HorizontalRulerView(overlayViewModel: OverlayViewModel.shared,
+                            settings: RulerSettingsViewModel.shared)
             .frame(height: Constants.horizontalHeight)
             .fixedSize(horizontal: false, vertical: true)
     }

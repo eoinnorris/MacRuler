@@ -38,7 +38,7 @@ final class OverlayViewModel {
     private let defaults: UserDefaults
     private var keyDownObserver: NSObjectProtocol?
 
-    
+    static let shared = OverlayViewModel()
     
     var leftDividerX: CGFloat? {
         didSet {
@@ -55,17 +55,28 @@ final class OverlayViewModel {
             defaults.set(selectedHandle.rawValue, forKey: PersistenceKeys.selectedHandle)
         }
     }
+    
     var selectedPoints: DividerStep {
         didSet {
             defaults.set(selectedPoints.rawValue, forKey: PersistenceKeys.selectedPoints)
         }
     }
+    
+    var rightHandleSelected: Bool {
+        get { selectedHandle == .right }
+        set { selectedHandle = newValue ? .right : .left }
+    }
+    
+    var leftHandleSelected: Bool {
+        get { selectedHandle == .left }
+        set { selectedHandle = newValue ? .left : .right }
+    }
+    
     var backingScale: CGFloat = 1.0
 
-    init(defaults: UserDefaults = .standard) {
+    private init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.leftDividerX = loadDividerValue(forKey: PersistenceKeys.leftDividerX)
-        self.rightDividerX = loadDividerValue(forKey: PersistenceKeys.rightDividerX)
+      
         if let storedHandle = defaults.string(forKey: PersistenceKeys.selectedHandle),
            let handle = DividerHandle(rawValue: storedHandle) {
             self.selectedHandle = handle
@@ -75,6 +86,9 @@ final class OverlayViewModel {
         let storedPoints = defaults.integer(forKey: PersistenceKeys.selectedPoints)
         self.selectedPoints = DividerStep(rawValue: storedPoints) ?? .one
         startObservingKeyInputs()
+        
+        self.leftDividerX = loadDividerValue(forKey: PersistenceKeys.leftDividerX)
+        self.rightDividerX = loadDividerValue(forKey: PersistenceKeys.rightDividerX)
     }
 
     deinit {
