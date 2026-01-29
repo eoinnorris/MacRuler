@@ -14,7 +14,7 @@ struct HorizontalRulerView: View {
     @Bindable var overlayViewModel:OverlayViewModel
     @Bindable var settings: RulerSettingsViewModel
     @Bindable var debugSettings: DebugSettingsModel
-    @State private var rulerFrame: CGRect = .zero
+    @Bindable var magnificationViewModel: MagnificationViewModel
 
 
     var body: some View {
@@ -26,7 +26,7 @@ struct HorizontalRulerView: View {
                 .frame(height: 44.0)
                 .background(
                     RulerFrameReader { frame in
-                        rulerFrame = frame
+                        magnificationViewModel.rulerFrame = frame
                     }
                 )
                 OverlayHorizontalView(overlayViewModel: overlayViewModel)
@@ -53,12 +53,6 @@ struct HorizontalRulerView: View {
                 
             }
             .frame(maxWidth: .infinity)
-            .overlay(
-                RulerMagnifierView(
-                    magnifierSize: 140,
-                    rulerFrame: $rulerFrame
-                )
-            )
         }
         .onTapGesture { location in
             withAnimation(.easeInOut(duration: 0.2)) {

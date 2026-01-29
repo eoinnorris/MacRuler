@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import Observation
 
 @main
 struct MacOSRulerApp: App {
@@ -14,6 +15,7 @@ struct MacOSRulerApp: App {
     @State var rulerSettingsViewModel = RulerSettingsViewModel.shared
     @State private var overlayViewModel = OverlayViewModel.shared
     @State private var debugSettings = DebugSettingsModel.shared
+    @State private var magnificationViewModel = MagnificationViewModel.shared
     
     var body: some Scene {
         // No default window; we’ll drive our own panels.
@@ -50,6 +52,9 @@ struct MacOSRulerApp: App {
                 }
                 Divider()
             }
+            CommandMenu("Magnification") {
+                Toggle("Show Magnification", isOn: $magnificationViewModel.isMagnifierVisible)
+            }
 #if DEBUG
             CommandMenu("Debug") {
                 Toggle("Show Window Background", isOn: $debugSettings.showWindowBackground)
@@ -64,13 +69,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
+    private var magnifierController: NSWindowController?
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
+    private let magnificationViewModel = MagnificationViewModel.shared
+    private lazy var magnifierWindowDelegate = MagnifierWindowDelegate(viewModel: magnificationViewModel)
+    private var magnificationObservationTask: Task<Void, Never>?
 
     
     func makeHorizontalRulerView() -> some View {
         HorizontalRulerView(overlayViewModel: OverlayViewModel.shared,
                             settings: RulerSettingsViewModel.shared,
-                            debugSettings: DebugSettingsModel.shared)
+                            debugSettings: DebugSettingsModel.shared,
+                            magnificationViewModel: MagnificationViewModel.shared)
             .frame(height: Constants.horizontalHeight)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -120,6 +130,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         verticalController = NSWindowController(window: vPanel)
         verticalController?.showWindow(nil)
+
+        startMagnificationObservation()
+        syncMagnifierVisibility()
     }
 
     private func makePanel<Content: View>(
@@ -173,6 +186,74 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         width = max(width, Constants.minHRulerWidth)
         return min(width, screenWidth)
+    }
+
+    private func startMagnificationObservation() {
+        magnificationObservationTask?.cancel()
+        magnificationObservationTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            withObservationTracking {
+                _ = magnificationViewModel.isMagnifierVisible
+            } onChange: { [weak self] in
+                Task { @MainActor in
+                    self?.syncMagnifierVisibility()
+                    self?.startMagnificationObservation()
+                }
+            }
+        }
+    }
+
+    private func syncMagnifierVisibility() {
+        if magnificationViewModel.isMagnifierVisible {
+            showMagnifierWindow()
+        } else {
+            hideMagnifierWindow()
+        }
+    }
+
+    private func showMagnifierWindow() {
+        if magnifierController == nil {
+            let window = makeMagnifierWindow()
+            magnifierController = NSWindowController(window: window)
+        }
+        magnifierController?.showWindow(nil)
+        magnifierController?.window?.makeKeyAndOrderFront(nil)
+    }
+
+    private func hideMagnifierWindow() {
+        magnifierController?.window?.orderOut(nil)
+    }
+
+    private func makeMagnifierWindow() -> NSWindow {
+        let size = NSSize(width: 240, height: 240)
+        let screenFrame = NSScreen.main?.visibleFrame ?? .zero
+        let origin = NSPoint(
+            x: screenFrame.maxX - size.width - 40,
+            y: screenFrame.minY + 40
+        )
+        let window = NSWindow(
+            contentRect: NSRect(origin: origin, size: size),
+            styleMask: [.titled, .closable, .resizable, .miniaturizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Magnification"
+        window.isReleasedWhenClosed = false
+        window.contentView = NSHostingView(rootView: MagnificationWindowView(viewModel: magnificationViewModel))
+        window.delegate = magnifierWindowDelegate
+        return window
+    }
+}
+
+final class MagnifierWindowDelegate: NSObject, NSWindowDelegate {
+    private let viewModel: MagnificationViewModel
+
+    init(viewModel: MagnificationViewModel) {
+        self.viewModel = viewModel
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        viewModel.isMagnifierVisible = false
     }
 }
 

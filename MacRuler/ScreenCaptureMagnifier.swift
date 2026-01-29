@@ -114,7 +114,7 @@ extension RulerMagnifierController: SCStreamDelegate {
 
 struct RulerMagnifierView: View {
     let magnifierSize: CGFloat
-    @Binding var rulerFrame: CGRect
+    @Bindable var viewModel: MagnificationViewModel
     @StateObject private var controller = RulerMagnifierController()
 
     var body: some View {
@@ -141,13 +141,13 @@ struct RulerMagnifierView: View {
         .onAppear {
             Task {
                 await controller.start()
-                controller.updateCaptureRect(centeredOn: rulerFrame, magnifierSize: magnifierSize)
+                controller.updateCaptureRect(centeredOn: viewModel.rulerFrame, magnifierSize: magnifierSize)
             }
         }
         .onDisappear {
             controller.stop()
         }
-        .onChange(of: rulerFrame) { newValue in
+        .onChange(of: viewModel.rulerFrame) { newValue in
             controller.updateCaptureRect(centeredOn: newValue, magnifierSize: magnifierSize)
         }
     }
