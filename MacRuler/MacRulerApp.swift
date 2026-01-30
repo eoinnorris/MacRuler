@@ -234,8 +234,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let size = NSSize(width: 240, height: 240)
         let screenFrame = NSScreen.main?.visibleFrame ?? .zero
         let origin = NSPoint(
-            x: screenFrame.maxX - size.width - 40,
-            y: screenFrame.minY + 40
+            x: screenFrame.minX + (screenFrame.width - size.width) / 2.0,
+            y: screenFrame.minY + max((screenFrame.height / 3.0 - size.height) / 2.0, 0)
         )
         let window = NSWindow(
             contentRect: NSRect(origin: origin, size: size),
@@ -247,6 +247,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(rootView: MagnificationWindowView(viewModel: magnificationViewModel))
         window.delegate = magnifierWindowDelegate
+        magnifierWindowDelegate.applyLayout(to: window)
         return window
     }
 }
@@ -258,8 +259,40 @@ final class MagnifierWindowDelegate: NSObject, NSWindowDelegate {
         self.viewModel = viewModel
     }
 
+    func windowDidResize(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        applyLayout(to: window)
+    }
+
+    func windowDidMove(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        applyLayout(to: window)
+    }
+
+    func windowDidChangeScreen(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        applyLayout(to: window)
+    }
+
     func windowWillClose(_ notification: Notification) {
         viewModel.isMagnifierVisible = false
+    }
+
+    func applyLayout(to window: NSWindow) {
+        let screenFrame = window.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+        guard screenFrame != .zero else { return }
+        var frame = window.frame
+        let maxWidth = screenFrame.width * 0.8
+        if frame.width > maxWidth {
+            frame.size.width = maxWidth
+        }
+        let bottomThirdHeight = screenFrame.height / 3.0
+        let originX = screenFrame.minX + (screenFrame.width - frame.size.width) / 2.0
+        let originY = screenFrame.minY + max((bottomThirdHeight - frame.size.height) / 2.0, 0)
+        let updatedFrame = NSRect(origin: NSPoint(x: originX, y: originY), size: frame.size)
+        if updatedFrame != window.frame {
+            window.setFrame(updatedFrame, display: true)
+        }
     }
 }
 
