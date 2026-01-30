@@ -128,7 +128,7 @@ struct RulerMagnifierView: View {
                 Color.black.opacity(0.2)
             }
         }
-        .frame(width: magnifierSize, height: magnifierSize)
+//        .frame(width: magnifierSize, height: magnifierSize)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)

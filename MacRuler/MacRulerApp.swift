@@ -23,7 +23,7 @@ struct MacOSRulerApp: App {
             SettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
         }
         .commands {
-            CommandMenu("Go") {
+            CommandMenu("Ruler") {
                 Toggle("Select left handle", isOn: $overlayViewModel.leftHandleSelected)
                     .keyboardShortcut("1", modifiers: [.command])
                 Toggle("Select right handle", isOn: $overlayViewModel.rightHandleSelected)
