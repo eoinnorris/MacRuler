@@ -115,14 +115,18 @@ struct RulerMagnifierView: View {
     var body: some View {
         ZStack {
             if let frameImage = controller.frameImage {
-                Image(decorative: frameImage, scale: 4.0)
-                    .resizable()
-                    .scaledToFill()
+                ScrollView([.horizontal, .vertical]) {
+                    let imageSize = CGSize(width: CGFloat(frameImage.width) / 4.0,
+                                           height: CGFloat(frameImage.height) / 4.0)
+                    Image(decorative: frameImage, scale: 4.0)
+                        .resizable()
+                        .frame(width: imageSize.width, height: imageSize.height)
+                }
             } else {
                 Color.black.opacity(0.2)
             }
         }
-//        .frame(width: magnifierSize, height: magnifierSize)
+        .frame(width: magnifierSize, height: magnifierSize)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)
