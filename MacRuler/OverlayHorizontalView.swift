@@ -27,8 +27,9 @@ struct OverlayHorizontalView: View {
                         )
                     )
                     .background(
-                        RulerFrameReader { frame in
+                        RulerFrameReader { frame, screen in
                             magnificationViewModel.dancingAntsFrame = frame
+                            magnificationViewModel.screen = screen
                         }
                     )
                     .allowsHitTesting(false)

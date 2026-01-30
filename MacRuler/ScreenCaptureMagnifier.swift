@@ -53,16 +53,10 @@ final class RulerMagnifierController: NSObject {
         isRunning = false
     }
 
-    func updateCaptureRect(centeredOn rulerFrame: CGRect, magnifierSize: CGFloat) {
+    func updateCaptureRect(centeredOn rulerFrame: CGRect, screenBound: CGRect) {
         guard rulerFrame != .zero else { return }
-        let center = CGPoint(x: rulerFrame.midX, y: rulerFrame.midY)
-        let rect = CGRect(
-            x: center.x - magnifierSize / 2,
-            y: center.y - magnifierSize / 2,
-            width: magnifierSize,
-            height: magnifierSize
-        )
-        updateCaptureRect(rect)
+        let SCRect = Constants.globalRectToSCRect(rulerFrame, containerHeight: screenBound.height)
+        updateCaptureRect(SCRect)
     }
 
     private func updateCaptureRect(_ rect: CGRect) {
@@ -142,7 +136,8 @@ struct RulerMagnifierView: View {
         .onAppear {
             Task {
                 await controller.start()
-                controller.updateCaptureRect(centeredOn: viewModel.dancingAntsFrame, magnifierSize: magnifierSize)
+                controller.updateCaptureRect(centeredOn: viewModel.dancingAntsFrame,
+                                             screenBound: viewModel.screen?.frame ?? CGRect.zero)
             }
         }
         .onDisappear {
@@ -150,13 +145,14 @@ struct RulerMagnifierView: View {
         }
 
         .onChange(of: viewModel.dancingAntsFrame) { _, newValue in
-            controller.updateCaptureRect(centeredOn: newValue, magnifierSize: magnifierSize)
+            controller.updateCaptureRect(centeredOn: newValue,
+                                         screenBound: viewModel.screen?.frame ?? CGRect.zero)
         }
     }
 }
 
 struct RulerFrameReader: NSViewRepresentable {
-    var onFrameChange: (CGRect) -> Void
+    var onFrameChange: (CGRect, NSScreen?) -> Void
 
     func makeNSView(context: Context) -> FrameReportingView {
         let view = FrameReportingView()
@@ -171,22 +167,38 @@ struct RulerFrameReader: NSViewRepresentable {
 }
 
 final class FrameReportingView: NSView {
-    var onFrameChange: ((CGRect) -> Void)?
-
-    override func layout() {
-        super.layout()
-        reportFrame()
-    }
+    var onFrameChange: ((CGRect, NSScreen?) -> Void)?
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         reportFrame()
     }
 
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        reportFrame()
+    }
+
+    override func setFrameOrigin(_ newOrigin: NSPoint) {
+        super.setFrameOrigin(newOrigin)
+        reportFrame()
+    }
+
     func reportFrame() {
         guard let window else { return }
-        let frameInWindow = convert(bounds, to: nil)
-        let frameOnScreen = window.convertToScreen(frameInWindow)
-        onFrameChange?(frameOnScreen)
+
+        // 1) bounds in the view's own coords
+        let rectInView = self.bounds
+
+        // 2) convert to window coords
+        let rectInWindow = self.convert(rectInView, to: nil)
+
+        // 3) convert to SCREEN coords (still Cocoa-style: origin bottom-left)
+        let rectOnScreen = window.convertToScreen(rectInWindow)
+        
+        let screen = window.screen
+
+        onFrameChange?(rectOnScreen, screen)
     }
 }
+

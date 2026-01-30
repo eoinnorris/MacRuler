@@ -37,5 +37,24 @@ struct Constants {
             height: height
         )
     }
+    
+    static func globalRectToSCRect(_ r: CGRect, containerHeight H: CGFloat) -> CGRect {
+        CGRect(
+            x: r.origin.x,
+            y: H - r.origin.y - r.size.height,
+            width: r.size.width,
+            height: r.size.height
+        )
+    }
+
+    static func scRectToGlobalRect(_ r: CGRect, containerHeight H: CGFloat) -> CGRect {
+        CGRect(
+            x: r.origin.x,
+            y: H - r.origin.y - r.size.height,
+            width: r.size.width,
+            height: r.size.height
+        )
+    }
+
 
 }

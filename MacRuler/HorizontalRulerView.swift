@@ -25,9 +25,9 @@ struct HorizontalRulerView: View {
                                 rulerSettingsViewModel: settings)
                 .frame(height: 44.0)
                 .background(
-                    RulerFrameReader { frame in
-
+                    RulerFrameReader { frame, screen in
                         magnificationViewModel.rulerFrame = frame
+                        magnificationViewModel.screen = screen
                     }
                 )
                 OverlayHorizontalView(
