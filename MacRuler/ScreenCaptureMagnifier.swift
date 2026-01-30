@@ -7,7 +7,7 @@
 
 import AppKit
 import CoreMedia
-import ScreenCaptureKit
+@preconcurrency import ScreenCaptureKit
 import SwiftUI
 
 @Observable

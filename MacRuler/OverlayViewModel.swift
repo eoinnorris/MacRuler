@@ -99,6 +99,7 @@ final class OverlayViewModel {
         self.rightDividerX = loadDividerValue(forKey: PersistenceKeys.rightDividerX)
     }
 
+    @MainActor
     deinit {
         if let keyDownObserver {
             NotificationCenter.default.removeObserver(keyDownObserver)
@@ -161,24 +162,36 @@ final class OverlayViewModel {
     }
 
     private func startObservingKeyInputs() {
+        let directionKey = DividerKeyNotification.directionKey
+        let isDoubleKey = DividerKeyNotification.isDoubleKey
+
         keyDownObserver = NotificationCenter.default.addObserver(
             forName: DividerKeyNotification.name,
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            self?.handleDividerKeyNotification(notification)
+            let directionRaw = notification.userInfo?[directionKey] as? String ?? ""
+            let isDouble = notification.userInfo?[isDoubleKey] as? Bool ?? false
+
+            Task { @MainActor in
+                guard
+                    let direction = DividerKeyDirection(rawValue: directionRaw)
+                else {
+                    return
+                }
+
+                self?.handleDividerKeyNotification(directionRow: directionRaw,
+                                                   direction: direction,
+                                                   isDouble: isDouble)
+            }
         }
     }
 
-    private func handleDividerKeyNotification(_ notification: Notification) {
-        guard
-            let directionRaw = notification.userInfo?[DividerKeyNotification.directionKey] as? String,
-            let direction = DividerKeyDirection(rawValue: directionRaw)
-        else {
-            return
-        }
+    @MainActor
+    private func handleDividerKeyNotification(directionRow:String,
+                                              direction: DividerKeyDirection,
+                                              isDouble: Bool) {
 
-        let isDouble = notification.userInfo?[DividerKeyNotification.isDoubleKey] as? Bool ?? false
         let pixelStep = selectedPoints.rawValue * (isDouble ? 2 : 1)
         let delta = CGFloat(pixelStep) / max(backingScale, 0.1)
 

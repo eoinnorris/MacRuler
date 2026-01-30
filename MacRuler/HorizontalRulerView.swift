@@ -148,20 +148,24 @@ struct WindowScaleReader: NSViewRepresentable {
                     object: window,
                     queue: .main
                 ) { [weak self] notification in
-                    self?.handleWindowNotification(notification)
+                    guard let window = notification.object as? NSWindow else { return }
+                    Task { @MainActor in
+                        self?.handleWindowNotification(window)
+                    }
                 },
                 center.addObserver(
                     forName: NSWindow.didChangeBackingPropertiesNotification,
                     object: window,
                     queue: .main
                 ) { [weak self] notification in
-                    self?.handleWindowNotification(notification)
-                }
+                    guard let window = notification.object as? NSWindow else { return }
+                    Task { @MainActor in
+                        self?.handleWindowNotification(window)
+                    }                }
             ]
         }
 
-        private func handleWindowNotification(_ notification: Notification) {
-            guard let window = notification.object as? NSWindow else { return }
+        private func handleWindowNotification(_ window: NSWindow) {
             updateWindowProperties(for: window)
         }
 
@@ -171,6 +175,7 @@ struct WindowScaleReader: NSViewRepresentable {
             observers.removeAll()
         }
 
+        @MainActor
         deinit {
             removeObservers()
         }

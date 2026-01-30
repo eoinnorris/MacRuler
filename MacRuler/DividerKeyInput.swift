@@ -12,7 +12,9 @@ enum DividerKeyDirection: String {
     case right
 }
 
-enum DividerKeyNotification {
+
+
+final class  DividerKeyNotification:Sendable {
     static let name = Notification.Name("DividerKeyNotification")
     static let directionKey = "direction"
     static let isDoubleKey = "isDouble"
