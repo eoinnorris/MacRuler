@@ -79,7 +79,13 @@ final class OverlayViewModel {
     }
     
     var backingScale: CGFloat = 1.0
-    var windowFrame: CGRect = .zero
+    var windowFrame: CGRect = .zero {
+        didSet {
+            guard windowFrame.width > 0 else { return }
+            let resetOutOfBounds = oldValue == .zero
+            normalizeDividers(for: windowFrame.width, resetOutOfBounds: resetOutOfBounds)
+        }
+    }
 
     private init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -112,40 +118,46 @@ final class OverlayViewModel {
     }
     
     func updateDividers(with x: CGFloat) {
+        let boundedX = boundedDividerValue(x)
         if leftDividerX == nil {
-            leftDividerX = x
+            leftDividerX = boundedX
             return
         }
 
         if rightDividerX == nil {
-            if let leftDividerX, x < leftDividerX {
+            if let leftDividerX, boundedX < leftDividerX {
                 rightDividerX = leftDividerX
-                self.leftDividerX = x
+                self.leftDividerX = boundedX
             } else {
-                rightDividerX = x
+                rightDividerX = boundedX
             }
             return
         }
 
         guard let leftDividerX, let rightDividerX else { return }
 
-        if x <= leftDividerX {
-            self.leftDividerX = x
+        if boundedX <= leftDividerX {
+            self.leftDividerX = boundedX
             return
         }
 
-        if x >= rightDividerX {
-            self.rightDividerX = x
+        if boundedX >= rightDividerX {
+            self.rightDividerX = boundedX
             return
         }
 
-        let leftDistance = abs(x - leftDividerX)
-        let rightDistance = abs(rightDividerX - x)
+        let leftDistance = abs(boundedX - leftDividerX)
+        let rightDistance = abs(rightDividerX - boundedX)
         if leftDistance <= rightDistance {
-            self.leftDividerX = x
+            self.leftDividerX = boundedX
         } else {
-            self.rightDividerX = x
+            self.rightDividerX = boundedX
         }
+    }
+
+    func boundedDividerValue(_ value: CGFloat) -> CGFloat {
+        guard windowFrame.width > 0 else { return value }
+        return min(max(value, 0), windowFrame.width)
     }
 
     private func loadDividerValue(forKey key: String) -> CGFloat? {
@@ -206,11 +218,54 @@ final class OverlayViewModel {
     }
 
     private func applyDelta(_ delta: CGFloat, direction: DividerKeyDirection, to currentValue: CGFloat, setter: (CGFloat) -> Void) {
+        let nextValue: CGFloat
         switch direction {
         case .left:
-            setter(currentValue - delta)
+            nextValue = currentValue - delta
         case .right:
-            setter(currentValue + delta)
+            nextValue = currentValue + delta
         }
+        setter(boundedDividerValue(nextValue))
+    }
+
+    private func normalizeDividers(for width: CGFloat, resetOutOfBounds: Bool) {
+        guard let leftDividerX, let rightDividerX else { return }
+        let minX: CGFloat = 0
+        let maxX: CGFloat = width
+        let isOutOfBounds = leftDividerX < minX
+            || rightDividerX > maxX
+            || leftDividerX > maxX
+            || rightDividerX < minX
+            || leftDividerX > rightDividerX
+
+        if resetOutOfBounds && isOutOfBounds {
+            let defaults = defaultDividerPositions(for: width)
+            self.leftDividerX = defaults.left
+            self.rightDividerX = defaults.right
+            return
+        }
+
+        var clampedLeft = min(max(leftDividerX, minX), maxX)
+        var clampedRight = min(max(rightDividerX, minX), maxX)
+
+        if clampedLeft > clampedRight {
+            let defaults = defaultDividerPositions(for: width)
+            clampedLeft = defaults.left
+            clampedRight = defaults.right
+        }
+
+        if clampedLeft != leftDividerX {
+            self.leftDividerX = clampedLeft
+        }
+
+        if clampedRight != rightDividerX {
+            self.rightDividerX = clampedRight
+        }
+    }
+
+    private func defaultDividerPositions(for width: CGFloat) -> (left: CGFloat, right: CGFloat) {
+        let left = width / 3.0
+        let right = (width / 3.0) * 2.0
+        return (min(max(left, 0), width), min(max(right, 0), width))
     }
 }

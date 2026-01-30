@@ -45,7 +45,7 @@ struct OverlayHorizontalView: View {
                     .gesture(
                         DragGesture()
                             .onChanged { value in
-                                overlayViewModel.leftDividerX = value.location.x
+                                overlayViewModel.leftDividerX = overlayViewModel.boundedDividerValue(value.location.x)
                             }
                     )
                 }
@@ -60,7 +60,7 @@ struct OverlayHorizontalView: View {
                     .gesture(
                         DragGesture()
                             .onChanged { value in
-                                overlayViewModel.rightDividerX = value.location.x
+                                overlayViewModel.rightDividerX = overlayViewModel.boundedDividerValue(value.location.x)
                             }
                     )
                 }
