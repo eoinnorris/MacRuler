@@ -11,9 +11,14 @@ struct MagnificationWindowView: View {
     @Bindable var viewModel: MagnificationViewModel
 
     var body: some View {
-        ZStack {
-            Color.clear
-            RulerMagnifierView(magnifierSize: 180, viewModel: viewModel)
+        VStack(spacing: 12) {
+            RulerMagnifierView(viewModel: viewModel)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            HStack(spacing: 12) {
+                Slider(value: $viewModel.magnification, in: 1...5, step: 0.2)
+                Text(String(format: "%.0f%%", viewModel.magnification * 100))
+                    .monospacedDigit()
+            }
         }
         .padding(16)
     }

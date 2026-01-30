@@ -108,35 +108,44 @@ extension RulerMagnifierController: SCStreamDelegate {
 }
 
 struct RulerMagnifierView: View {
-    let magnifierSize: CGFloat
     @Bindable var viewModel: MagnificationViewModel
     @State private var controller = RulerMagnifierController()
 
     var body: some View {
-        ZStack {
-            if let frameImage = controller.frameImage {
-                ScrollView([.horizontal, .vertical]) {
-                    let imageSize = CGSize(width: CGFloat(frameImage.width) / 4.0,
-                                           height: CGFloat(frameImage.height) / 4.0)
-                    Image(decorative: frameImage, scale: 4.0)
-                        .resizable()
-                        .frame(width: imageSize.width, height: imageSize.height)
+        GeometryReader { proxy in
+            ZStack {
+                if let frameImage = controller.frameImage {
+                    ScrollView([.horizontal, .vertical]) {
+                        let baseSize = CGSize(width: CGFloat(frameImage.width) / 4.0,
+                                              height: CGFloat(frameImage.height) / 4.0)
+                        let magnifiedSize = CGSize(width: baseSize.width * viewModel.magnification,
+                                                   height: baseSize.height * viewModel.magnification)
+                        Image(decorative: frameImage, scale: 4.0)
+                            .resizable()
+                            .frame(width: magnifiedSize.width, height: magnifiedSize.height)
+                            .frame(
+                                width: max(magnifiedSize.width, proxy.size.width),
+                                height: max(magnifiedSize.height, proxy.size.height),
+                                alignment: .center
+                            )
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    Color.black.opacity(0.2)
                 }
-            } else {
-                Color.black.opacity(0.2)
             }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(.white.opacity(0.7), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.ultraThinMaterial)
+            )
         }
-        .frame(width: magnifierSize, height: magnifierSize)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(.white.opacity(0.7), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(.ultraThinMaterial)
-        )
         .onAppear {
             Task {
                 await controller.start()
@@ -147,7 +156,6 @@ struct RulerMagnifierView: View {
         .onDisappear {
             controller.stop()
         }
-
         .onChange(of: viewModel.rulerWindowFrame) { _, newValue in
             controller.updateCaptureRect(centeredOn: newValue,
                                          screenBound: viewModel.screen?.frame ?? CGRect.zero)
