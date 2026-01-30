@@ -231,8 +231,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func makeMagnifierWindow() -> NSWindow {
-        let size = NSSize(width: 240, height: 240)
         let screenFrame = NSScreen.main?.visibleFrame ?? .zero
+        let defaultWidth = screenFrame == .zero ? 240 : screenFrame.width / 3.0
+        let size = NSSize(width: defaultWidth, height: 240)
         let origin = NSPoint(
             x: screenFrame.minX + (screenFrame.width - size.width) / 2.0,
             y: screenFrame.minY + max((screenFrame.height / 2.0 - size.height) / 2.0, 0)
@@ -245,7 +246,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         window.title = "Magnification"
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 180, height: 180)
+        window.minSize = NSSize(width: 240, height: 180)
         window.contentView = NSHostingView(rootView: MagnificationWindowView(viewModel: magnificationViewModel))
         window.delegate = magnifierWindowDelegate
         return window
