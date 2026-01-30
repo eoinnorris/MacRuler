@@ -54,6 +54,7 @@ struct MacOSRulerApp: App {
             }
             CommandMenu("Magnification") {
                 Toggle("Show Magnification", isOn: $magnificationViewModel.isMagnifierVisible)
+                Toggle("Show Divider Dance", isOn: $overlayViewModel.showDividerDance)
             }
 #if DEBUG
             CommandMenu("Debug") {
