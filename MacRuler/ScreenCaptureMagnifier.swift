@@ -142,14 +142,14 @@ struct RulerMagnifierView: View {
         .onAppear {
             Task {
                 await controller.start()
-                controller.updateCaptureRect(centeredOn: viewModel.rulerFrame, magnifierSize: magnifierSize)
+                controller.updateCaptureRect(centeredOn: viewModel.dancingAntsFrame, magnifierSize: magnifierSize)
             }
         }
         .onDisappear {
             controller.stop()
         }
 
-        .onChange(of: viewModel.rulerFrame) { _, newValue in
+        .onChange(of: viewModel.dancingAntsFrame) { _, newValue in
             controller.updateCaptureRect(centeredOn: newValue, magnifierSize: magnifierSize)
         }
     }

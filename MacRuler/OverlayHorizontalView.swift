@@ -9,7 +9,8 @@ import SwiftUI
 
 
 struct OverlayHorizontalView: View {
-    let overlayViewModel:OverlayViewModel
+    let overlayViewModel: OverlayViewModel
+    @Bindable var magnificationViewModel: MagnificationViewModel
 
     var body: some View {
         GeometryReader { geometry in
@@ -24,6 +25,11 @@ struct OverlayHorizontalView: View {
                             lineWidth: DividerDanceMetrics.baseLineWidth(backingScale: overlayViewModel.backingScale),
                             height: geometry.size.height
                         )
+                    )
+                    .background(
+                        RulerFrameReader { frame in
+                            magnificationViewModel.dancingAntsFrame = frame
+                        }
                     )
                     .allowsHitTesting(false)
                 }
@@ -59,6 +65,21 @@ struct OverlayHorizontalView: View {
                 }
             }
             .contentShape(Rectangle())
+            .onChange(of: overlayViewModel.showDividerDance) { _, newValue in
+                if !newValue {
+                    magnificationViewModel.dancingAntsFrame = .zero
+                }
+            }
+            .onChange(of: overlayViewModel.leftDividerX) { _, _ in
+                if overlayViewModel.leftDividerX == nil || overlayViewModel.rightDividerX == nil {
+                    magnificationViewModel.dancingAntsFrame = .zero
+                }
+            }
+            .onChange(of: overlayViewModel.rightDividerX) { _, _ in
+                if overlayViewModel.leftDividerX == nil || overlayViewModel.rightDividerX == nil {
+                    magnificationViewModel.dancingAntsFrame = .zero
+                }
+            }
         }
     }
 }

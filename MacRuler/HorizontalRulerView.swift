@@ -30,7 +30,10 @@ struct HorizontalRulerView: View {
                         magnificationViewModel.rulerFrame = frame
                     }
                 )
-                OverlayHorizontalView(overlayViewModel: overlayViewModel)
+                OverlayHorizontalView(
+                    overlayViewModel: overlayViewModel,
+                    magnificationViewModel: magnificationViewModel
+                )
                 // ✅ Invisible window reader (tracks backing scale)
                 WindowScaleReader(
                     backingScale: $overlayViewModel.backingScale,
