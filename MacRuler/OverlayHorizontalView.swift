@@ -156,7 +156,7 @@ private struct DancingAntsRectangle: View {
         ZStack {
             Rectangle()
                 .stroke(
-                    Color.white.opacity(0.9),
+                    Color.black.opacity(0.1),
                     style: StrokeStyle(
                         lineWidth: DividerDanceMetrics.lineWidth,
                         dash: [DividerDanceMetrics.dashLength, DividerDanceMetrics.dashSpacing],
@@ -165,7 +165,7 @@ private struct DancingAntsRectangle: View {
                 )
             Rectangle()
                 .stroke(
-                    Color.black.opacity(0.8),
+                    Color.black.opacity(0.1),
                     style: StrokeStyle(
                         lineWidth: DividerDanceMetrics.lineWidth,
                         dash: [DividerDanceMetrics.dashLength, DividerDanceMetrics.dashSpacing],
@@ -175,11 +175,11 @@ private struct DancingAntsRectangle: View {
         }
         .frame(width: rect.width, height: rect.height)
         .position(x: rect.midX, y: rect.midY)
-        .onAppear {
-            dashPhase = 0
-            withAnimation(.linear(duration: DividerDanceMetrics.animationDuration).repeatForever(autoreverses: false)) {
-                dashPhase = -(DividerDanceMetrics.dashLength + DividerDanceMetrics.dashSpacing)
-            }
-        }
+//        .onAppear {
+//            dashPhase = 0
+//            withAnimation(.linear(duration: DividerDanceMetrics.animationDuration).repeatForever(autoreverses: false)) {
+//                dashPhase = -(DividerDanceMetrics.dashLength + DividerDanceMetrics.dashSpacing)
+//            }
+//        }
     }
 }
