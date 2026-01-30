@@ -25,8 +25,9 @@ struct HorizontalRulerView: View {
                                 rulerSettingsViewModel: settings)
                 .frame(height: 44.0)
                 .background(
-                    RulerFrameReader { frame, screen in
-                        magnificationViewModel.rulerFrame = frame
+                    RulerFrameReader {  rulerFrame, windowFrame, screen in
+                        magnificationViewModel.rulerFrame = rulerFrame
+                        magnificationViewModel.rulerWindowFrame = windowFrame
                         magnificationViewModel.screen = screen
                     }
                 )

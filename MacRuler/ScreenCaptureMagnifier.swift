@@ -136,7 +136,7 @@ struct RulerMagnifierView: View {
         .onAppear {
             Task {
                 await controller.start()
-                controller.updateCaptureRect(centeredOn: viewModel.dancingAntsFrame,
+                controller.updateCaptureRect(centeredOn: viewModel.rulerWindowFrame,
                                              screenBound: viewModel.screen?.frame ?? CGRect.zero)
             }
         }
@@ -144,61 +144,9 @@ struct RulerMagnifierView: View {
             controller.stop()
         }
 
-        .onChange(of: viewModel.dancingAntsFrame) { _, newValue in
+        .onChange(of: viewModel.rulerWindowFrame) { _, newValue in
             controller.updateCaptureRect(centeredOn: newValue,
                                          screenBound: viewModel.screen?.frame ?? CGRect.zero)
         }
     }
 }
-
-struct RulerFrameReader: NSViewRepresentable {
-    var onFrameChange: (CGRect, NSScreen?) -> Void
-
-    func makeNSView(context: Context) -> FrameReportingView {
-        let view = FrameReportingView()
-        view.onFrameChange = onFrameChange
-        return view
-    }
-
-    func updateNSView(_ nsView: FrameReportingView, context: Context) {
-        nsView.onFrameChange = onFrameChange
-        nsView.reportFrame()
-    }
-}
-
-final class FrameReportingView: NSView {
-    var onFrameChange: ((CGRect, NSScreen?) -> Void)?
-
-    override func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
-        reportFrame()
-    }
-
-    override func setFrameSize(_ newSize: NSSize) {
-        super.setFrameSize(newSize)
-        reportFrame()
-    }
-
-    override func setFrameOrigin(_ newOrigin: NSPoint) {
-        super.setFrameOrigin(newOrigin)
-        reportFrame()
-    }
-
-    func reportFrame() {
-        guard let window else { return }
-
-        // 1) bounds in the view's own coords
-        let rectInView = self.bounds
-
-        // 2) convert to window coords
-        let rectInWindow = self.convert(rectInView, to: nil)
-
-        // 3) convert to SCREEN coords (still Cocoa-style: origin bottom-left)
-        let rectOnScreen = window.convertToScreen(rectInWindow)
-        
-        let screen = window.screen
-
-        onFrameChange?(rectOnScreen, screen)
-    }
-}
-

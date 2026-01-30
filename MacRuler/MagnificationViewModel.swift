@@ -14,6 +14,7 @@ final class MagnificationViewModel {
     static let shared = MagnificationViewModel()
 
     var rulerFrame: CGRect = .zero
+    var rulerWindowFrame: CGRect = .zero
     var screen: NSScreen?
     var dancingAntsFrame: CGRect = .zero
     var isMagnifierVisible: Bool = false
