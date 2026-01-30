@@ -61,6 +61,12 @@ final class OverlayViewModel {
             defaults.set(selectedPoints.rawValue, forKey: PersistenceKeys.selectedPoints)
         }
     }
+
+    var showDividerDance: Bool {
+        didSet {
+            defaults.set(showDividerDance, forKey: PersistenceKeys.showDividerDance)
+        }
+    }
     
     var rightHandleSelected: Bool {
         get { selectedHandle == .right }
@@ -86,6 +92,7 @@ final class OverlayViewModel {
         }
         let storedPoints = defaults.integer(forKey: PersistenceKeys.selectedPoints)
         self.selectedPoints = DividerStep(rawValue: storedPoints) ?? .one
+        self.showDividerDance = defaults.bool(forKey: PersistenceKeys.showDividerDance)
         startObservingKeyInputs()
         
         self.leftDividerX = loadDividerValue(forKey: PersistenceKeys.leftDividerX)

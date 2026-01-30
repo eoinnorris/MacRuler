@@ -14,4 +14,5 @@ enum PersistenceKeys {
     static let rightDividerX = "ruler.horizontal.rightDividerX"
     static let selectedHandle = "ruler.horizontal.selectedHandle"
     static let selectedPoints = "ruler.horizontal.selectedPoints"
+    static let showDividerDance = "ruler.horizontal.showDividerDance"
 }
