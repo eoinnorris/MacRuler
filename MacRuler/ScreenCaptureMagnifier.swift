@@ -179,8 +179,8 @@ struct RulerMagnifierView: View {
             ZStack {
                 if let frameImage = controller.frameImage {
                     ScrollView([.horizontal, .vertical]) {
-                        let baseSize = CGSize(width: CGFloat(frameImage.width) / 4.0,
-                                              height: CGFloat(frameImage.height) / 4.0)
+                        let baseSize = CGSize(width: CGFloat(CGFloat(frameImage.width) / Constants.screenScale),
+                                              height: CGFloat(CGFloat(frameImage.height) / Constants.screenScale))
                         let magnifiedSize = CGSize(width: baseSize.width * viewModel.magnification,
                                                    height: baseSize.height * viewModel.magnification)
                         Image(decorative: frameImage, scale: 4.0)

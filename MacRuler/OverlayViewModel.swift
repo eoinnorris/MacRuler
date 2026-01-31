@@ -70,12 +70,12 @@ final class OverlayViewModel {
     
     var rightHandleSelected: Bool {
         get { selectedHandle == .right }
-        set { selectedHandle = newValue ? .right : .left }
+        set { selectedHandle = .right }
     }
     
     var leftHandleSelected: Bool {
         get { selectedHandle == .left }
-        set { selectedHandle = newValue ? .left : .right }
+        set { selectedHandle =  .left }
     }
     
     var backingScale: CGFloat = 1.0

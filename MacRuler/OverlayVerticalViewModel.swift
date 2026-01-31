@@ -49,12 +49,12 @@ final class OverlayVerticalViewModel {
     
     var topHandleSelected: Bool {
         get { selectedHandle == .top }
-        set { selectedHandle = newValue ? .top : .bottom }
+        set { selectedHandle = .top  }
     }
     
     var bottomHandleSelected: Bool {
         get { selectedHandle == .bottom }
-        set { selectedHandle = newValue ? .bottom : .top }
+        set { selectedHandle = .bottom  }
     }
 
     var backingScale: CGFloat = 1.0
