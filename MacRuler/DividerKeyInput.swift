@@ -10,6 +10,8 @@ import Foundation
 enum DividerKeyDirection: String {
     case left
     case right
+    case up
+    case down
 }
 
 final class  DividerKeyNotification:Sendable {
