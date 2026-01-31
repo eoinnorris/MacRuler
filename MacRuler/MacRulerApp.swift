@@ -54,11 +54,11 @@ struct MacOSRulerApp: App {
                 Divider()
             }
             CommandMenu("VRuler") {
-                Picker("Handle", selection: $overlayVerticalViewModel.selectedHandle) {
-                    ForEach(VerticalDividerHandle.allCases) { handle in
-                        Text(handle.displayName).tag(handle)
-                    }
-                }
+                Toggle(VerticalDividerHandle.top.displayName, isOn: $overlayVerticalViewModel.topHandleSelected)
+                    .keyboardShortcut("3", modifiers: [.command])
+                Toggle(VerticalDividerHandle.bottom.displayName, isOn: $overlayVerticalViewModel.bottomHandleSelected)
+                    .keyboardShortcut("4", modifiers: [.command])
+                
                 Divider()
                 Button("Move Up") {
                     DividerKeyNotification.post(direction: .up, isDouble: false)

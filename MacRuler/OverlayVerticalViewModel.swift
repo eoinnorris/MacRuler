@@ -46,6 +46,16 @@ final class OverlayVerticalViewModel {
             defaults.set(selectedHandle.rawValue, forKey: PersistenceKeys.verticalSelectedHandle)
         }
     }
+    
+    var topHandleSelected: Bool {
+        get { selectedHandle == .top }
+        set { selectedHandle = newValue ? .top : .bottom }
+    }
+    
+    var bottomHandleSelected: Bool {
+        get { selectedHandle == .bottom }
+        set { selectedHandle = newValue ? .bottom : .top }
+    }
 
     var backingScale: CGFloat = 1.0
     var windowFrame: CGRect = .zero {
