@@ -22,6 +22,37 @@ final class RulerMagnifierController: NSObject {
     private var isRunning = false
     private var currentCaptureRect: CGRect = .zero
     private var screenScale: CGFloat = NSScreen.main?.backingScaleFactor ?? 2.0
+    private var sleepObserver: NSObjectProtocol?
+    private var wakeObserver: NSObjectProtocol?
+
+    override init() {
+        super.init()
+        let workspaceCenter = NSWorkspace.shared.notificationCenter
+        sleepObserver = workspaceCenter.addObserver(
+            forName: NSWorkspace.willSleepNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.pauseCapture()
+        }
+        wakeObserver = workspaceCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.restartCapture()
+        }
+    }
+
+    deinit {
+        let workspaceCenter = NSWorkspace.shared.notificationCenter
+        if let sleepObserver {
+            workspaceCenter.removeObserver(sleepObserver)
+        }
+        if let wakeObserver {
+            workspaceCenter.removeObserver(wakeObserver)
+        }
+    }
 
     func start() async {
         guard !isRunning else { return }
@@ -51,6 +82,29 @@ final class RulerMagnifierController: NSObject {
             }
         }
         isRunning = false
+    }
+
+    func pauseCapture() {
+        guard isRunning || stream != nil else { return }
+        let stream = stream
+        captureQueue.async {
+            stream?.stopCapture { error in
+                if let error {
+                    NSLog("Failed to stop ScreenCaptureKit stream: \(error.localizedDescription)")
+                }
+            }
+        }
+        self.stream = nil
+        isRunning = false
+    }
+
+    func restartCapture() {
+        stream = nil
+        contentFilter = nil
+        isRunning = false
+        Task {
+            await start()
+        }
     }
 
     func updateCaptureRect(centeredOn rulerFrame: CGRect, screenBound: CGRect) {
@@ -104,6 +158,15 @@ extension RulerMagnifierController: SCStreamOutput {
 extension RulerMagnifierController: SCStreamDelegate {
     func stream(_ stream: SCStream, didStopWithError error: Error) {
         NSLog("ScreenCaptureKit stream stopped: \(error.localizedDescription)")
+        let shouldRestart = isRunning
+        isRunning = false
+        self.stream = nil
+        contentFilter = nil
+        if shouldRestart {
+            captureQueue.async { [weak self] in
+                self?.restartCapture()
+            }
+        }
     }
 }
 
