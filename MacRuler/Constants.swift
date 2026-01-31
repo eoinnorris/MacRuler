@@ -19,7 +19,7 @@ struct Constants {
     
     static let horizontalHeight = 144.0
     static let minHRulerWidth = 100.0
-    static let verticalWidth = 44.0
+    static let verticalWidth = 144.0
 
     static func approximateLabelSize(
         text: String,

@@ -15,6 +15,7 @@ struct VerticalRulerView: View {
         ZStack {
             RulerBackGround(rulerType: .vertical,
                             rulerSettingsViewModel: settings)
+            .frame(width: 44.0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 10))
