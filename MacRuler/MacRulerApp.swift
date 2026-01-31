@@ -126,7 +126,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         let vPanel = makePanel(
             frame: NSRect(origin: vOrigin, size: vSize),
-            rootView: VerticalRulerView(debugSettings: DebugSettingsModel.shared)
+            rootView: VerticalRulerView(
+                settings: RulerSettingsViewModel.shared,
+                debugSettings: DebugSettingsModel.shared
+            )
         )
         verticalController = NSWindowController(window: vPanel)
         verticalController?.showWindow(nil)
@@ -261,30 +264,5 @@ final class MagnifierWindowDelegate: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         viewModel.isMagnifierVisible = false
-    }
-}
-
-
-
-struct VerticalRulerView: View {
-    @Bindable var debugSettings: DebugSettingsModel
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(.ultraThinMaterial)
-            VStack(spacing: 12) {
-                Text("Vertical")
-                Spacer()
-                Text("Ruler")
-            }
-            .padding(.vertical, 12)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            debugSettings.showWindowBackground
-            ? Color.black.opacity(0.15)
-            : Color.clear
-        )
     }
 }
