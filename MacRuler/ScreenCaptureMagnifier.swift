@@ -77,7 +77,7 @@ final class RulerMagnifierController: NSObject {
 
     private func configureStream() {
         configuration.queueDepth = 4
-        configuration.minimumFrameInterval = CMTime(value: 5, timescale: 60)
+        configuration.minimumFrameInterval = CMTime(value: .zero, timescale: 60)
         configuration.showsCursor = false
         configuration.pixelFormat = kCVPixelFormatType_32BGRA
         if currentCaptureRect == .zero {

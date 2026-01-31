@@ -27,6 +27,9 @@ struct RulerFrameReader: NSViewRepresentable {
 final class FrameReportingView: NSView {
     var onFrameChange: ((CGRect, CGRect, NSScreen?) -> Void)?
 
+    private weak var observedWindow: NSWindow?
+    private var observers: [NSObjectProtocol] = []
+    
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         reportFrame()
@@ -34,8 +37,17 @@ final class FrameReportingView: NSView {
 
     override func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize)
+        
+        tearDownObservers()
+        observedWindow = window
+        setUpObservers()
+        
         reportFrame()
     }
+    
+    deinit {
+          tearDownObservers()
+      }
 
     override func setFrameOrigin(_ newOrigin: NSPoint) {
         super.setFrameOrigin(newOrigin)
@@ -54,5 +66,27 @@ final class FrameReportingView: NSView {
 
         onFrameChange?(viewRectOnScreen, windowFrameOnScreen, window.screen)
     }
+    
+    private func setUpObservers() {
+           guard let window else { return }
+
+           let center = NotificationCenter.default
+
+           observers.append(
+               center.addObserver(
+                   forName: NSWindow.didMoveNotification,
+                   object: window,
+                   queue: .main
+               ) { [weak self] _ in
+                   self?.reportFrame()
+               }
+           )
+       }
+    
+    private func tearDownObservers() {
+          let center = NotificationCenter.default
+          observers.forEach { center.removeObserver($0) }
+          observers.removeAll()
+      }
 }
 
