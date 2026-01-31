@@ -14,6 +14,7 @@ struct MacOSRulerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State var rulerSettingsViewModel = RulerSettingsViewModel.shared
     @State private var overlayViewModel = OverlayViewModel.shared
+    @State private var overlayVerticalViewModel = OverlayVerticalViewModel.shared
     @State private var debugSettings = DebugSettingsModel.shared
     @State private var magnificationViewModel = MagnificationViewModel.shared
     
@@ -23,7 +24,7 @@ struct MacOSRulerApp: App {
             SettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
         }
         .commands {
-            CommandMenu("Ruler") {
+            CommandMenu("HRuler") {
                 Toggle("Select left handle", isOn: $overlayViewModel.leftHandleSelected)
                     .keyboardShortcut("1", modifiers: [.command])
                 Toggle("Select right handle", isOn: $overlayViewModel.rightHandleSelected)
@@ -38,14 +39,6 @@ struct MacOSRulerApp: App {
                     DividerKeyNotification.post(direction: .right, isDouble: false)
                 }
                 .keyboardShortcut(.rightArrow, modifiers: [.command])
-                Button("Move Up") {
-                    DividerKeyNotification.post(direction: .up, isDouble: false)
-                }
-                .keyboardShortcut(.upArrow, modifiers: [.command])
-                Button("Move Down") {
-                    DividerKeyNotification.post(direction: .down, isDouble: false)
-                }
-                .keyboardShortcut(.downArrow, modifiers: [.command])
                 Divider()
                 Picker("Points", selection: $overlayViewModel.selectedPoints) {
                     ForEach(DividerStep.allCases) { step in
@@ -59,6 +52,22 @@ struct MacOSRulerApp: App {
                     }
                 }
                 Divider()
+            }
+            CommandMenu("VRuler") {
+                Picker("Handle", selection: $overlayVerticalViewModel.selectedHandle) {
+                    ForEach(VerticalDividerHandle.allCases) { handle in
+                        Text(handle.displayName).tag(handle)
+                    }
+                }
+                Divider()
+                Button("Move Up") {
+                    DividerKeyNotification.post(direction: .up, isDouble: false)
+                }
+                .keyboardShortcut(.upArrow, modifiers: [.command])
+                Button("Move Down") {
+                    DividerKeyNotification.post(direction: .down, isDouble: false)
+                }
+                .keyboardShortcut(.downArrow, modifiers: [.command])
             }
             CommandMenu("Magnification") {
                 Toggle("Show Magnification", isOn: $magnificationViewModel.isMagnifierVisible)
