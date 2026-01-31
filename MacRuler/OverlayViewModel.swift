@@ -203,6 +203,12 @@ final class OverlayViewModel {
     private func handleDividerKeyNotification(directionRow:String,
                                               direction: DividerKeyDirection,
                                               isDouble: Bool) {
+        switch direction {
+        case .left, .right:
+            break
+        case .up, .down:
+            return
+        }
 
         let pixelStep = selectedPoints.rawValue * (isDouble ? 2 : 1)
         let delta = CGFloat(pixelStep) / max(backingScale, 0.1)
@@ -224,6 +230,8 @@ final class OverlayViewModel {
             nextValue = currentValue - delta
         case .right:
             nextValue = currentValue + delta
+        case .up, .down:
+            return
         }
         setter(boundedDividerValue(nextValue))
     }

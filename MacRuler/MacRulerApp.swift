@@ -38,6 +38,14 @@ struct MacOSRulerApp: App {
                     DividerKeyNotification.post(direction: .right, isDouble: false)
                 }
                 .keyboardShortcut(.rightArrow, modifiers: [.command])
+                Button("Move Up") {
+                    DividerKeyNotification.post(direction: .up, isDouble: false)
+                }
+                .keyboardShortcut(.upArrow, modifiers: [.command])
+                Button("Move Down") {
+                    DividerKeyNotification.post(direction: .down, isDouble: false)
+                }
+                .keyboardShortcut(.downArrow, modifiers: [.command])
                 Divider()
                 Picker("Points", selection: $overlayViewModel.selectedPoints) {
                     ForEach(DividerStep.allCases) { step in
@@ -127,6 +135,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let vPanel = makePanel(
             frame: NSRect(origin: vOrigin, size: vSize),
             rootView: VerticalRulerView(
+                overlayViewModel: OverlayVerticalViewModel.shared,
                 settings: RulerSettingsViewModel.shared,
                 debugSettings: DebugSettingsModel.shared
             )
