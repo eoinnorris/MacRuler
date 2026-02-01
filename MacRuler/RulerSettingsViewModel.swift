@@ -21,6 +21,12 @@ final class RulerSettingsViewModel {
         }
     }
 
+    var attachRulers: Bool {
+        didSet {
+            defaults.set(attachRulers, forKey: PersistenceKeys.attachRulers)
+        }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         if let storedValue = defaults.string(forKey: PersistenceKeys.unitType),
@@ -29,6 +35,7 @@ final class RulerSettingsViewModel {
         } else {
             self.unitType = .pixels
         }
+        self.attachRulers = defaults.bool(forKey: PersistenceKeys.attachRulers)
     }
 }
 

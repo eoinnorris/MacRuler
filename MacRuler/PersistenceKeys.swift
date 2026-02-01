@@ -18,4 +18,5 @@ enum PersistenceKeys {
     static let topDividerY = "ruler.vertical.topDividerY"
     static let bottomDividerY = "ruler.vertical.bottomDividerY"
     static let verticalSelectedHandle = "ruler.vertical.selectedHandle"
+    static let attachRulers = "ruler.attachRulers"
 }
