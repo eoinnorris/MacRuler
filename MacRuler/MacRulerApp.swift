@@ -93,8 +93,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
     private let magnificationViewModel = MagnificationViewModel.shared
     private lazy var magnifierWindowDelegate = MagnifierWindowDelegate(viewModel: magnificationViewModel)
-    private let attachmentController = RulerWindowAttachmentController(settings: RulerSettingsViewModel.shared)
+    private let rulerSettingsViewModel = RulerSettingsViewModel.shared
     private var magnificationObservationTask: Task<Void, Never>?
+    private var rulerAttachmentObservationTask: Task<Void, Never>?
 
     
     func makeHorizontalRulerView() -> some View {
@@ -160,13 +161,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         verticalController = NSWindowController(window: vPanel)
         verticalController?.showWindow(nil)
 
-        if let hWindow = horizontalController?.window,
-           let vWindow = verticalController?.window {
-            attachmentController.attach(horizontal: hWindow, vertical: vWindow)
-        }
-
         startMagnificationObservation()
         syncMagnifierVisibility()
+        startRulerAttachmentObservation()
+        syncRulerAttachment()
     }
 
     private func makePanel<Content: View>(
@@ -239,6 +237,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     self?.startObserving()
                 }
             }
+        }
+    }
+
+    @MainActor
+    private func startRulerAttachmentObservation() {
+        rulerAttachmentObservationTask?.cancel()
+        rulerAttachmentObservationTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            withObservationTracking {
+                _ = self.rulerSettingsViewModel.attachRulers
+            } onChange: { [weak self] in
+                Task { @MainActor in
+                    self?.startRulerAttachmentObservation()
+                    self?.syncRulerAttachment()
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func syncRulerAttachment() {
+        guard let hWindow = horizontalController?.window,
+              let vWindow = verticalController?.window else {
+            return
+        }
+
+        // Attachment behavior: the horizontal ruler window is always the parent,
+        // and the vertical ruler window attaches as its child when enabled.
+        if rulerSettingsViewModel.attachRulers {
+            if let currentParent = vWindow.parent, currentParent != hWindow {
+                currentParent.removeChildWindow(vWindow)
+            }
+            if vWindow.parent != hWindow {
+                hWindow.addChildWindow(vWindow, ordered: .above)
+            }
+        } else if let currentParent = vWindow.parent {
+            currentParent.removeChildWindow(vWindow)
         }
     }
 
