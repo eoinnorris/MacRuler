@@ -165,7 +165,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         startMagnificationObservation()
         syncMagnifierVisibility()
-//        startRulerAttachmentObservation()
+        startRulerAttachmentObservation()
         startRulerWindowObservation()
     }
 
@@ -275,6 +275,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor
+    private func startRulerAttachmentObservation() {
+        rulerAttachmentObservationTask?.cancel()
+        rulerAttachmentObservationTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            withObservationTracking {
+                _ = self.rulerSettingsViewModel.attachBothRulers
+            } onChange: { [weak self] in
+                Task { @MainActor in
+                    self?.handleRulerAttachmentChange()
+                    self?.startRulerAttachmentObservation()
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func handleRulerAttachmentChange() {
+        if rulerSettingsViewModel.attachBothRulers {
+            if let activeWindow = lastActiveRulerWindow {
+                updateDynamicRulerAttachment(for: activeWindow)
+            }
+        } else {
+            releaseRulerWindowAttachments()
+        }
+    }
+
+    @MainActor
     private func handleRulerWindowActivity(_ window: NSWindow) {
         guard let hWindow = horizontalController?.window,
               let vWindow = verticalController?.window else {
@@ -314,6 +341,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         parentWindow.addChildWindow(childWindow, ordered: .above)
     }
 
+    @MainActor
+    private func releaseRulerWindowAttachments() {
+        guard let hWindow = horizontalController?.window,
+              let vWindow = verticalController?.window else {
+            return
+        }
+        if let children = hWindow.childWindows, children.contains(vWindow) {
+            hWindow.removeChildWindow(vWindow)
+        }
+        if let children = vWindow.childWindows, children.contains(hWindow) {
+            vWindow.removeChildWindow(hWindow)
+        }
+        if let parent = hWindow.parent {
+            parent.removeChildWindow(hWindow)
+        }
+        if let parent = vWindow.parent {
+            parent.removeChildWindow(vWindow)
+        }
+    }
 
 
     private func syncMagnifierVisibility() {
