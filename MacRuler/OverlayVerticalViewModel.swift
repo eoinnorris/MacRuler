@@ -93,6 +93,11 @@ final class OverlayVerticalViewModel {
         OverlayViewModel.shared.selectedPoints
     }
 
+    var dividerDistancePixels: Int {
+        guard let topDividerY, let bottomDividerY else { return 0 }
+        return Int((abs(bottomDividerY - topDividerY) * backingScale).rounded())
+    }
+
     func updateDividers(with y: CGFloat) {
         let boundedY = boundedDividerValue(y)
         if topDividerY == nil {

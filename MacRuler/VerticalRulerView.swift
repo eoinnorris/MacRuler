@@ -13,16 +13,38 @@ struct VerticalRulerView: View {
     @Bindable var debugSettings: DebugSettingsModel
 
     var body: some View {
-        ZStack {
-            RulerBackGround(rulerType: .vertical,
-                            rulerSettingsViewModel: settings)
-            .frame(width: 44.0)
-            OverlayVerticalView(overlayViewModel: overlayViewModel)
-            WindowScaleReader(
-                backingScale: $overlayViewModel.backingScale,
-                windowFrame: $overlayViewModel.windowFrame
-            )
-            .frame(width: 0, height: 0)
+        VStack(spacing: 0) {
+            ZStack {
+                RulerBackGround(rulerType: .vertical,
+                                rulerSettingsViewModel: settings)
+                .frame(width: 44.0)
+                OverlayVerticalView(overlayViewModel: overlayViewModel)
+                WindowScaleReader(
+                    backingScale: $overlayViewModel.backingScale,
+                    windowFrame: Binding(
+                        get: { overlayViewModel.windowFrame },
+                        set: { frame in
+                            var adjustedFrame = frame
+                            adjustedFrame.size.height = max(
+                                0,
+                                frame.height - Constants.verticalReadoutHeight
+                            )
+                            overlayViewModel.windowFrame = adjustedFrame
+                        }
+                    )
+                )
+                .frame(width: 0, height: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            HStack {
+                Spacer()
+                VerticalPixelReadout(
+                    overlayViewModel: overlayViewModel,
+                    rulerSettingsViewModel: settings
+                )
+                Spacer()
+            }
+            .frame(height: Constants.verticalReadoutHeight)
         }
         .onTapGesture { location in
             withAnimation(.easeInOut(duration: 0.2)) {
