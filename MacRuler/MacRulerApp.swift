@@ -260,28 +260,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case H2V
         case V2H
     }
-
+    
     @MainActor
     private func syncRulerAttachment() {
         guard let hWindow = horizontalController?.window,
               let vWindow = verticalController?.window else {
             return
         }
-        
 
-        // Attachment behavior: the horizontal ruler window is always the parent,
-        // and the vertical ruler window attaches as its child when enabled.
-        if rulerSettingsViewModel.verticalToHorizontalBinding.wrappedValue {
-            if let currentParent = vWindow.parent, currentParent != hWindow {
-                currentParent.removeChildWindow(vWindow)
-            }
-            if vWindow.parent != hWindow {
-                hWindow.addChildWindow(vWindow, ordered: .above)
-            }
-        } else if let currentParent = vWindow.parent {
-            currentParent.removeChildWindow(vWindow)
+        // Always detach both first so we never leave behind an old attachment.
+        if let p = hWindow.parent { p.removeChildWindow(hWindow) }
+        if let p = vWindow.parent { p.removeChildWindow(vWindow) }
+
+        // Then attach based on the enum
+        switch rulerSettingsViewModel.attachRulers {
+        case .none:
+            return
+
+        case .verticalToHorizontal:
+            // vertical attaches to horizontal
+            hWindow.addChildWindow(vWindow, ordered: .above)
+
+        case .horizontalToVertical:
+            // horizontal attaches to vertical
+            vWindow.addChildWindow(hWindow, ordered: .above)
         }
     }
+
+
 
     private func syncMagnifierVisibility() {
         if magnificationViewModel.isMagnifierVisible {

@@ -180,7 +180,8 @@ final class OverlayVerticalViewModel {
                     return
                 }
 
-                self?.handleDividerKeyNotification(direction: direction, isDouble: isDouble)
+                self?.handleDividerKeyNotification(direction: direction,
+                                                   isDouble: isDouble)
             }
         }
     }
