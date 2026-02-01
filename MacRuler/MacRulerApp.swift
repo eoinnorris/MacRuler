@@ -52,7 +52,7 @@ struct MacOSRulerApp: App {
                     }
                 }
                 Divider()
-                Toggle("Attach to vertical ruler", isOn: rulerSettingsViewModel.horizontalToVerticalBinding)
+                Toggle("Attach to vertical ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
             }
             CommandMenu("VRuler") {
                 Toggle(VerticalDividerHandle.top.displayName, isOn: $overlayVerticalViewModel.topHandleSelected)
@@ -70,7 +70,7 @@ struct MacOSRulerApp: App {
                 }
                 .keyboardShortcut(.downArrow, modifiers: [.command])
                 Divider()
-                Toggle("Attach to horizontal ruler", isOn: rulerSettingsViewModel.verticalToHorizontalBinding)
+                Toggle("Attach to horizontal ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
             }
             CommandMenu("Magnification") {
                 Toggle("Show Magnification", isOn: $magnificationViewModel.isMagnifierVisible)
@@ -165,9 +165,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         startMagnificationObservation()
         syncMagnifierVisibility()
-        startRulerAttachmentObservation()
+//        startRulerAttachmentObservation()
         startRulerWindowObservation()
-        syncRulerAttachment()
     }
 
     private func makePanel<Content: View>(
@@ -244,23 +243,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor
-    private func startRulerAttachmentObservation() {
-        rulerAttachmentObservationTask?.cancel()
-        rulerAttachmentObservationTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            withObservationTracking {
-                _ = self.rulerSettingsViewModel.attachRulers
-                _ = self.rulerSettingsViewModel.attachBothRulers
-            } onChange: { [weak self] in
-                Task { @MainActor in
-                    self?.startRulerAttachmentObservation()
-                    self?.syncRulerAttachment()
-                }
-            }
-        }
-    }
-
-    @MainActor
     private func startRulerWindowObservation() {
         rulerWindowObservationTokens.forEach { NotificationCenter.default.removeObserver($0) }
         rulerWindowObservationTokens.removeAll()
@@ -270,9 +252,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let center = NotificationCenter.default
         let notifications: [NSNotification.Name] = [
-            NSWindow.didMoveNotification,
             NSWindow.didBecomeKeyNotification,
-            NSWindow.didBecomeMainNotification
         ]
         for name in notifications {
             rulerWindowObservationTokens.append(
@@ -310,45 +290,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case H2V
         case V2H
     }
-    
-    @MainActor
-    private func syncRulerAttachment() {
-        guard let hWindow = horizontalController?.window,
-              let vWindow = verticalController?.window else {
-            return
-        }
-
-        // Always detach both first so we never leave behind an old attachment.
-        if let p = hWindow.parent { p.removeChildWindow(hWindow) }
-        if let p = vWindow.parent { p.removeChildWindow(vWindow) }
-
-        if rulerSettingsViewModel.attachBothRulers {
-            if let activeWindow = lastActiveRulerWindow, activeWindow == hWindow || activeWindow == vWindow {
-                updateDynamicRulerAttachment(for: activeWindow)
-                return
-            }
-            if let keyWindow = NSApp.keyWindow, keyWindow == hWindow || keyWindow == vWindow {
-                updateDynamicRulerAttachment(for: keyWindow)
-                return
-            }
-            updateDynamicRulerAttachment(for: hWindow)
-            return
-        }
-
-        // Then attach based on the enum
-        switch rulerSettingsViewModel.attachRulers {
-        case .none:
-            return
-
-        case .verticalToHorizontal:
-            // vertical attaches to horizontal
-            hWindow.addChildWindow(vWindow, ordered: .above)
-
-        case .horizontalToVertical:
-            // horizontal attaches to vertical
-            vWindow.addChildWindow(hWindow, ordered: .above)
-        }
-    }
 
     @MainActor
     private func updateDynamicRulerAttachment(for activeWindow: NSWindow) {
@@ -356,6 +297,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
               let vWindow = verticalController?.window else {
             return
         }
+                
         let parentWindow: NSWindow
         let childWindow: NSWindow
         if activeWindow == hWindow {

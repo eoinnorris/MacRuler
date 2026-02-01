@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-
-
 @Observable
 final class RulerSettingsViewModel {
 
@@ -16,17 +14,15 @@ final class RulerSettingsViewModel {
 
     private let defaults: UserDefaults
     
-    var attachBothRulers = false
-
     var unitType: UnitTyoes {
         didSet {
             defaults.set(unitType.rawValue, forKey: PersistenceKeys.unitType)
         }
     }
 
-    var attachRulers: RulerAttachmentType {
+    var attachBothRulers: Bool {
         didSet {
-            defaults.set(attachRulers.rawValue, forKey: PersistenceKeys.attachRulers)
+            defaults.set(attachBothRulers, forKey: PersistenceKeys.attachRulers)
         }
     }
     
@@ -40,48 +36,7 @@ final class RulerSettingsViewModel {
             self.unitType = .pixels
         }
         
-        var attachRulers: RulerAttachmentType = .none
-    
-        if let storedValue = defaults.string(forKey: PersistenceKeys.attachRulers),
-           let storedUnit = RulerAttachmentType(rawValue: storedValue) {
-            attachRulers = storedUnit
-        } else {
-            attachRulers = .none
-        }
-        self.attachRulers = attachRulers
-    }
-}
-
-extension RulerSettingsViewModel {
-
-    var verticalToHorizontalBinding: Binding<Bool> {
-        Binding(
-            get: {
-                self.attachRulers == .verticalToHorizontal
-            },
-            set: { isOn in
-                if isOn {
-                    self.attachRulers = .verticalToHorizontal
-                } else if self.attachRulers == .verticalToHorizontal {
-                    self.attachRulers = .none
-                }
-            }
-        )
-    }
-
-    var horizontalToVerticalBinding: Binding<Bool> {
-        Binding(
-            get: {
-                self.attachRulers == .horizontalToVertical
-            },
-            set: { isOn in
-                if isOn {
-                    self.attachRulers = .horizontalToVertical
-                } else if self.attachRulers == .horizontalToVertical {
-                    self.attachRulers = .none
-                }
-            }
-        )
+        self.attachBothRulers = defaults.bool(forKey: PersistenceKeys.attachRulers)
     }
 }
 
