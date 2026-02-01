@@ -15,6 +15,8 @@ final class RulerSettingsViewModel {
     static var shared = RulerSettingsViewModel()
 
     private let defaults: UserDefaults
+    
+    var attachBothRulers = false
 
     var unitType: UnitTyoes {
         didSet {
