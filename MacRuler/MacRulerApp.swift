@@ -96,6 +96,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let rulerSettingsViewModel = RulerSettingsViewModel.shared
     private var magnificationObservationTask: Task<Void, Never>?
     private var rulerAttachmentObservationTask: Task<Void, Never>?
+    private var rulerWindowObservationTokens: [NSObjectProtocol] = []
+    private weak var lastActiveRulerWindow: NSWindow?
 
     
     func makeHorizontalRulerView() -> some View {
@@ -164,6 +166,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         startMagnificationObservation()
         syncMagnifierVisibility()
         startRulerAttachmentObservation()
+        startRulerWindowObservation()
         syncRulerAttachment()
     }
 
@@ -246,7 +249,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         rulerAttachmentObservationTask = Task { @MainActor [weak self] in
             guard let self else { return }
             withObservationTracking {
-                _ = self.rulerSettingsViewModel.verticalToHorizontalBinding
+                _ = self.rulerSettingsViewModel.attachRulers
+                _ = self.rulerSettingsViewModel.attachBothRulers
             } onChange: { [weak self] in
                 Task { @MainActor in
                     self?.startRulerAttachmentObservation()
@@ -254,6 +258,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+    }
+
+    @MainActor
+    private func startRulerWindowObservation() {
+        rulerWindowObservationTokens.forEach { NotificationCenter.default.removeObserver($0) }
+        rulerWindowObservationTokens.removeAll()
+        guard let hWindow = horizontalController?.window,
+              let vWindow = verticalController?.window else {
+            return
+        }
+        let center = NotificationCenter.default
+        let notifications: [NSNotification.Name] = [
+            NSWindow.didMoveNotification,
+            NSWindow.didBecomeKeyNotification,
+            NSWindow.didBecomeMainNotification
+        ]
+        for name in notifications {
+            rulerWindowObservationTokens.append(
+                center.addObserver(forName: name, object: hWindow, queue: .main) { [weak self] notification in
+                    guard let window = notification.object as? NSWindow else { return }
+                    Task { @MainActor in
+                        self?.handleRulerWindowActivity(window)
+                    }
+                }
+            )
+            rulerWindowObservationTokens.append(
+                center.addObserver(forName: name, object: vWindow, queue: .main) { [weak self] notification in
+                    guard let window = notification.object as? NSWindow else { return }
+                    Task { @MainActor in
+                        self?.handleRulerWindowActivity(window)
+                    }
+                }
+            )
+        }
+    }
+
+    @MainActor
+    private func handleRulerWindowActivity(_ window: NSWindow) {
+        guard let hWindow = horizontalController?.window,
+              let vWindow = verticalController?.window else {
+            return
+        }
+        guard window == hWindow || window == vWindow else { return }
+        lastActiveRulerWindow = window
+        guard rulerSettingsViewModel.attachBothRulers else { return }
+        updateDynamicRulerAttachment(for: window)
     }
     
     enum RulerAttachmwnt {
@@ -272,6 +322,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let p = hWindow.parent { p.removeChildWindow(hWindow) }
         if let p = vWindow.parent { p.removeChildWindow(vWindow) }
 
+        if rulerSettingsViewModel.attachBothRulers {
+            if let activeWindow = lastActiveRulerWindow, activeWindow == hWindow || activeWindow == vWindow {
+                updateDynamicRulerAttachment(for: activeWindow)
+                return
+            }
+            if let keyWindow = NSApp.keyWindow, keyWindow == hWindow || keyWindow == vWindow {
+                updateDynamicRulerAttachment(for: keyWindow)
+                return
+            }
+            updateDynamicRulerAttachment(for: hWindow)
+            return
+        }
+
         // Then attach based on the enum
         switch rulerSettingsViewModel.attachRulers {
         case .none:
@@ -285,6 +348,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // horizontal attaches to vertical
             vWindow.addChildWindow(hWindow, ordered: .above)
         }
+    }
+
+    @MainActor
+    private func updateDynamicRulerAttachment(for activeWindow: NSWindow) {
+        guard let hWindow = horizontalController?.window,
+              let vWindow = verticalController?.window else {
+            return
+        }
+        let parentWindow: NSWindow
+        let childWindow: NSWindow
+        if activeWindow == hWindow {
+            parentWindow = hWindow
+            childWindow = vWindow
+        } else if activeWindow == vWindow {
+            parentWindow = vWindow
+            childWindow = hWindow
+        } else {
+            return
+        }
+        if let parent = hWindow.parent { parent.removeChildWindow(hWindow) }
+        if let parent = vWindow.parent { parent.removeChildWindow(vWindow) }
+        parentWindow.addChildWindow(childWindow, ordered: .above)
     }
 
 
