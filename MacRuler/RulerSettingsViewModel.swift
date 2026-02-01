@@ -8,6 +8,7 @@
 import SwiftUI
 
 
+
 @Observable
 final class RulerSettingsViewModel {
 
@@ -21,11 +22,12 @@ final class RulerSettingsViewModel {
         }
     }
 
-    var attachRulers: Bool {
+    var attachRulers: RulerAttachmentType {
         didSet {
-            defaults.set(attachRulers, forKey: PersistenceKeys.attachRulers)
+            defaults.set(attachRulers.rawValue, forKey: PersistenceKeys.attachRulers)
         }
     }
+    
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -35,7 +37,49 @@ final class RulerSettingsViewModel {
         } else {
             self.unitType = .pixels
         }
-        self.attachRulers = defaults.bool(forKey: PersistenceKeys.attachRulers)
+        
+        var attachRulers: RulerAttachmentType = .none
+    
+        if let storedValue = defaults.string(forKey: PersistenceKeys.attachRulers),
+           let storedUnit = RulerAttachmentType(rawValue: storedValue) {
+            attachRulers = storedUnit
+        } else {
+            attachRulers = .none
+        }
+        self.attachRulers = attachRulers
+    }
+}
+
+extension RulerSettingsViewModel {
+
+    var verticalToHorizontalBinding: Binding<Bool> {
+        Binding(
+            get: {
+                self.attachRulers == .verticalToHorizontal
+            },
+            set: { isOn in
+                if isOn {
+                    self.attachRulers = .verticalToHorizontal
+                } else if self.attachRulers == .verticalToHorizontal {
+                    self.attachRulers = .none
+                }
+            }
+        )
+    }
+
+    var horizontalToVerticalBinding: Binding<Bool> {
+        Binding(
+            get: {
+                self.attachRulers == .horizontalToVertical
+            },
+            set: { isOn in
+                if isOn {
+                    self.attachRulers = .horizontalToVertical
+                } else if self.attachRulers == .horizontalToVertical {
+                    self.attachRulers = .none
+                }
+            }
+        )
     }
 }
 

@@ -52,7 +52,7 @@ struct MacOSRulerApp: App {
                     }
                 }
                 Divider()
-                Toggle("Attach Rulers Together", isOn: $rulerSettingsViewModel.attachRulers)
+                Toggle("Attach to vertical ruler", isOn: rulerSettingsViewModel.horizontalToVerticalBinding)
             }
             CommandMenu("VRuler") {
                 Toggle(VerticalDividerHandle.top.displayName, isOn: $overlayVerticalViewModel.topHandleSelected)
@@ -70,7 +70,7 @@ struct MacOSRulerApp: App {
                 }
                 .keyboardShortcut(.downArrow, modifiers: [.command])
                 Divider()
-                Toggle("Attach Rulers Together", isOn: $rulerSettingsViewModel.attachRulers)
+                Toggle("Attach to horizontal ruler", isOn: rulerSettingsViewModel.verticalToHorizontalBinding)
             }
             CommandMenu("Magnification") {
                 Toggle("Show Magnification", isOn: $magnificationViewModel.isMagnifierVisible)
@@ -246,7 +246,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         rulerAttachmentObservationTask = Task { @MainActor [weak self] in
             guard let self else { return }
             withObservationTracking {
-                _ = self.rulerSettingsViewModel.attachRulers
+                _ = self.rulerSettingsViewModel.verticalToHorizontalBinding
             } onChange: { [weak self] in
                 Task { @MainActor in
                     self?.startRulerAttachmentObservation()
@@ -255,6 +255,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+    
+    enum RulerAttachmwnt {
+        case H2V
+        case V2H
+    }
 
     @MainActor
     private func syncRulerAttachment() {
@@ -262,10 +267,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
               let vWindow = verticalController?.window else {
             return
         }
+        
 
         // Attachment behavior: the horizontal ruler window is always the parent,
         // and the vertical ruler window attaches as its child when enabled.
-        if rulerSettingsViewModel.attachRulers {
+        if rulerSettingsViewModel.verticalToHorizontalBinding.wrappedValue {
             if let currentParent = vWindow.parent, currentParent != hWindow {
                 currentParent.removeChildWindow(vWindow)
             }

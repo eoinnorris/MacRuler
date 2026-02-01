@@ -10,3 +10,10 @@ enum RulerType {
     case vertical
     case horizontal
 }
+
+enum RulerAttachmentType: String, CaseIterable, Identifiable {
+    case verticalToHorizontal
+    case horizontalToVertical
+    case none
+    var id: Self { self }
+}
