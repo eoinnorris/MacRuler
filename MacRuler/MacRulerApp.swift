@@ -136,7 +136,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hPanel.contentMaxSize = NSSize(width: 1000, height: Constants.horizontalHeight)
 
         // Vertical panel (left area)
-        let vSize = NSSize(width: Constants.verticalWidth , height: min(700, vf.height - 40))
+        let vBaseHeight = min(700, vf.height - 40)
+        let vSize = NSSize(
+            width: Constants.verticalWidth,
+            height: vBaseHeight + Constants.verticalReadoutHeight
+        )
         let vOrigin = NSPoint(
             x: vf.minX + 10,
             y: vf.minY + (vf.height - vSize.height) / 2
