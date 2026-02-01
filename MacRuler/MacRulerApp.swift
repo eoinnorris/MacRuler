@@ -52,6 +52,7 @@ struct MacOSRulerApp: App {
                     }
                 }
                 Divider()
+                Toggle("Attach Rulers Together", isOn: $rulerSettingsViewModel.attachRulers)
             }
             CommandMenu("VRuler") {
                 Toggle(VerticalDividerHandle.top.displayName, isOn: $overlayVerticalViewModel.topHandleSelected)
@@ -68,6 +69,8 @@ struct MacOSRulerApp: App {
                     DividerKeyNotification.post(direction: .down, isDouble: false)
                 }
                 .keyboardShortcut(.downArrow, modifiers: [.command])
+                Divider()
+                Toggle("Attach Rulers Together", isOn: $rulerSettingsViewModel.attachRulers)
             }
             CommandMenu("Magnification") {
                 Toggle("Show Magnification", isOn: $magnificationViewModel.isMagnifierVisible)
@@ -90,6 +93,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
     private let magnificationViewModel = MagnificationViewModel.shared
     private lazy var magnifierWindowDelegate = MagnifierWindowDelegate(viewModel: magnificationViewModel)
+    private let attachmentController = RulerWindowAttachmentController(settings: RulerSettingsViewModel.shared)
     private var magnificationObservationTask: Task<Void, Never>?
 
     
@@ -155,6 +159,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         verticalController = NSWindowController(window: vPanel)
         verticalController?.showWindow(nil)
+
+        if let hWindow = horizontalController?.window,
+           let vWindow = verticalController?.window {
+            attachmentController.attach(horizontal: hWindow, vertical: vWindow)
+        }
 
         startMagnificationObservation()
         syncMagnifierVisibility()
