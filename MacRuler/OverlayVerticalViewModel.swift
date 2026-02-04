@@ -172,6 +172,7 @@ final class OverlayVerticalViewModel {
         ) { [weak self] notification in
             let directionRaw = notification.userInfo?[directionKey] as? String ?? ""
             let isDouble = notification.userInfo?[isDoubleKey] as? Bool ?? false
+            guard let localSelf = self else { return }
 
             Task { @MainActor in
                 guard
@@ -180,7 +181,7 @@ final class OverlayVerticalViewModel {
                     return
                 }
 
-                self?.handleDividerKeyNotification(direction: direction,
+                localSelf.handleDividerKeyNotification(direction: direction,
                                                    isDouble: isDouble)
             }
         }

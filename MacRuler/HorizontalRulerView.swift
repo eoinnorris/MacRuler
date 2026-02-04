@@ -153,8 +153,9 @@ struct WindowScaleReader: NSViewRepresentable {
                     queue: .main
                 ) { [weak self] notification in
                     guard let window = notification.object as? NSWindow else { return }
+                    guard let localSelf = self else { return }
                     Task { @MainActor in
-                        self?.handleWindowNotification(window)
+                        localSelf.handleWindowNotification(window)
                     }
                 },
                 center.addObserver(
@@ -163,8 +164,9 @@ struct WindowScaleReader: NSViewRepresentable {
                     queue: .main
                 ) { [weak self] notification in
                     guard let window = notification.object as? NSWindow else { return }
+                    guard let localSelf = self else { return }
                     Task { @MainActor in
-                        self?.handleWindowNotification(window)
+                        localSelf.handleWindowNotification(window)
                     }                }
             ]
         }

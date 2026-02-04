@@ -332,8 +332,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             withObservationTracking {
                 _ = self.magnificationViewModel.isMagnifierVisible
             } onChange: { [weak self] in
+                guard let localSelf = self else { return }
                 Task { @MainActor in
-                    self?.startObserving()
+                    localSelf.startObserving()
                 }
             }
         }
@@ -355,16 +356,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             rulerWindowObservationTokens.append(
                 center.addObserver(forName: name, object: hWindow, queue: .main) { [weak self] notification in
                     guard let window = notification.object as? NSWindow else { return }
+                    guard let localSelf = self else { return }
                     Task { @MainActor in
-                        self?.handleRulerWindowActivity(window)
+                        localSelf.handleRulerWindowActivity(window)
                     }
                 }
             )
             rulerWindowObservationTokens.append(
                 center.addObserver(forName: name, object: vWindow, queue: .main) { [weak self] notification in
                     guard let window = notification.object as? NSWindow else { return }
+                    guard let localSelf = self else { return }
                     Task { @MainActor in
-                        self?.handleRulerWindowActivity(window)
+                        localSelf.handleRulerWindowActivity(window)
                     }
                 }
             )
@@ -379,9 +382,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             withObservationTracking {
                 _ = self.rulerSettingsViewModel.attachBothRulers
             } onChange: { [weak self] in
+                guard let localSelf = self else { return }
                 Task { @MainActor in
-                    self?.handleRulerAttachmentChange()
-                    self?.startRulerAttachmentObservation()
+                    localSelf.handleRulerAttachmentChange()
+                    localSelf.startRulerAttachmentObservation()
                 }
             }
         }
