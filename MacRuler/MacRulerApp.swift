@@ -85,11 +85,16 @@ struct MacOSRulerApp: App {
 }
 
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
     private var magnifierController: NSWindowController?
+    private var statusItem: NSStatusItem?
+    private var statusMenu: NSMenu?
+    private var horizontalMenuItem: NSMenuItem?
+    private var verticalMenuItem: NSMenuItem?
+    private var magnifierMenuItem: NSMenuItem?
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
     private let magnificationViewModel = MagnificationViewModel.shared
     private lazy var magnifierWindowDelegate = MagnifierWindowDelegate(viewModel: magnificationViewModel)
@@ -163,6 +168,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         verticalController = NSWindowController(window: vPanel)
         verticalController?.showWindow(nil)
 
+        setupStatusItem()
         startMagnificationObservation()
         syncMagnifierVisibility()
         startRulerAttachmentObservation()
@@ -210,6 +216,97 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.standardWindowButton(.zoomButton)?.isHidden = true
 
         return panel
+    }
+
+    private func setupStatusItem() {
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        if let button = item.button {
+            button.image = NSImage(systemSymbolName: "ruler", accessibilityDescription: "MacRuler")
+        }
+        let menu = NSMenu()
+        menu.delegate = self
+
+        let horizontalItem = NSMenuItem(title: "Show Horizontal Ruler", action: #selector(toggleHorizontalRuler), keyEquivalent: "")
+        horizontalItem.target = self
+        menu.addItem(horizontalItem)
+        horizontalMenuItem = horizontalItem
+
+        let verticalItem = NSMenuItem(title: "Show Vertical Ruler", action: #selector(toggleVerticalRuler), keyEquivalent: "")
+        verticalItem.target = self
+        menu.addItem(verticalItem)
+        verticalMenuItem = verticalItem
+
+        let magnifierItem = NSMenuItem(title: "Show Magnification", action: #selector(toggleMagnifier), keyEquivalent: "")
+        magnifierItem.target = self
+        menu.addItem(magnifierItem)
+        magnifierMenuItem = magnifierItem
+
+        menu.addItem(.separator())
+
+        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
+        menu.addItem(.separator())
+
+        let quitItem = NSMenuItem(title: "Quit MacRuler", action: #selector(quitApp), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
+
+        item.menu = menu
+        statusItem = item
+        statusMenu = menu
+        refreshStatusMenu()
+    }
+
+    private func refreshStatusMenu() {
+        if let window = horizontalController?.window {
+            horizontalMenuItem?.title = window.isVisible ? "Hide Horizontal Ruler" : "Show Horizontal Ruler"
+            horizontalMenuItem?.state = window.isVisible ? .on : .off
+        }
+        if let window = verticalController?.window {
+            verticalMenuItem?.title = window.isVisible ? "Hide Vertical Ruler" : "Show Vertical Ruler"
+            verticalMenuItem?.state = window.isVisible ? .on : .off
+        }
+        magnifierMenuItem?.title = magnificationViewModel.isMagnifierVisible ? "Hide Magnification" : "Show Magnification"
+        magnifierMenuItem?.state = magnificationViewModel.isMagnifierVisible ? .on : .off
+    }
+
+    func menuWillOpen(_ menu: NSMenu) {
+        refreshStatusMenu()
+    }
+
+    @objc private func toggleHorizontalRuler() {
+        guard let window = horizontalController?.window else { return }
+        if window.isVisible {
+            window.orderOut(nil)
+        } else {
+            window.makeKeyAndOrderFront(nil)
+        }
+        refreshStatusMenu()
+    }
+
+    @objc private func toggleVerticalRuler() {
+        guard let window = verticalController?.window else { return }
+        if window.isVisible {
+            window.orderOut(nil)
+        } else {
+            window.makeKeyAndOrderFront(nil)
+        }
+        refreshStatusMenu()
+    }
+
+    @objc private func toggleMagnifier() {
+        magnificationViewModel.isMagnifierVisible.toggle()
+        refreshStatusMenu()
+    }
+
+    @objc private func openSettings() {
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+    }
+
+    @objc private func quitApp() {
+        NSApp.terminate(nil)
     }
 
     private func storedHorizontalWidth(defaultWidth: CGFloat, screenWidth: CGFloat) -> CGFloat {
