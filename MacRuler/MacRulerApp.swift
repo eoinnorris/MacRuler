@@ -75,6 +75,9 @@ struct MacOSRulerApp: App {
             CommandMenu("Magnification") {
                 Toggle("Show Magnification", isOn: $magnificationViewModel.isMagnifierVisible)
             }
+            CommandMenu("Screen picker") {
+                Button("Pick Screen") {}
+            }
 #if DEBUG
             CommandMenu("Debug") {
                 Toggle("Show Window Background", isOn: $debugSettings.showWindowBackground)
