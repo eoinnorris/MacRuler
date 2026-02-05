@@ -16,31 +16,49 @@ final class CaptureController: NSObject {
     // Keep references alive
     private let picker = SCContentSharingPicker.shared
     private var stream: SCStream?
+    private var observing = false
+
 
     // Configure once (tweak as needed)
-    private let config: SCStreamConfiguration = {
-        let c = SCStreamConfiguration()
-        c.capturesAudio = false
-        c.captureMicrophone = false
-        c.showsCursor = true
-        // c.minimumFrameInterval = CMTime(value: 1, timescale: 60) // optional fps cap
-        return c
-    }()
+    private var config: SCStreamConfiguration? = nil
 
     // Optional: tell SwiftUI what got picked
     var onDidUpdateFilter: ((SCContentFilter) -> Void)?
     var onDidCancel: (() -> Void)?
     var onDidFail: ((Error) -> Void)?
 
+    deinit {
+        if observing {
+            picker.remove(self)
+        }
+        picker.isActive = false
+    }
+    
     func beginWindowSelection() {
-        // Attach observer + activate picker
-        picker.add(self)
-        picker.isActive = true
+        updateConfig()
+        if !observing {
+            picker.add(self)
+            observing = true
+        }
 
-        // Present system picker UI for WINDOW selection.
-        // NOTE: API surface differs a bit across OS versions / platforms.
-        // This is the modern call shown in Apple’s docs + WWDC material.
-        picker.present(using: .application)
+        picker.isActive = true
+        picker.present(using: .window)
+    }
+    
+    func updateConfig() {
+        guard self.config == nil else { return }
+        
+        // Configure once (tweak as needed)
+        let config: SCStreamConfiguration = {
+            let c = SCStreamConfiguration()
+            c.capturesAudio = false
+            c.captureMicrophone = false
+            c.showsCursor = true
+            // c.minimumFrameInterval = CMTime(value: 1, timescale: 60) // optional fps cap
+            return c
+        }()
+        
+        self.config = config
     }
 
     private func ensureStreamStarted(with filter: SCContentFilter) {
@@ -48,6 +66,8 @@ final class CaptureController: NSObject {
             stream.updateContentFilter(filter)
             return
         }
+        
+        guard let config = config else { return }
 
         let newStream = SCStream(filter: filter, configuration: config, delegate: self)
         self.stream = newStream
@@ -118,3 +138,4 @@ extension CaptureController: SCStreamDelegate {
         }
     }
 }
+

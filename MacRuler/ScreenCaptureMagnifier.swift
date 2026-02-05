@@ -158,7 +158,7 @@ extension RulerMagnifierController: SCStreamOutput {
 extension RulerMagnifierController: SCStreamDelegate {
     func stream(_ stream: SCStream, didStopWithError error: Error) {
         NSLog("ScreenCaptureKit stream stopped: \(error.localizedDescription)")
-        let shouldRestart = isRunning
+        let shouldRestart = false // isRunning
         isRunning = false
         self.stream = nil
         contentFilter = nil

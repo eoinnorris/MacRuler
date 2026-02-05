@@ -19,7 +19,7 @@ final class MagnificationViewModel {
     var screen: NSScreen?
     var dancingAntsFrame: CGRect = .zero
     var isMagnifierVisible: Bool = false
-    var isSelectionMagnifierVisible: Bool = true
+    var isSelectionMagnifierVisible: Bool = false
     var magnification: Double = 1.0
 
     private init() {}
