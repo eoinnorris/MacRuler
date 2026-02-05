@@ -29,8 +29,10 @@ struct ScreenSelectionOverlayView: View {
             .contentShape(Rectangle())
             .background(
                 RulerFrameReader { viewRectOnScreen, _, screen in
-                    self.viewRectOnScreen = viewRectOnScreen
-                    self.screen = screen
+                    Task { @MainActor in
+                        self.viewRectOnScreen = viewRectOnScreen
+                        self.screen = screen
+                    }
                 }
             )
             .gesture(

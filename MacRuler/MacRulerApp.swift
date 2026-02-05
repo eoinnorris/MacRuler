@@ -625,7 +625,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             rootView: ScreenSelectionOverlayView(
                 onSelection: { [weak self] selectionRect, screen in
                     guard let self else { return }
-                    self.selectionMagnificationViewModel.rulerFrame = selectionRect
+                    guard let screen else { return }
+                    let globalFrame = Constants.globalRectToSCRect(selectionRect, containerHeight: screen.frame.height)
+                    
+                    self.selectionMagnificationViewModel.rulerFrame = globalFrame
                     self.selectionMagnificationViewModel.screen = screen
                     self.selectionMagnificationViewModel.isSelectionMagnifierVisible = true
                     self.finishScreenSelection()
