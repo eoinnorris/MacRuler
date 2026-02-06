@@ -1,0 +1,62 @@
+//
+//  SelectionWindowToolbar.swift
+//  MacRuler
+//
+//  Created by OpenAI on 2026-02-06.
+//
+
+import SwiftUI
+
+struct SelectionWindowToolbar: View {
+    @Bindable var session: SelectionSession
+    let snapshotAction: () -> Void
+    let canTakeSnapshot: Bool
+
+    var body: some View {
+        HStack(spacing: 10) {
+            magnificationControls
+
+            Divider()
+                .frame(height: 18)
+
+            Button(action: snapshotAction) {
+                Label("Snapshot", systemImage: "camera")
+                    .labelStyle(.iconOnly)
+            }
+            .help("Save snapshot")
+            .disabled(!canTakeSnapshot)
+
+            Toggle(isOn: $session.showDancingAnts) {
+                Label("Dancing ants", systemImage: session.showDancingAnts ? "dot.circle.and.hand.point.up.left.fill" : "dot.circle.and.hand.point.up.left")
+                    .labelStyle(.iconOnly)
+            }
+            .toggleStyle(.button)
+            .help("Show dancing ants")
+
+            Toggle(isOn: $session.showRulerOverlay) {
+                Label("Ruler overlay", systemImage: session.showRulerOverlay ? "ruler.fill" : "ruler")
+                    .labelStyle(.iconOnly)
+            }
+            .toggleStyle(.button)
+            .help("Show ruler overlay")
+
+            Spacer(minLength: 0)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+    }
+
+    private var magnificationControls: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "plus.magnifyingglass")
+                .foregroundStyle(.secondary)
+            Slider(value: $session.magnification, in: 1...5, step: 0.2)
+                .frame(width: 140)
+            Text(String(format: "%.0f%%", session.magnification * 100))
+                .monospacedDigit()
+                .font(.system(.caption, design: .rounded))
+                .foregroundStyle(.secondary)
+                .frame(width: 44, alignment: .trailing)
+        }
+    }
+}

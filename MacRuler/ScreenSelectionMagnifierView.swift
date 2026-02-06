@@ -6,76 +6,38 @@
 //
 
 import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
 
 struct ScreenSelectionMagnifierView: View {
-    @Bindable var session: SelectionSession
-
-    var body: some View {
-        VStack(spacing: 12) {
-            ScreenSelectionMagnifierImage(session: session)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            HStack(spacing: 12) {
-                Slider(value: $session.magnification, in: 1...5, step: 0.2)
-                Text(String(format: "%.0f%%", session.magnification * 100))
-                    .monospacedDigit()
-            }
-        }
-        .padding(16)
-    }
-}
-
-private struct ScreenSelectionMagnifierImage: View {
     @Bindable var session: SelectionSession
     @State private var controller = RulerMagnifierController()
 
     var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                if let frameImage = controller.frameImage {
-                    ScrollView([.horizontal, .vertical]) {
-                        let baseSize = CGSize(width: CGFloat(CGFloat(frameImage.width) / Constants.screenScale),
-                                              height: CGFloat(CGFloat(frameImage.height) / Constants.screenScale))
-                        let magnifiedSize = CGSize(width: baseSize.width * session.magnification,
-                                                   height: baseSize.height * session.magnification)
-                        Image(decorative: frameImage, scale: 4.0)
-                            .resizable()
-                            .frame(width: magnifiedSize.width, height: magnifiedSize.height)
-                            .frame(
-                                width: max(magnifiedSize.width, proxy.size.width),
-                                height: max(magnifiedSize.height, proxy.size.height),
-                                alignment: .center
-                            )
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    Color.black.opacity(0.2)
-                }
-            }
-            .frame(width: proxy.size.width, height: proxy.size.height)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(.white.opacity(0.7), lineWidth: 1)
+        VStack(spacing: 10) {
+            SelectionWindowToolbar(
+                session: session,
+                snapshotAction: takeSnapshot,
+                canTakeSnapshot: controller.frameImage != nil
             )
-            .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.ultraThinMaterial)
-            )
+            SelectionMagnifierContentView(session: session, controller: controller)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .onAppear {
-            Task {
-                await controller.start()
-                controller.updateCaptureRect(centeredOn: session.selectionRectGlobal,
-                                             screenBound: session.screen?.frame ?? .zero)
-            }
-        }
-        .onDisappear {
-            controller.stop()
-        }
-        .onChange(of: session.selectionRectGlobal) { _, newValue in
-            controller.updateCaptureRect(centeredOn: newValue,
-                                         screenBound: session.screen?.frame ?? .zero)
-        }
+        .padding(12)
+    }
+
+    private func takeSnapshot() {
+        guard let frameImage = controller.frameImage else { return }
+
+        let panel = NSSavePanel()
+        panel.canCreateDirectories = true
+        panel.allowedContentTypes = [.png]
+        panel.nameFieldStringValue = "selection-snapshot.png"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        let imageRep = NSBitmapImageRep(cgImage: frameImage)
+        guard let data = imageRep.representation(using: .png, properties: [:]) else { return }
+        try? data.write(to: url)
     }
 }
