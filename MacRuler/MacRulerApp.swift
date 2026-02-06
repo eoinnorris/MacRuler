@@ -18,7 +18,6 @@ struct MacOSRulerApp: App {
     @State private var overlayVerticalViewModel = OverlayVerticalViewModel.shared
     @State private var debugSettings = DebugSettingsModel.shared
     @State private var magnificationViewModel = MagnificationViewModel.shared
-    @State private var selectionMagnificationViewModel = MagnificationViewModel.selection
     
     var body: some Scene {
         // No default window; we’ll drive our own panels.
@@ -76,7 +75,6 @@ struct MacOSRulerApp: App {
             }
             CommandMenu("Magnification") {
                 Toggle("Show Magnification", isOn: $magnificationViewModel.isMagnifierVisible)
-                Toggle("Magnify Selection", isOn: $selectionMagnificationViewModel.isSelectionMagnifierVisible)
             }
             CommandMenu("Screen picker") {
                 Button("Select Window") {
