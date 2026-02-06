@@ -16,7 +16,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
     private var magnifierController: NSWindowController?
-    private var selectionMagnifierController: NSWindowController?
+    private var selectionMagnifierControllers: [UUID: NSWindowController] = [:]
+    private var selectionMagnifierWindowDelegates: [UUID: MagnifierWindowDelegate] = [:]
+    private var selectionSessions: [UUID: SelectionSession] = [:]
     private var selectionOverlayController: NSWindowController?
     private var statusItem: NSStatusItem?
     private var statusMenu: NSMenu?
@@ -26,16 +28,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
     private let magnificationViewModel = MagnificationViewModel.shared
     private let captureController = CaptureController()
-    private let selectionMagnificationViewModel = MagnificationViewModel.selection
     private lazy var magnifierWindowDelegate = MagnifierWindowDelegate { [weak self] in
         self?.magnificationViewModel.isMagnifierVisible = false
     }
-    private lazy var selectionMagnifierWindowDelegate = MagnifierWindowDelegate { [weak self] in
-        self?.selectionMagnificationViewModel.isSelectionMagnifierVisible = false
-    }
     private let rulerSettingsViewModel = RulerSettingsViewModel.shared
     private var magnificationObservationTask: Task<Void, Never>?
-    private var selectionMagnificationObservationTask: Task<Void, Never>?
     private var rulerAttachmentObservationTask: Task<Void, Never>?
     private var rulerWindowObservationTokens: [NSObjectProtocol] = []
     private weak var lastActiveRulerWindow: NSWindow?
@@ -108,8 +105,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         setupStatusItem()
         startMagnificationObservation()
         syncMagnifierVisibility()
-        startSelectionMagnificationObservation()
-        syncSelectionMagnifierVisibility()
         startRulerAttachmentObservation()
         startRulerWindowObservation()
     }
@@ -263,10 +258,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         self.startMagnificationObservation()
     }
 
-    func startSelectionObserving() {
-        self.syncSelectionMagnifierVisibility()
-        self.startSelectionMagnificationObservation()
-    }
 
     @MainActor
     private func startMagnificationObservation() {
@@ -284,21 +275,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    @MainActor
-    private func startSelectionMagnificationObservation() {
-        selectionMagnificationObservationTask?.cancel()
-        selectionMagnificationObservationTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            withObservationTracking {
-                _ = self.selectionMagnificationViewModel.isSelectionMagnifierVisible
-            } onChange: { [weak self] in
-                guard let localSelf = self else { return }
-                Task { @MainActor in
-                    localSelf.startSelectionObserving()
-                }
-            }
-        }
-    }
 
     @MainActor
     private func startRulerWindowObservation() {
@@ -431,13 +407,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    private func syncSelectionMagnifierVisibility() {
-        if selectionMagnificationViewModel.isSelectionMagnifierVisible {
-            showSelectionMagnifierWindow()
-        } else {
-            hideSelectionMagnifierWindow()
-        }
-    }
 
     private func showMagnifierWindow() {
         if magnifierController == nil {
@@ -448,22 +417,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         magnifierController?.window?.makeKeyAndOrderFront(nil)
     }
 
-    private func showSelectionMagnifierWindow() {
-        if selectionMagnifierController == nil {
-            let window = makeSelectionMagnifierWindow()
-            selectionMagnifierController = NSWindowController(window: window)
-        }
-        selectionMagnifierController?.showWindow(nil)
-        selectionMagnifierController?.window?.makeKeyAndOrderFront(nil)
-    }
 
     private func hideMagnifierWindow() {
         magnifierController?.window?.orderOut(nil)
     }
 
-    private func hideSelectionMagnifierWindow() {
-        selectionMagnifierController?.window?.orderOut(nil)
-    }
 
     private func makeMagnifierWindow() -> NSWindow {
         let screenFrame = NSScreen.main?.visibleFrame ?? .zero
@@ -487,8 +445,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return window
     }
 
-    private func makeSelectionMagnifierWindow() -> NSWindow {
-        let screenFrame = NSScreen.main?.visibleFrame ?? .zero
+    private func showSelectionMagnifierWindow(for session: SelectionSession) {
+        if let controller = selectionMagnifierControllers[session.id] {
+            controller.showWindow(nil)
+            controller.window?.makeKeyAndOrderFront(nil)
+            session.isWindowVisible = true
+            return
+        }
+
+        let window = makeSelectionMagnifierWindow(for: session)
+        let controller = NSWindowController(window: window)
+        selectionMagnifierControllers[session.id] = controller
+        controller.showWindow(nil)
+        controller.window?.makeKeyAndOrderFront(nil)
+        session.isWindowVisible = true
+    }
+
+    private func hideSelectionMagnifierWindow(for sessionID: UUID) {
+        selectionMagnifierControllers[sessionID]?.window?.orderOut(nil)
+        selectionSessions[sessionID]?.isWindowVisible = false
+    }
+
+    private func closeSelectionSession(_ sessionID: UUID) {
+        hideSelectionMagnifierWindow(for: sessionID)
+        selectionMagnifierControllers[sessionID] = nil
+        selectionMagnifierWindowDelegates[sessionID] = nil
+        selectionSessions[sessionID] = nil
+    }
+
+    private func makeSelectionMagnifierWindow(for session: SelectionSession) -> NSWindow {
+        let screenFrame = session.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
         let defaultWidth = screenFrame == .zero ? 240 : screenFrame.width / 3.0
         let size = NSSize(width: defaultWidth, height: 240)
         let origin = NSPoint(
@@ -504,8 +490,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         window.title = "Selection Magnification"
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 240, height: 180)
-        window.contentView = NSHostingView(rootView: ScreenSelectionMagnifierView(viewModel: selectionMagnificationViewModel))
-        window.delegate = selectionMagnifierWindowDelegate
+        window.contentView = NSHostingView(rootView: ScreenSelectionMagnifierView(session: session))
+
+        let delegate = MagnifierWindowDelegate { [weak self] in
+            self?.closeSelectionSession(session.id)
+        }
+        selectionMagnifierWindowDelegates[session.id] = delegate
+        window.delegate = delegate
         return window
     }
 
@@ -550,9 +541,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     guard let screen else { return }
                     let globalFrame = Constants.globalRectToSCRect(selectionRect, containerHeight: screen.frame.height)
                     
-                    self.selectionMagnificationViewModel.rulerFrame = globalFrame
-                    self.selectionMagnificationViewModel.screen = screen
-                    self.selectionMagnificationViewModel.isSelectionMagnifierVisible = true
+                    let session = SelectionSession(
+                        selectionRectGlobal: globalFrame,
+                        screen: screen
+                    )
+                    self.selectionSessions[session.id] = session
+                    self.showSelectionMagnifierWindow(for: session)
                     self.finishScreenSelection()
                 },
                 onCancel: { [weak self] in
