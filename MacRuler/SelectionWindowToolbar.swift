@@ -26,12 +26,12 @@ struct SelectionWindowToolbar: View {
             .help("Save snapshot")
             .disabled(!canTakeSnapshot)
 
-            Toggle(isOn: $session.showDancingAnts) {
-                Label("Dancing ants", systemImage: session.showDancingAnts ? "dot.circle.and.hand.point.up.left.fill" : "dot.circle.and.hand.point.up.left")
+            Toggle(isOn: $session.showSelection) {
+                Label("Show selection", systemImage: session.showSelection ? "dot.circle.and.hand.point.up.left.fill" : "dot.circle.and.hand.point.up.left")
                     .labelStyle(.iconOnly)
             }
             .toggleStyle(.button)
-            .help("Show dancing ants")
+            .help("Show selection for 2 seconds")
 
             Toggle(isOn: $session.showRulerOverlay) {
                 Label("Ruler overlay", systemImage: session.showRulerOverlay ? "ruler.fill" : "ruler")

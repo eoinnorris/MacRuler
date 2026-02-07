@@ -16,7 +16,7 @@ final class SelectionSession: Identifiable {
     var selectionRectGlobal: CGRect
     var screen: NSScreen?
     var magnification: Double
-    var showDancingAnts: Bool
+    var showSelection: Bool
     var showRulerOverlay: Bool
     var isWindowVisible: Bool
 
@@ -25,7 +25,7 @@ final class SelectionSession: Identifiable {
         selectionRectGlobal: CGRect,
         screen: NSScreen?,
         magnification: Double = 1.0,
-        showDancingAnts: Bool = true,
+        showSelection: Bool = false,
         showRulerOverlay: Bool = false,
         isWindowVisible: Bool = true
     ) {
@@ -33,7 +33,7 @@ final class SelectionSession: Identifiable {
         self.selectionRectGlobal = selectionRectGlobal
         self.screen = screen
         self.magnification = magnification
-        self.showDancingAnts = showDancingAnts
+        self.showSelection = showSelection
         self.showRulerOverlay = showRulerOverlay
         self.isWindowVisible = isWindowVisible
     }
