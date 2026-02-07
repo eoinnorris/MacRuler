@@ -542,6 +542,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     let globalFrame = Constants.globalRectToSCRect(selectionRect, containerHeight: screen.frame.height)
                     
                     let session = SelectionSession(
+                        selectionRecScreen: selectionRect,
                         selectionRectGlobal: globalFrame,
                         screen: screen
                     )

@@ -60,7 +60,7 @@ struct ScreenSelectionMagnifierView: View {
         selectionPreviewTask?.cancel()
         dismissSelectionWindow()
 
-        let rect = selectionRectInGlobalCoordinates()
+        let rect = selectionRectInScreenCoordinates()
         guard rect.width > 2, rect.height > 2 else {
             session.showSelection = false
             return
@@ -98,6 +98,12 @@ struct ScreenSelectionMagnifierView: View {
     private func dismissSelectionWindow() {
         selectionPreviewWindow?.orderOut(nil)
         selectionPreviewWindow = nil
+    }
+    
+    private func selectionRectInScreenCoordinates() -> CGRect {
+        return session.selectionRectGlobal
+//        guard let screen = session.screen else { return session.selectionRectGlobal }
+//        return Constants.scRectToGlobalRect(session.selectionRectGlobal, containerHeight: screen.frame.height)
     }
 
     private func selectionRectInGlobalCoordinates() -> CGRect {

@@ -27,7 +27,7 @@ struct SelectionWindowToolbar: View {
             .disabled(!canTakeSnapshot)
 
             Toggle(isOn: $session.showSelection) {
-                Label("Show selection", systemImage: session.showSelection ? "dot.circle.and.hand.point.up.left.fill" : "dot.circle.and.hand.point.up.left")
+                Label("Show selection", systemImage: "rectangle.dashed.and.paperclip")
                     .labelStyle(.iconOnly)
             }
             .toggleStyle(.button)

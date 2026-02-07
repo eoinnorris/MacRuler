@@ -14,6 +14,7 @@ import Observation
 final class SelectionSession: Identifiable {
     let id: UUID
     var selectionRectGlobal: CGRect
+    var selectionRecScreen: CGRect
     var screen: NSScreen?
     var magnification: Double
     var showSelection: Bool
@@ -22,6 +23,7 @@ final class SelectionSession: Identifiable {
 
     init(
         id: UUID = UUID(),
+        selectionRecScreen: CGRect,
         selectionRectGlobal: CGRect,
         screen: NSScreen?,
         magnification: Double = 1.0,
@@ -36,5 +38,6 @@ final class SelectionSession: Identifiable {
         self.showSelection = showSelection
         self.showRulerOverlay = showRulerOverlay
         self.isWindowVisible = isWindowVisible
+        self.selectionRecScreen = selectionRecScreen
     }
 }
