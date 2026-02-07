@@ -50,18 +50,38 @@ private struct ScreenSelectionMagnifierImage: View {
                     .stroke(.white.opacity(0.7), lineWidth: 1)
             )
             .overlay(alignment: .bottomLeading) {
-                Button(controller.isStreamLive ? "Live" : "Paused") {
-                    if !controller.isStreamLive {
-                        controller.restartCapture()
+                Menu {
+                    if controller.isStreamLive {
+                        Button("Pause") {
+                            controller.pauseCapture()
+                        }
+                        Menu("Pause after…") {
+                            Button("1 second") {
+                                controller.pauseCapture(after: 1)
+                            }
+                            Button("2 seconds") {
+                                controller.pauseCapture(after: 2)
+                            }
+                            Button("5 seconds") {
+                                controller.pauseCapture(after: 5)
+                            }
+                        }
+                    } else {
+                        Button("Go Live") {
+                            controller.restartCapture()
+                        }
                     }
+                } label: {
+                    Text(controller.isStreamLive ? "Live" : "Paused")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(controller.isStreamLive ? Color.green.opacity(0.8) : Color.orange.opacity(0.85))
+                        .clipShape(Capsule())
                 }
+                .menuStyle(.button)
                 .buttonStyle(.plain)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(controller.isStreamLive ? Color.green.opacity(0.8) : Color.orange.opacity(0.85))
-                .clipShape(Capsule())
                 .padding(10)
             }
             .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
