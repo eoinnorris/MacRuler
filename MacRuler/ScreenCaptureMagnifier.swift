@@ -144,8 +144,8 @@ final class StreamCaptureObserver: NSObject {
             currentCaptureRect = CGRect(x: 0, y: 0, width: 120, height: 120)
         }
         configuration.sourceRect = currentCaptureRect
-        configuration.width = Int(currentCaptureRect.width * screenScale * 4.0)
-        configuration.height = Int(currentCaptureRect.height * screenScale * 4.0)
+        configuration.width = Int(currentCaptureRect.width * screenScale )
+        configuration.height = Int(currentCaptureRect.height * screenScale)
     }
 }
 
