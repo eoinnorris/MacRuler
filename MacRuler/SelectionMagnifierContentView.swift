@@ -49,6 +49,21 @@ private struct ScreenSelectionMagnifierImage: View {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(.white.opacity(0.7), lineWidth: 1)
             )
+            .overlay(alignment: .bottomLeading) {
+                Button(controller.isStreamLive ? "Live" : "Paused") {
+                    if !controller.isStreamLive {
+                        controller.restartCapture()
+                    }
+                }
+                .buttonStyle(.plain)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(controller.isStreamLive ? Color.green.opacity(0.8) : Color.orange.opacity(0.85))
+                .clipShape(Capsule())
+                .padding(10)
+            }
             .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
             .background(
                 RoundedRectangle(cornerRadius: 10)
