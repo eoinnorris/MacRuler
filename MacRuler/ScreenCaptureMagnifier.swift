@@ -13,6 +13,7 @@ import SwiftUI
 @Observable
 final class StreamCaptureObserver: NSObject {
    var frameImage: CGImage?
+    var isStreamLive = false
 
     private let captureQueue = DispatchQueue(label: "ScreenCaptureMagnifier.Capture")
     private let ciContext = CIContext()
@@ -67,7 +68,9 @@ final class StreamCaptureObserver: NSObject {
             try await stream.startCapture()
             self.stream = stream
             isRunning = true
+            isStreamLive = true
         } catch {
+            isStreamLive = false
             NSLog("Failed to start ScreenCaptureKit stream: \(error.localizedDescription)")
         }
     }
@@ -82,6 +85,7 @@ final class StreamCaptureObserver: NSObject {
             }
         }
         isRunning = false
+        isStreamLive = false
     }
 
     func pauseCapture() {
@@ -96,12 +100,14 @@ final class StreamCaptureObserver: NSObject {
         }
         self.stream = nil
         isRunning = false
+        isStreamLive = false
     }
 
     func restartCapture() {
         stream = nil
         contentFilter = nil
         isRunning = false
+        isStreamLive = false
         Task {
             await start()
         }
@@ -151,6 +157,7 @@ extension StreamCaptureObserver: SCStreamOutput {
         guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else { return }
         Task { @MainActor in
             frameImage = cgImage
+            isStreamLive = true
         }
     }
 }
@@ -160,6 +167,7 @@ extension StreamCaptureObserver: SCStreamDelegate {
         NSLog("ScreenCaptureKit stream stopped: \(error.localizedDescription)")
         let shouldRestart = false // isRunning
         isRunning = false
+        isStreamLive = false
         self.stream = nil
         contentFilter = nil
         if shouldRestart {
