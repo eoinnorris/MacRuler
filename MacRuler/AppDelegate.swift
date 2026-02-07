@@ -9,6 +9,20 @@ import SwiftUI
 import AppKit
 import Observation
 
+private final class SelectionOverlayWindow: NSPanel {
+    var onEscape: (() -> Void)?
+
+    override var canBecomeKey: Bool { true }
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 {
+            onEscape?()
+            return
+        }
+        super.keyDown(with: event)
+    }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     static weak var shared: AppDelegate?
@@ -521,7 +535,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func makeSelectionOverlayWindow(for screen: NSScreen) -> NSWindow {
-        let overlay = NSPanel(
+        let overlay = SelectionOverlayWindow(
             contentRect: screen.frame,
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
@@ -534,6 +548,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         overlay.ignoresMouseEvents = false
         overlay.hidesOnDeactivate = false
         overlay.hasShadow = false
+        overlay.onEscape = { [weak self] in
+            self?.finishScreenSelection()
+        }
         overlay.contentView = NSHostingView(
             rootView: ScreenSelectionOverlayView(
                 onSelection: { [weak self] selectionRect, screen in
