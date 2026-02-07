@@ -266,9 +266,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func positionHorizontalRuler(aboveSelectionMagnifierFrame frame: CGRect) {
         guard let window = horizontalController?.window else { return }
         var rulerFrame = window.frame
-        let centerYOffset = frame.height * Constants.selectionHorizontalRulerThirdsYOffsetFactor
-        rulerFrame.origin.x = frame.midX - (rulerFrame.width / 2.0)
-        rulerFrame.origin.y = frame.maxY - (rulerFrame.height / 2.0) + centerYOffset + Constants.selectionRulerTopSpacing
+        let centerXOffset = frame.width * Constants.selectionHorizontalRulerThirdsYOffsetFactor
+        rulerFrame.origin.x = frame.origin.x - centerXOffset
+        rulerFrame.origin.y = frame.origin.y - 20.0
         window.setFrame(rulerFrame, display: true)
     }
 
