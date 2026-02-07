@@ -22,6 +22,10 @@ struct Constants {
     static let verticalWidth = 144.0
     static let verticalReadoutHeight = 26.0
 
+    static let selectionRulerTopSpacing = 12.0
+    static let selectionVerticalRulerLeadingSpacing = 12.0
+    static let selectionHorizontalRulerThirdsYOffsetFactor = 1.0 / 6.0
+
     static func approximateLabelSize(
         text: String,
         fontSize: CGFloat,

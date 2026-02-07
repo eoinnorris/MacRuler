@@ -41,6 +41,14 @@ struct SelectionWindowToolbar: View {
             .help("Show ruler overlay")
 
             Spacer(minLength: 0)
+
+            Toggle("HRule", isOn: $session.showHorizontalRuler)
+                .toggleStyle(.button)
+                .help("Toggle horizontal ruler")
+
+            Toggle("VRuler", isOn: $session.showVerticalRuler)
+                .toggleStyle(.button)
+                .help("Toggle vertical ruler")
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
