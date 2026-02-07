@@ -62,7 +62,15 @@ final class StreamCaptureObserver: NSObject {
         do {
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
             guard let display = content.displays.first else { return }
-            contentFilter = SCContentFilter(display: display, excludingWindows: [])
+            let ownBundleIdentifier = Bundle.main.bundleIdentifier
+            let ownApplications = content.applications.filter { app in
+                app.bundleIdentifier == ownBundleIdentifier
+            }
+            contentFilter = SCContentFilter(
+                display: display,
+                excludingApplications: ownApplications,
+                exceptingWindows: []
+            )
             configureStream()
             guard let contentFilter else { return }
             let stream = SCStream(filter: contentFilter, configuration: configuration, delegate: self)
