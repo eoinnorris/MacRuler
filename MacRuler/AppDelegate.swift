@@ -74,7 +74,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             rootView: makeHorizontalRulerView()
         )
         horizontalController = NSWindowController(window: hPanel)
-        horizontalController?.showWindow(nil)
+        hPanel.orderOut(nil)
 
         
         hPanel.delegate = horizontalResizeDelegate
@@ -100,7 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             )
         )
         verticalController = NSWindowController(window: vPanel)
-        verticalController?.showWindow(nil)
+        vPanel.orderOut(nil)
 
         setupStatusItem()
         startMagnificationObservation()
