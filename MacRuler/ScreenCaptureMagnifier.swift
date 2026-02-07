@@ -25,6 +25,7 @@ final class StreamCaptureObserver: NSObject {
     private var screenScale: CGFloat = NSScreen.main?.backingScaleFactor ?? 2.0
     private var sleepObserver: NSObjectProtocol?
     private var wakeObserver: NSObjectProtocol?
+    private var pauseTask: Task<Void, Never>?
 
     override init() {
         super.init()
@@ -46,6 +47,7 @@ final class StreamCaptureObserver: NSObject {
     }
 
     deinit {
+        pauseTask?.cancel()
         let workspaceCenter = NSWorkspace.shared.notificationCenter
         if let sleepObserver {
             workspaceCenter.removeObserver(sleepObserver)
@@ -76,6 +78,8 @@ final class StreamCaptureObserver: NSObject {
     }
 
     func stop() {
+        pauseTask?.cancel()
+        pauseTask = nil
         guard isRunning, let stream else { return }
         captureQueue.async {
             stream.stopCapture { error in
@@ -89,6 +93,8 @@ final class StreamCaptureObserver: NSObject {
     }
 
     func pauseCapture() {
+        pauseTask?.cancel()
+        pauseTask = nil
         guard isRunning || stream != nil else { return }
         let stream = stream
         captureQueue.async {
@@ -104,12 +110,27 @@ final class StreamCaptureObserver: NSObject {
     }
 
     func restartCapture() {
+        pauseTask?.cancel()
+        pauseTask = nil
         stream = nil
         contentFilter = nil
         isRunning = false
         isStreamLive = false
         Task {
             await start()
+        }
+    }
+
+    func pauseCapture(after seconds: TimeInterval) {
+        pauseTask?.cancel()
+        guard isStreamLive else { return }
+        pauseTask = Task { [weak self] in
+            let duration = UInt64(seconds * 1_000_000_000)
+            try? await Task.sleep(nanoseconds: duration)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                self?.pauseCapture()
+            }
         }
     }
 
