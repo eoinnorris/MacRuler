@@ -11,7 +11,7 @@ import UniformTypeIdentifiers
 
 struct ScreenSelectionMagnifierView: View {
     @Bindable var session: SelectionSession
-    @State private var controller = RulerMagnifierController()
+    @State private var controller = StreamCaptureObserver()
 
     var body: some View {
         VStack(spacing: 10) {

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SelectionMagnifierContentView: View {
     @Bindable var session: SelectionSession
-    @Bindable var controller: RulerMagnifierController
+    @Bindable var controller: StreamCaptureObserver
 
     var body: some View {
         ScreenSelectionMagnifierImage(session: session, controller: controller)
@@ -18,7 +18,7 @@ struct SelectionMagnifierContentView: View {
 
 private struct ScreenSelectionMagnifierImage: View {
     @Bindable var session: SelectionSession
-    @Bindable var controller: RulerMagnifierController
+    @Bindable var controller: StreamCaptureObserver
 
     var body: some View {
         GeometryReader { proxy in

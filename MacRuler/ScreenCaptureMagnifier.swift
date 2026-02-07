@@ -11,7 +11,7 @@ import CoreMedia
 import SwiftUI
 
 @Observable
-final class RulerMagnifierController: NSObject {
+final class StreamCaptureObserver: NSObject {
    var frameImage: CGImage?
 
     private let captureQueue = DispatchQueue(label: "ScreenCaptureMagnifier.Capture")
@@ -143,7 +143,7 @@ final class RulerMagnifierController: NSObject {
     }
 }
 
-extension RulerMagnifierController: SCStreamOutput {
+extension StreamCaptureObserver: SCStreamOutput {
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
         guard outputType == .screen,
               let pixelBuffer = sampleBuffer.imageBuffer else { return }
@@ -155,7 +155,7 @@ extension RulerMagnifierController: SCStreamOutput {
     }
 }
 
-extension RulerMagnifierController: SCStreamDelegate {
+extension StreamCaptureObserver: SCStreamDelegate {
     func stream(_ stream: SCStream, didStopWithError error: Error) {
         NSLog("ScreenCaptureKit stream stopped: \(error.localizedDescription)")
         let shouldRestart = false // isRunning
@@ -172,7 +172,7 @@ extension RulerMagnifierController: SCStreamDelegate {
 
 struct RulerMagnifierView: View {
     @Bindable var viewModel: MagnificationViewModel
-    @State private var controller = RulerMagnifierController()
+    @State private var controller = StreamCaptureObserver()
 
     var body: some View {
         GeometryReader { proxy in
