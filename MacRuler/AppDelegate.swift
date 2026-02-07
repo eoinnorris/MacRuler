@@ -30,9 +30,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
     private var magnifierController: NSWindowController?
-    private var selectionMagnifierControllers: [UUID: NSWindowController] = [:]
-    private var selectionMagnifierWindowDelegates: [UUID: MagnifierWindowDelegate] = [:]
-    private var selectionSessions: [UUID: SelectionSession] = [:]
+    private var selectionMagnifierController: NSWindowController?
+    private var selectionMagnifierWindowDelegate: MagnifierWindowDelegate?
+    private var currentSelectionSession: SelectionSession?
     private var selectionOverlayController: NSWindowController?
     private var statusItem: NSStatusItem?
     private var statusMenu: NSMenu?
@@ -460,31 +460,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func showSelectionMagnifierWindow(for session: SelectionSession) {
-        if let controller = selectionMagnifierControllers[session.id] {
+        currentSelectionSession?.isWindowVisible = false
+        currentSelectionSession = session
+
+        if let controller = selectionMagnifierController,
+           let window = controller.window {
+            window.contentView = NSHostingView(rootView: ScreenSelectionMagnifierView(session: session))
+            window.title = "Selection Magnification"
             controller.showWindow(nil)
-            controller.window?.makeKeyAndOrderFront(nil)
+            window.makeKeyAndOrderFront(nil)
             session.isWindowVisible = true
             return
         }
 
         let window = makeSelectionMagnifierWindow(for: session)
         let controller = NSWindowController(window: window)
-        selectionMagnifierControllers[session.id] = controller
+        selectionMagnifierController = controller
         controller.showWindow(nil)
         controller.window?.makeKeyAndOrderFront(nil)
         session.isWindowVisible = true
     }
 
-    private func hideSelectionMagnifierWindow(for sessionID: UUID) {
-        selectionMagnifierControllers[sessionID]?.window?.orderOut(nil)
-        selectionSessions[sessionID]?.isWindowVisible = false
+    private func hideSelectionMagnifierWindow() {
+        selectionMagnifierController?.window?.orderOut(nil)
+        currentSelectionSession?.isWindowVisible = false
     }
 
-    private func closeSelectionSession(_ sessionID: UUID) {
-        hideSelectionMagnifierWindow(for: sessionID)
-        selectionMagnifierControllers[sessionID] = nil
-        selectionMagnifierWindowDelegates[sessionID] = nil
-        selectionSessions[sessionID] = nil
+    private func closeSelectionSession() {
+        hideSelectionMagnifierWindow()
+        selectionMagnifierController = nil
+        selectionMagnifierWindowDelegate = nil
+        currentSelectionSession = nil
     }
 
     private func makeSelectionMagnifierWindow(for session: SelectionSession) -> NSWindow {
@@ -507,9 +513,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         window.contentView = NSHostingView(rootView: ScreenSelectionMagnifierView(session: session))
 
         let delegate = MagnifierWindowDelegate { [weak self] in
-            self?.closeSelectionSession(session.id)
+            self?.closeSelectionSession()
         }
-        selectionMagnifierWindowDelegates[session.id] = delegate
+        selectionMagnifierWindowDelegate = delegate
         window.delegate = delegate
         return window
     }
@@ -563,7 +569,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                         selectionRectGlobal: globalFrame,
                         screen: screen
                     )
-                    self.selectionSessions[session.id] = session
                     self.showSelectionMagnifierWindow(for: session)
                     self.finishScreenSelection()
                 },
