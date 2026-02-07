@@ -224,24 +224,69 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         refreshStatusMenu()
     }
 
-    @objc private func toggleHorizontalRuler() {
+    @MainActor
+    func isHorizontalRulerVisible() -> Bool {
+        horizontalController?.window?.isVisible ?? false
+    }
+
+    @MainActor
+    func isVerticalRulerVisible() -> Bool {
+        verticalController?.window?.isVisible ?? false
+    }
+
+    @MainActor
+    func setHorizontalRulerVisible(_ visible: Bool) {
         guard let window = horizontalController?.window else { return }
-        if window.isVisible {
-            window.orderOut(nil)
-        } else {
+        if visible {
             window.makeKeyAndOrderFront(nil)
+        } else {
+            window.orderOut(nil)
         }
         refreshStatusMenu()
     }
 
-    @objc private func toggleVerticalRuler() {
+    @MainActor
+    func setVerticalRulerVisible(_ visible: Bool) {
         guard let window = verticalController?.window else { return }
-        if window.isVisible {
-            window.orderOut(nil)
-        } else {
+        if visible {
             window.makeKeyAndOrderFront(nil)
+        } else {
+            window.orderOut(nil)
         }
         refreshStatusMenu()
+    }
+
+    @MainActor
+    func positionRulers(aroundSelectionMagnifierFrame frame: CGRect) {
+        positionHorizontalRuler(aboveSelectionMagnifierFrame: frame)
+        positionVerticalRuler(aboveAndLeftOfSelectionMagnifierFrame: frame)
+    }
+
+    @MainActor
+    func positionHorizontalRuler(aboveSelectionMagnifierFrame frame: CGRect) {
+        guard let window = horizontalController?.window else { return }
+        var rulerFrame = window.frame
+        let centerYOffset = frame.height * Constants.selectionHorizontalRulerThirdsYOffsetFactor
+        rulerFrame.origin.x = frame.midX - (rulerFrame.width / 2.0)
+        rulerFrame.origin.y = frame.maxY - (rulerFrame.height / 2.0) + centerYOffset + Constants.selectionRulerTopSpacing
+        window.setFrame(rulerFrame, display: true)
+    }
+
+    @MainActor
+    func positionVerticalRuler(aboveAndLeftOfSelectionMagnifierFrame frame: CGRect) {
+        guard let window = verticalController?.window else { return }
+        var rulerFrame = window.frame
+        rulerFrame.origin.x = frame.minX - rulerFrame.width - Constants.selectionVerticalRulerLeadingSpacing
+        rulerFrame.origin.y = frame.maxY + Constants.selectionRulerTopSpacing
+        window.setFrame(rulerFrame, display: true)
+    }
+
+    @objc private func toggleHorizontalRuler() {
+        setHorizontalRulerVisible(!isHorizontalRulerVisible())
+    }
+
+    @objc private func toggleVerticalRuler() {
+        setVerticalRulerVisible(!isVerticalRulerVisible())
     }
 
     @objc private func toggleMagnifier() {
@@ -462,6 +507,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func showSelectionMagnifierWindow(for session: SelectionSession) {
         currentSelectionSession?.isWindowVisible = false
         currentSelectionSession = session
+        session.showHorizontalRuler = isHorizontalRulerVisible()
+        session.showVerticalRuler = isVerticalRulerVisible()
 
         if let controller = selectionMagnifierController,
            let window = controller.window {

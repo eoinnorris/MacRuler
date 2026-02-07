@@ -34,10 +34,58 @@ struct ScreenSelectionMagnifierView: View {
                 dismissSelectionWindow()
             }
         }
+        .onChange(of: session.showHorizontalRuler) { _, shouldShow in
+            handleHorizontalRulerToggle(isOn: shouldShow)
+        }
+        .onChange(of: session.showVerticalRuler) { _, shouldShow in
+            handleVerticalRulerToggle(isOn: shouldShow)
+        }
+        .onAppear {
+            syncRulerToggleStateWithVisibility()
+        }
         .onDisappear {
             selectionPreviewTask?.cancel()
             dismissSelectionWindow()
+            session.showHorizontalRuler = false
+            session.showVerticalRuler = false
+            AppDelegate.shared?.setHorizontalRulerVisible(false)
+            AppDelegate.shared?.setVerticalRulerVisible(false)
         }
+    }
+
+    @MainActor
+    private func syncRulerToggleStateWithVisibility() {
+        guard let appDelegate = AppDelegate.shared else { return }
+        session.showHorizontalRuler = appDelegate.isHorizontalRulerVisible()
+        session.showVerticalRuler = appDelegate.isVerticalRulerVisible()
+    }
+
+    @MainActor
+    private func handleHorizontalRulerToggle(isOn: Bool) {
+        guard let appDelegate = AppDelegate.shared else { return }
+        if isOn, let frame = magnifierWindowFrame() {
+            appDelegate.positionHorizontalRuler(aboveSelectionMagnifierFrame: frame)
+        }
+        appDelegate.setHorizontalRulerVisible(isOn)
+    }
+
+    @MainActor
+    private func handleVerticalRulerToggle(isOn: Bool) {
+        guard let appDelegate = AppDelegate.shared else { return }
+        if isOn, let frame = magnifierWindowFrame() {
+            appDelegate.positionVerticalRuler(aboveAndLeftOfSelectionMagnifierFrame: frame)
+        }
+        appDelegate.setVerticalRulerVisible(isOn)
+    }
+
+    @MainActor
+    private func magnifierWindowFrame() -> CGRect? {
+        if let window = NSApplication.shared.keyWindow,
+           window.title == "Selection Magnification" {
+            return window.frame
+        }
+
+        return NSApplication.shared.windows.first(where: { $0.title == "Selection Magnification" })?.frame
     }
 
     private func takeSnapshot() {
