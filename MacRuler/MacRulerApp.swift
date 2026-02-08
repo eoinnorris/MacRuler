@@ -24,10 +24,14 @@ struct MacOSRulerApp: App {
         }
         .commands {
             CommandMenu("HRuler") {
-                Toggle("Select left handle", isOn: $overlayViewModel.leftHandleSelected)
-                    .keyboardShortcut("1", modifiers: [.command])
-                Toggle("Select right handle", isOn: $overlayViewModel.rightHandleSelected)
-                    .keyboardShortcut("2", modifiers: [.command])
+                Button(DividerHandle.left.displayName) {
+                    overlayViewModel.selectedHandle = .left
+                }
+                .keyboardShortcut("1", modifiers: [.command])
+                Button(DividerHandle.right.displayName) {
+                    overlayViewModel.selectedHandle = .right
+                }
+                .keyboardShortcut("2", modifiers: [.command])
                 Divider()
                 
                 Button("Move Left") {
@@ -54,10 +58,14 @@ struct MacOSRulerApp: App {
                 Toggle("Attach to vertical ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
             }
             CommandMenu("VRuler") {
-                Toggle(VerticalDividerHandle.top.displayName, isOn: $overlayVerticalViewModel.topHandleSelected)
-                    .keyboardShortcut("3", modifiers: [.command])
-                Toggle(VerticalDividerHandle.bottom.displayName, isOn: $overlayVerticalViewModel.bottomHandleSelected)
-                    .keyboardShortcut("4", modifiers: [.command])
+                Button(VerticalDividerHandle.top.displayName) {
+                    overlayVerticalViewModel.selectedHandle = .top
+                }
+                .keyboardShortcut("3", modifiers: [.command])
+                Button(VerticalDividerHandle.bottom.displayName) {
+                    overlayVerticalViewModel.selectedHandle = .bottom
+                }
+                .keyboardShortcut("4", modifiers: [.command])
                 
                 Divider()
                 Button("Move Up") {

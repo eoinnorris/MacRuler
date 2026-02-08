@@ -68,16 +68,6 @@ final class OverlayViewModel {
         }
     }
     
-    var rightHandleSelected: Bool {
-        get { selectedHandle == .right }
-        set { selectedHandle = .right }
-    }
-    
-    var leftHandleSelected: Bool {
-        get { selectedHandle == .left }
-        set { selectedHandle =  .left }
-    }
-    
     var backingScale: CGFloat = 1.0
     var windowFrame: CGRect = .zero {
         didSet {
