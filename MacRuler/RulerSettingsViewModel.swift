@@ -10,9 +10,11 @@ import SwiftUI
 @Observable
 final class RulerSettingsViewModel {
 
-    static var shared = RulerSettingsViewModel()
+    /// Process-wide shared settings used by the live app runtime.
+    /// Access on the main actor when mutating from UI code.
+    static let shared = RulerSettingsViewModel()
 
-    private let defaults: UserDefaults
+    private let defaults: DefaultsStoring
     
     var unitType: UnitTypes {
         didSet {
@@ -64,7 +66,7 @@ final class RulerSettingsViewModel {
     }
     
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: DefaultsStoring = UserDefaults.standard) {
         self.defaults = defaults
         if let storedValue = defaults.string(forKey: PersistenceKeys.unitType),
            let storedUnit = UnitTypes(rawValue: storedValue) {

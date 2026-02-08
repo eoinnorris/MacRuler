@@ -24,8 +24,11 @@ private final class SelectionOverlayWindow: NSPanel {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
+    /// Weak process-wide reference for bridging legacy AppKit actions into SwiftUI callbacks.
+    /// This is assigned during launch on the main thread and should be read from UI/MainActor code only.
     static weak var shared: AppDelegate?
 
     private var horizontalController: NSWindowController?
@@ -40,17 +43,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var verticalMenuItem: NSMenuItem?
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
     private let captureController = CaptureController()
-    private let rulerSettingsViewModel = RulerSettingsViewModel.shared
+    private let dependencies = AppDependencies.live
+    private lazy var rulerSettingsViewModel = dependencies.rulerSettings
     private var rulerAttachmentObservationTask: Task<Void, Never>?
     private var rulerWindowObservationTokens: [NSObjectProtocol] = []
     private weak var lastActiveRulerWindow: NSWindow?
 
     
     func makeHorizontalRulerView() -> some View {
-        HorizontalRulerView(overlayViewModel: OverlayViewModel.shared,
-                            settings: RulerSettingsViewModel.shared,
-                            debugSettings: DebugSettingsModel.shared,
-                            magnificationViewModel: MagnificationViewModel.shared)
+        HorizontalRulerView(overlayViewModel: dependencies.overlay,
+                            settings: dependencies.rulerSettings,
+                            debugSettings: dependencies.debugSettings,
+                            magnificationViewModel: dependencies.magnification)
             .frame(height: Constants.horizontalHeight)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -102,10 +106,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let vPanel = makePanel(
             frame: NSRect(origin: vOrigin, size: vSize),
             rootView: VerticalRulerView(
-                overlayViewModel: OverlayVerticalViewModel.shared,
-                settings: RulerSettingsViewModel.shared,
-                debugSettings: DebugSettingsModel.shared,
-                magnificationViewModel: MagnificationViewModel.shared
+                overlayViewModel: dependencies.overlayVertical,
+                settings: dependencies.rulerSettings,
+                debugSettings: dependencies.debugSettings,
+                magnificationViewModel: dependencies.magnification
             )
         )
         verticalController = NSWindowController(window: vPanel)
@@ -466,7 +470,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let controller = selectionMagnifierController,
            let window = controller.window {
             window.contentView = NSHostingView(
-                rootView: SelectionMagnifierRootView(session: currentSelectionSession)
+                rootView: SelectionMagnifierRootView(
+                    session: currentSelectionSession,
+                    appDelegate: self,
+                    magnificationViewModel: dependencies.magnification
+                )
             )
             window.title = "Selection Magnification"
             controller.showWindow(nil)
@@ -494,7 +502,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         hideSelectionMagnifierWindow()
         currentSelectionSession = nil
         if let window = selectionMagnifierController?.window {
-            window.contentView = NSHostingView(rootView: SelectionMagnifierRootView(session: nil))
+            window.contentView = NSHostingView(
+                rootView: SelectionMagnifierRootView(
+                    session: nil,
+                    appDelegate: self,
+                    magnificationViewModel: dependencies.magnification
+                )
+            )
         }
     }
 
@@ -516,7 +530,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         window.title = "Selection Magnification"
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 240, height: 180)
-        window.contentView = NSHostingView(rootView: SelectionMagnifierRootView(session: session))
+        window.contentView = NSHostingView(
+            rootView: SelectionMagnifierRootView(
+                session: session,
+                appDelegate: self,
+                magnificationViewModel: dependencies.magnification
+            )
+        )
 
         let delegate = MagnifierWindowDelegate { [weak self] in
             self?.closeSelectionSession()
