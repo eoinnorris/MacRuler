@@ -110,7 +110,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             rootView: VerticalRulerView(
                 overlayViewModel: OverlayVerticalViewModel.shared,
                 settings: RulerSettingsViewModel.shared,
-                debugSettings: DebugSettingsModel.shared
+                debugSettings: DebugSettingsModel.shared,
+                magnificationViewModel: MagnificationViewModel.shared
             )
         )
         verticalController = NSWindowController(window: vPanel)
