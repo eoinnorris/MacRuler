@@ -9,6 +9,20 @@ import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
 
+struct SelectionMagnifierRootView: View {
+    let session: SelectionSession?
+
+    var body: some View {
+        Group {
+            if let session {
+                ScreenSelectionMagnifierView(session: session)
+            } else {
+                SelectionHintView()
+            }
+        }
+    }
+}
+
 struct ScreenSelectionMagnifierView: View {
     @Bindable var session: SelectionSession
     @State private var controller = StreamCaptureObserver()
