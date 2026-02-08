@@ -19,4 +19,8 @@ enum PersistenceKeys {
     static let bottomDividerY = "ruler.vertical.bottomDividerY"
     static let verticalSelectedHandle = "ruler.vertical.selectedHandle"
     static let attachRulers = "ruler.attachRulers"
+    static let snapEnabled = "ruler.snap.enabled"
+    static let snapTolerancePoints = "ruler.snap.tolerance"
+    static let snapGridStepPoints = "ruler.snap.gridStep"
+    static let snapToMajorTicks = "ruler.snap.majorTicks"
 }

@@ -57,7 +57,12 @@ struct VerticalRulerView: View {
         .onTapGesture { location in
             let magnification = CGFloat(max(magnificationViewModel.magnification, 0.1))
             withAnimation(.easeInOut(duration: 0.2)) {
-                overlayViewModel.updateDividers(with: location.y / magnification)
+                overlayViewModel.updateDividers(
+                    with: location.y,
+                    axisLength: overlayViewModel.windowFrame.height,
+                    magnification: magnification,
+                    unitType: settings.unitType
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

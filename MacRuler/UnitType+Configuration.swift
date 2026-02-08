@@ -22,6 +22,10 @@ struct TickConfiguration {
         max(Int((majorEveryInUnits / minorEveryInUnits).rounded()), 1)
     }
 
+    var majorEveryInPoints: CGFloat {
+        pointsPerUnit * majorEveryInUnits
+    }
+
     var labelStep: Int {
         max(Int((labelEveryInUnits / minorEveryInUnits).rounded()), 1)
     }
