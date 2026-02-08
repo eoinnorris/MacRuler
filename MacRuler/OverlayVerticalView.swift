@@ -9,14 +9,18 @@ import SwiftUI
 
 struct OverlayVerticalView: View {
     let overlayViewModel: OverlayVerticalViewModel
+    @Bindable var magnificationViewModel: MagnificationViewModel
 
     var body: some View {
         GeometryReader { geometry in
+            let magnification = CGFloat(max(magnificationViewModel.magnification, 0.1))
+            let scaledHeight = geometry.size.height / magnification
+
             ZStack {
                 if let topDividerY = overlayViewModel.topDividerY {
                     HorizontalDividerLine(
                         type: .top,
-                        y: topDividerY,
+                        y: topDividerY * magnification,
                         width: geometry.size.width,
                         backingScale: overlayViewModel.backingScale
                     )
@@ -24,7 +28,7 @@ struct OverlayVerticalView: View {
                         DragGesture()
                             .onChanged { value in
                                 overlayViewModel.selectedHandle = .top
-                                overlayViewModel.topDividerY = overlayViewModel.boundedDividerValue(value.location.y)
+                                overlayViewModel.topDividerY = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
                             }
                     )
                 }
@@ -32,7 +36,7 @@ struct OverlayVerticalView: View {
                 if let bottomDividerY = overlayViewModel.bottomDividerY {
                     HorizontalDividerLine(
                         type: .bottom,
-                        y: bottomDividerY,
+                        y: bottomDividerY * magnification,
                         width: geometry.size.width,
                         backingScale: overlayViewModel.backingScale
                     )
@@ -40,7 +44,7 @@ struct OverlayVerticalView: View {
                         DragGesture()
                             .onChanged { value in
                                 overlayViewModel.selectedHandle = .bottom
-                                overlayViewModel.bottomDividerY = overlayViewModel.boundedDividerValue(value.location.y)
+                                overlayViewModel.bottomDividerY = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
                             }
                     )
                 }

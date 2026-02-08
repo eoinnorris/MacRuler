@@ -56,6 +56,10 @@ struct ScreenSelectionMagnifierView: View {
         }
         .onAppear {
             syncRulerToggleStateWithVisibility()
+            MagnificationViewModel.shared.magnification = session.magnification
+        }
+        .onChange(of: session.magnification) { _, newValue in
+            MagnificationViewModel.shared.magnification = newValue
         }
         .onDisappear {
             selectionPreviewTask?.cancel()

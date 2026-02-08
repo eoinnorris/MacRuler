@@ -15,13 +15,16 @@ struct OverlayHorizontalView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
+                let magnification = CGFloat(max(magnificationViewModel.magnification, 0.1))
+                let scaledWidth = geometry.size.width / magnification
+
                 if overlayViewModel.showDividerDance,
                    let leftDividerX = overlayViewModel.leftDividerX,
                    let rightDividerX = overlayViewModel.rightDividerX {
                     DancingAntsRectangle(
                         rect: DividerDanceMetrics.rect(
-                            leftDividerX: leftDividerX,
-                            rightDividerX: rightDividerX,
+                            leftDividerX: leftDividerX * magnification,
+                            rightDividerX: rightDividerX * magnification,
                             lineWidth: DividerDanceMetrics.baseLineWidth(backingScale: overlayViewModel.backingScale),
                             height: geometry.size.height
                         )
@@ -39,14 +42,14 @@ struct OverlayHorizontalView: View {
                 if let leftDividerX  = overlayViewModel.leftDividerX {
                     DividerLine(
                         type: .left,
-                        x: leftDividerX,
+                        x: leftDividerX * magnification,
                         height: geometry.size.height,
                         backingScale: overlayViewModel.backingScale
                     )
                     .gesture(
                         DragGesture()
                             .onChanged { value in
-                                overlayViewModel.leftDividerX = overlayViewModel.boundedDividerValue(value.location.x)
+                                overlayViewModel.leftDividerX = overlayViewModel.boundedDividerValue(value.location.x / magnification, maxValue: scaledWidth)
                             }
                     )
                 }
@@ -54,14 +57,14 @@ struct OverlayHorizontalView: View {
                 if let rightDividerX  = overlayViewModel.rightDividerX {
                     DividerLine(
                         type: .right,
-                        x: rightDividerX,
+                        x: rightDividerX * magnification,
                         height: geometry.size.height,
                         backingScale: overlayViewModel.backingScale
                     )
                     .gesture(
                         DragGesture()
                             .onChanged { value in
-                                overlayViewModel.rightDividerX = overlayViewModel.boundedDividerValue(value.location.x)
+                                overlayViewModel.rightDividerX = overlayViewModel.boundedDividerValue(value.location.x / magnification, maxValue: scaledWidth)
                             }
                     )
                 }

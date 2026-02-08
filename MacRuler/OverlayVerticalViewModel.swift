@@ -99,7 +99,7 @@ final class OverlayVerticalViewModel {
     }
 
     func updateDividers(with y: CGFloat) {
-        let boundedY = boundedDividerValue(y)
+        let boundedY = boundedDividerValue(y, maxValue: windowFrame.height)
         if topDividerY == nil {
             topDividerY = boundedY
             selectedHandle = .top
@@ -143,9 +143,10 @@ final class OverlayVerticalViewModel {
         }
     }
 
-    func boundedDividerValue(_ value: CGFloat) -> CGFloat {
-        guard windowFrame.height > 0 else { return value }
-        return min(max(value, 0), windowFrame.height)
+    func boundedDividerValue(_ value: CGFloat, maxValue: CGFloat? = nil) -> CGFloat {
+        let upperBound = maxValue ?? windowFrame.height
+        guard upperBound > 0 else { return value }
+        return min(max(value, 0), upperBound)
     }
 
     private func loadDividerValue(forKey key: String) -> CGFloat? {
@@ -219,7 +220,7 @@ final class OverlayVerticalViewModel {
         case .left, .right:
             return
         }
-        setter(boundedDividerValue(nextValue))
+        setter(boundedDividerValue(nextValue, maxValue: windowFrame.height))
     }
 
     private func normalizeDividers(for height: CGFloat, resetOutOfBounds: Bool) {

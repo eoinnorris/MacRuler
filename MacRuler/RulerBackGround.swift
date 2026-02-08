@@ -11,6 +11,7 @@ struct RulerBackGround : View {
     
     let rulerType:RulerType
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
+    var magnification: CGFloat = 1.0
     
     var body: some View {
          switch rulerType {
@@ -30,7 +31,7 @@ struct RulerBackGround : View {
             Canvas { context, size in
                 let h = size.height
                 let tickConfig = rulerSettingsViewModel.unitType.tickConfiguration
-                let minorEvery = tickConfig.minorEveryInPoints
+                let minorEvery = tickConfig.minorEveryInPoints * max(magnification, 0.1)
                 let majorStep = tickConfig.majorStep
                 let labelStep = tickConfig.labelStep
                 let labelFont = Font.system(size: 9, weight: .medium)
@@ -94,7 +95,7 @@ struct RulerBackGround : View {
             Canvas { context, size in
                 let w = size.width
                 let tickConfig = rulerSettingsViewModel.unitType.tickConfiguration
-                let minorEvery = tickConfig.minorEveryInPoints
+                let minorEvery = tickConfig.minorEveryInPoints * max(magnification, 0.1)
                 let majorStep = tickConfig.majorStep
                 let labelStep = tickConfig.labelStep
                 let labelFont = Font.system(size: 9, weight: .medium)
