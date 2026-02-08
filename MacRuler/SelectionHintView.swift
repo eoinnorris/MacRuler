@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SelectionHintView: View {
+    let appDelegate: AppDelegate?
     var body: some View {
         VStack(spacing: 14) {
             Spacer(minLength: 0)
@@ -17,12 +18,12 @@ struct SelectionHintView: View {
 
             HStack(spacing: 10) {
                 Button("Select Window") {
-                    AppDelegate.shared?.beginWindowSelection()
+                    appDelegate?.beginWindowSelection()
                 }
                 .keyboardShortcut(.defaultAction)
 
                 Button("Screen selection") {
-                    AppDelegate.shared?.beginScreenSelection()
+                    appDelegate?.beginScreenSelection()
                 }
             }
             Spacer(minLength: 0)

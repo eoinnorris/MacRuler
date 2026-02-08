@@ -11,6 +11,8 @@ import AppKit
 
 @Observable
 final class MagnificationViewModel {
+    /// Process-wide shared magnification state used by the live app runtime.
+    /// Access on the main actor when mutating from UI code.
     static let shared = MagnificationViewModel()
 
     var rulerFrame: CGRect = .zero
@@ -20,5 +22,5 @@ final class MagnificationViewModel {
     var isMagnifierVisible: Bool = true
     var magnification: Double = 1.0
 
-    private init() {}
+    init() {}
 }

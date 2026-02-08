@@ -11,13 +11,19 @@ import UniformTypeIdentifiers
 
 struct SelectionMagnifierRootView: View {
     let session: SelectionSession?
+    let appDelegate: AppDelegate?
+    @Bindable var magnificationViewModel: MagnificationViewModel
 
     var body: some View {
         Group {
             if let session {
-                ScreenSelectionMagnifierView(session: session)
+                ScreenSelectionMagnifierView(
+                    session: session,
+                    appDelegate: appDelegate,
+                    magnificationViewModel: magnificationViewModel
+                )
             } else {
-                SelectionHintView()
+                SelectionHintView(appDelegate: appDelegate)
             }
         }
     }
@@ -25,6 +31,8 @@ struct SelectionMagnifierRootView: View {
 
 struct ScreenSelectionMagnifierView: View {
     @Bindable var session: SelectionSession
+    let appDelegate: AppDelegate?
+    @Bindable var magnificationViewModel: MagnificationViewModel
     @State private var controller = StreamCaptureObserver()
     @State private var selectionPreviewWindow: NSWindow?
     @State private var selectionPreviewTask: Task<Void, Never>?
@@ -56,31 +64,31 @@ struct ScreenSelectionMagnifierView: View {
         }
         .onAppear {
             syncRulerToggleStateWithVisibility()
-            MagnificationViewModel.shared.magnification = session.magnification
+            magnificationViewModel.magnification = session.magnification
         }
         .onChange(of: session.magnification) { _, newValue in
-            MagnificationViewModel.shared.magnification = newValue
+            magnificationViewModel.magnification = newValue
         }
         .onDisappear {
             selectionPreviewTask?.cancel()
             dismissSelectionWindow()
             session.showHorizontalRuler = false
             session.showVerticalRuler = false
-            AppDelegate.shared?.setHorizontalRulerVisible(false)
-            AppDelegate.shared?.setVerticalRulerVisible(false)
+            appDelegate?.setHorizontalRulerVisible(false)
+            appDelegate?.setVerticalRulerVisible(false)
         }
     }
 
     @MainActor
     private func syncRulerToggleStateWithVisibility() {
-        guard let appDelegate = AppDelegate.shared else { return }
+        guard let appDelegate else { return }
         session.showHorizontalRuler = appDelegate.isHorizontalRulerVisible()
         session.showVerticalRuler = appDelegate.isVerticalRulerVisible()
     }
 
     @MainActor
     private func handleHorizontalRulerToggle(isOn: Bool) {
-        guard let appDelegate = AppDelegate.shared else { return }
+        guard let appDelegate else { return }
         if isOn, let frame = magnifierWindowFrame() {
             appDelegate.positionHorizontalRuler(aboveSelectionMagnifierFrame: frame)
         }
@@ -89,7 +97,7 @@ struct ScreenSelectionMagnifierView: View {
 
     @MainActor
     private func handleVerticalRulerToggle(isOn: Bool) {
-        guard let appDelegate = AppDelegate.shared else { return }
+        guard let appDelegate else { return }
         if isOn, let frame = magnifierWindowFrame() {
             appDelegate.positionVerticalRuler(aboveAndLeftOfSelectionMagnifierFrame: frame)
         }

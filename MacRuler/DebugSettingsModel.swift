@@ -9,9 +9,11 @@ import SwiftUI
 
 @Observable
 final class DebugSettingsModel {
+    /// Process-wide shared debug settings used by the live app runtime.
+    /// Access on the main actor when mutating from UI code.
     static let shared = DebugSettingsModel()
 
     var showWindowBackground = false
 
-    private init() {}
+    init() {}
 }

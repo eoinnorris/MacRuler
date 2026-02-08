@@ -24,9 +24,13 @@ enum VerticalDividerHandle: String, CaseIterable, Identifiable {
 
 @Observable
 final class OverlayVerticalViewModel {
-    private let defaults: UserDefaults
+    private let defaults: DefaultsStoring
+    private let horizontalOverlayViewModel: OverlayViewModel
+    private let rulerSettings: RulerSettingsViewModel
     private var keyDownObserver: NSObjectProtocol?
 
+    /// Process-wide shared vertical overlay state used by the live app runtime.
+    /// Access on the main actor when mutating from UI code.
     static let shared = OverlayVerticalViewModel()
 
     var topDividerY: CGFloat? {
@@ -58,8 +62,14 @@ final class OverlayVerticalViewModel {
         }
     }
 
-    private init(defaults: UserDefaults = .standard) {
+    init(
+        defaults: DefaultsStoring = UserDefaults.standard,
+        horizontalOverlayViewModel: OverlayViewModel = .shared,
+        rulerSettings: RulerSettingsViewModel = .shared
+    ) {
         self.defaults = defaults
+        self.horizontalOverlayViewModel = horizontalOverlayViewModel
+        self.rulerSettings = rulerSettings
 
         if let storedHandle = defaults.string(forKey: PersistenceKeys.verticalSelectedHandle),
            let handle = VerticalDividerHandle(rawValue: storedHandle) {
@@ -82,7 +92,7 @@ final class OverlayVerticalViewModel {
     }
 
     var selectedPoints: DividerStep {
-        OverlayViewModel.shared.selectedPoints
+        horizontalOverlayViewModel.selectedPoints
     }
 
     var dividerDistancePixels: Int {
@@ -145,7 +155,7 @@ final class OverlayVerticalViewModel {
     func snappedValue(rawValue: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTypes) -> CGFloat {
         let logicalValue = rawValue / max(magnification, 0.1)
         let boundedValue = boundedDividerValue(logicalValue, maxValue: axisLength)
-        let snapSettings = RulerSettingsViewModel.shared.handleSnapConfiguration
+        let snapSettings = rulerSettings.handleSnapConfiguration
 
         guard snapSettings.snapEnabled else {
             snappedHandle = nil

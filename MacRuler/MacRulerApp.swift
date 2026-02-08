@@ -10,12 +10,21 @@ import AppKit
 @preconcurrency import ScreenCaptureKit
 
 @main
+@MainActor
 struct MacOSRulerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @State var rulerSettingsViewModel = RulerSettingsViewModel.shared
-    @State private var overlayViewModel = OverlayViewModel.shared
-    @State private var overlayVerticalViewModel = OverlayVerticalViewModel.shared
-    @State private var debugSettings = DebugSettingsModel.shared
+    @State private var rulerSettingsViewModel: RulerSettingsViewModel
+    @State private var overlayViewModel: OverlayViewModel
+    @State private var overlayVerticalViewModel: OverlayVerticalViewModel
+    @State private var debugSettings: DebugSettingsModel
+
+    init() {
+        let dependencies = AppDependencies.live
+        _rulerSettingsViewModel = State(initialValue: dependencies.rulerSettings)
+        _overlayViewModel = State(initialValue: dependencies.overlay)
+        _overlayVerticalViewModel = State(initialValue: dependencies.overlayVertical)
+        _debugSettings = State(initialValue: dependencies.debugSettings)
+    }
     
     var body: some Scene {
         // No default window; we’ll drive our own panels.
@@ -81,10 +90,10 @@ struct MacOSRulerApp: App {
             }
             CommandMenu("Screen picker") {
                 Button("Select Window") {
-                    AppDelegate.shared?.beginWindowSelection()
+                    appDelegate.beginWindowSelection()
                 }
                 Button("Screen selection") {
-                    AppDelegate.shared?.beginScreenSelection()
+                    appDelegate.beginScreenSelection()
                 }
             }
 #if DEBUG

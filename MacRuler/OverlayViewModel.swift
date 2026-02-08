@@ -35,9 +35,11 @@ enum DividerStep: Int, CaseIterable, Identifiable {
 
 @Observable
 final class OverlayViewModel {
-    private let defaults: UserDefaults
+    private let defaults: DefaultsStoring
     private var keyDownObserver: NSObjectProtocol?
 
+    /// Process-wide shared horizontal overlay state used by the live app runtime.
+    /// Access on the main actor when mutating from UI code.
     static let shared = OverlayViewModel()
     
     var leftDividerX: CGFloat? {
@@ -77,7 +79,7 @@ final class OverlayViewModel {
         }
     }
 
-    private init(defaults: UserDefaults = .standard) {
+    init(defaults: DefaultsStoring = UserDefaults.standard) {
         self.defaults = defaults
       
         if let storedHandle = defaults.string(forKey: PersistenceKeys.selectedHandle),
@@ -222,7 +224,6 @@ final class OverlayViewModel {
 //            rawValue: nextValue,
 //            axisLength: windowFrame.width,
 //            magnification: 1,
-//            unitType: RulerSettingsViewModel.shared.unitType
 //        )
 //        let isSnapped = abs(snapped - boundedDividerValue(nextValue, maxValue: windowFrame.width)) > 0.001
 //        setHandleSnappedState(handle, isSnapped: isSnapped)

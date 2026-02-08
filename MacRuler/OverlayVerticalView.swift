@@ -44,14 +44,7 @@ struct OverlayVerticalView: View {
                         DragGesture()
                             .onChanged { value in
                                 overlayViewModel.selectedHandle = .bottom
-                                let snapped = overlayViewModel.snappedValue(
-                                    rawValue: value.location.y,
-                                    axisLength: scaledHeight,
-                                    magnification: magnification,
-                                    unitType: RulerSettingsViewModel.shared.unitType
-                                )
                                 let rawBounded = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
-                              
                                 overlayViewModel.bottomDividerY = rawBounded
                             }
                     )
