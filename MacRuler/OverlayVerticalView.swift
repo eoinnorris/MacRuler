@@ -28,7 +28,8 @@ struct OverlayVerticalView: View {
                         DragGesture()
                             .onChanged { value in
                                 overlayViewModel.selectedHandle = .top
-                                overlayViewModel.topDividerY = value.location.y
+                                let rawBounded = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
+                                overlayViewModel.topDividerY = rawBounded
                             }
                     )
                 }

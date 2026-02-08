@@ -37,27 +37,27 @@ enum DividerStep: Int, CaseIterable, Identifiable {
 final class OverlayViewModel {
     private let defaults: DefaultsStoring
     private var keyDownObserver: NSObjectProtocol?
+    private let dividerModel: DividerRangeModel<DividerHandle>
 
     /// Process-wide shared horizontal overlay state used by the live app runtime.
     /// Access on the main actor when mutating from UI code.
     static let shared = OverlayViewModel()
-    
+
     var leftDividerX: CGFloat? {
-        didSet {
-            storeDividerValue(leftDividerX, forKey: PersistenceKeys.leftDividerX)
-        }
+        get { dividerModel.firstMarkerValue }
+        set { dividerModel.firstMarkerValue = newValue }
     }
+
     var rightDividerX: CGFloat? {
-        didSet {
-            storeDividerValue(rightDividerX, forKey: PersistenceKeys.rightDividerX)
-        }
+        get { dividerModel.secondMarkerValue }
+        set { dividerModel.secondMarkerValue = newValue }
     }
+
     var selectedHandle: DividerHandle {
-        didSet {
-            defaults.set(selectedHandle.rawValue, forKey: PersistenceKeys.selectedHandle)
-        }
+        get { dividerModel.selectedHandle }
+        set { dividerModel.selectedHandle = newValue }
     }
-    
+
     var selectedPoints: DividerStep {
         didSet {
             defaults.set(selectedPoints.rawValue, forKey: PersistenceKeys.selectedPoints)
@@ -69,32 +69,29 @@ final class OverlayViewModel {
             defaults.set(showDividerDance, forKey: PersistenceKeys.showDividerDance)
         }
     }
-    
+
     var backingScale: CGFloat = 1.0
     var windowFrame: CGRect = .zero {
         didSet {
             guard windowFrame.width > 0 else { return }
-            let resetOutOfBounds = oldValue == .zero
-            normalizeDividers(for: windowFrame.width, resetOutOfBounds: resetOutOfBounds)
+            dividerModel.axisLength = windowFrame.width
         }
     }
 
     init(defaults: DefaultsStoring = UserDefaults.standard) {
         self.defaults = defaults
-      
-        if let storedHandle = defaults.string(forKey: PersistenceKeys.selectedHandle),
-           let handle = DividerHandle(rawValue: storedHandle) {
-            self.selectedHandle = handle
-        } else {
-            self.selectedHandle = .left
-        }
+        self.dividerModel = DividerRangeModel(
+            defaults: defaults,
+            firstMarkerKey: PersistenceKeys.leftDividerX,
+            secondMarkerKey: PersistenceKeys.rightDividerX,
+            selectedHandleKey: PersistenceKeys.selectedHandle,
+            defaultSelectedHandle: .left
+        )
+
         let storedPoints = defaults.integer(forKey: PersistenceKeys.selectedPoints)
         self.selectedPoints = DividerStep(rawValue: storedPoints) ?? .one
         self.showDividerDance = defaults.bool(forKey: PersistenceKeys.showDividerDance)
         startObservingKeyInputs()
-        
-        self.leftDividerX = loadDividerValue(forKey: PersistenceKeys.leftDividerX)
-        self.rightDividerX = loadDividerValue(forKey: PersistenceKeys.rightDividerX)
     }
 
     @MainActor
@@ -105,66 +102,16 @@ final class OverlayViewModel {
     }
 
     var dividerDistancePixels: Int {
-        guard let leftDividerX, let rightDividerX else { return 0 }
-        return Int((abs(rightDividerX - leftDividerX) * backingScale).rounded())
+        Int((dividerModel.markerDistance * backingScale).rounded())
     }
-    
+
     func updateDividers(with x: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTypes) {
-
-        if leftDividerX == nil {
-            leftDividerX = x
-            return
-        }
-
-        if rightDividerX == nil {
-            if let leftDividerX, x < leftDividerX {
-                rightDividerX = leftDividerX
-                self.leftDividerX = x
-            } else {
-                rightDividerX = x
-            }
-            return
-        }
-
-        guard let leftDividerX, let rightDividerX else { return }
-
-        if x <= leftDividerX {
-            self.leftDividerX = x
-            return
-        }
-
-        if x >= rightDividerX {
-            self.rightDividerX = x
-            return
-        }
-
-        let leftDistance = abs(x - leftDividerX)
-        let rightDistance = abs(rightDividerX - x)
-        if leftDistance <= rightDistance {
-            self.leftDividerX = x
-        } else {
-            self.rightDividerX = x
-        }
+        let updatedMarker = dividerModel.updateDividers(with: x, maxValue: axisLength)
+        selectedHandle = updatedMarker == .first ? .left : .right
     }
 
     func boundedDividerValue(_ value: CGFloat, maxValue: CGFloat? = nil) -> CGFloat {
-        let upperBound = maxValue ?? windowFrame.width
-        guard upperBound > 0 else { return value }
-        return min(max(value, 0), upperBound)
-    }
-
-
-    private func loadDividerValue(forKey key: String) -> CGFloat? {
-        guard defaults.object(forKey: key) != nil else { return nil }
-        return CGFloat(defaults.double(forKey: key))
-    }
-
-    private func storeDividerValue(_ value: CGFloat?, forKey key: String) {
-        if let value {
-            defaults.set(Double(value), forKey: key)
-        } else {
-            defaults.removeObject(forKey: key)
-        }
+        dividerModel.boundedDividerValue(value, maxValue: maxValue)
     }
 
     private func startObservingKeyInputs() {
@@ -220,59 +167,13 @@ final class OverlayViewModel {
         case .up, .down:
             return
         }
-//        let snapped = snappedValue(
-//            rawValue: nextValue,
-//            axisLength: windowFrame.width,
-//            magnification: 1,
-//        )
-//        let isSnapped = abs(snapped - boundedDividerValue(nextValue, maxValue: windowFrame.width)) > 0.001
-//        setHandleSnappedState(handle, isSnapped: isSnapped)
-//        switch handle {
-//        case .left:
-//            leftDividerX = snapped
-//        case .right:
-//            rightDividerX = snapped
-//        }
-    }
 
-    private func normalizeDividers(for width: CGFloat, resetOutOfBounds: Bool) {
-        guard let leftDividerX, let rightDividerX else { return }
-        let minX: CGFloat = 0
-        let maxX: CGFloat = width
-        let isOutOfBounds = leftDividerX < minX
-            || rightDividerX > maxX
-            || leftDividerX > maxX
-            || rightDividerX < minX
-            || leftDividerX > rightDividerX
-
-        if resetOutOfBounds && isOutOfBounds {
-            let defaults = defaultDividerPositions(for: width)
-            self.leftDividerX = defaults.left
-            self.rightDividerX = defaults.right
-            return
+        let bounded = boundedDividerValue(nextValue, maxValue: windowFrame.width)
+        switch handle {
+        case .left:
+            leftDividerX = bounded
+        case .right:
+            rightDividerX = bounded
         }
-
-        var clampedLeft = min(max(leftDividerX, minX), maxX)
-        var clampedRight = min(max(rightDividerX, minX), maxX)
-
-        if clampedLeft > clampedRight {
-            let defaults = defaultDividerPositions(for: width)
-            clampedLeft = defaults.left
-            clampedRight = defaults.right
-        }
-
-        if clampedLeft != leftDividerX {
-            self.leftDividerX = clampedLeft
-        }
-
-        if clampedRight != rightDividerX {
-            self.rightDividerX = clampedRight
-        }
-    }
-
-    private func defaultDividerPositions(for width: CGFloat) -> (left: CGFloat, right: CGFloat) {
-        let left = width / 3.0
-        let right = (width / 3.0) * 2.0
-        return (min(max(left, 0), width), min(max(right, 0), width))
     }
 }
