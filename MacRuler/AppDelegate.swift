@@ -310,12 +310,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func screenForFilter(_ filter: SCContentFilter) -> NSScreen? {
-        guard let cgDisplayID = filter.display?.displayID else { return NSScreen.main }
+        guard let display = filter.includedDisplays.first else { return NSScreen.main}
+        
         return NSScreen.screens.first { screen in
             guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else {
                 return false
             }
-            return number.uint32Value == cgDisplayID
+            return number.uint32Value == display.displayID
         } ?? NSScreen.main
     }
 
