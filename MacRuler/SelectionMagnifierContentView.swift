@@ -42,6 +42,13 @@ private struct ScreenSelectionMagnifierImage: View {
                 } else {
                     Color.black.opacity(0.2)
                 }
+
+                if !controller.isStreamLive {
+                    Button("Start Capture") {
+                        controller.restartCapture()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -91,11 +98,8 @@ private struct ScreenSelectionMagnifierImage: View {
             )
         }
         .onAppear {
-            Task {
-                await controller.start()
-                controller.updateCaptureRect(centeredOn: session.selectionRectGlobal,
-                                             screenBound: session.screen?.frame ?? .zero)
-            }
+            controller.updateCaptureRect(centeredOn: session.selectionRectGlobal,
+                                         screenBound: session.screen?.frame ?? .zero)
         }
         .onDisappear {
             controller.stop()

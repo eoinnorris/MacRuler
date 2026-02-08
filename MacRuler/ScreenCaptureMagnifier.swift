@@ -233,6 +233,13 @@ struct RulerMagnifierView: View {
                 } else {
                     Color.black.opacity(0.2)
                 }
+
+                if !controller.isStreamLive {
+                    Button("Start Capture") {
+                        controller.restartCapture()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -247,11 +254,8 @@ struct RulerMagnifierView: View {
             )
         }
         .onAppear {
-            Task {
-                await controller.start()
-                controller.updateCaptureRect(centeredOn: viewModel.rulerWindowFrame,
-                                             screenBound: viewModel.screen?.frame ?? CGRect.zero)
-            }
+            controller.updateCaptureRect(centeredOn: viewModel.rulerWindowFrame,
+                                         screenBound: viewModel.screen?.frame ?? CGRect.zero)
         }
         .onDisappear {
             controller.stop()
