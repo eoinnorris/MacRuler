@@ -24,41 +24,37 @@ enum VerticalDividerHandle: String, CaseIterable, Identifiable {
 
 @Observable
 final class OverlayVerticalViewModel {
-    private let defaults: DefaultsStoring
     private let horizontalOverlayViewModel: OverlayViewModel
     private let rulerSettings: RulerSettingsViewModel
     private var keyDownObserver: NSObjectProtocol?
+    private let dividerModel: DividerRangeModel<VerticalDividerHandle>
 
     /// Process-wide shared vertical overlay state used by the live app runtime.
     /// Access on the main actor when mutating from UI code.
     static let shared = OverlayVerticalViewModel()
 
     var topDividerY: CGFloat? {
-        didSet {
-            storeDividerValue(topDividerY, forKey: PersistenceKeys.topDividerY)
-        }
+        get { dividerModel.firstMarkerValue }
+        set { dividerModel.firstMarkerValue = newValue }
     }
 
     var bottomDividerY: CGFloat? {
-        didSet {
-            storeDividerValue(bottomDividerY, forKey: PersistenceKeys.bottomDividerY)
-        }
+        get { dividerModel.secondMarkerValue }
+        set { dividerModel.secondMarkerValue = newValue }
     }
 
     var selectedHandle: VerticalDividerHandle {
-        didSet {
-            defaults.set(selectedHandle.rawValue, forKey: PersistenceKeys.verticalSelectedHandle)
-        }
+        get { dividerModel.selectedHandle }
+        set { dividerModel.selectedHandle = newValue }
     }
 
     var snappedHandle: VerticalDividerHandle?
-    
+
     var backingScale: CGFloat = 1.0
     var windowFrame: CGRect = .zero {
         didSet {
             guard windowFrame.height > 0 else { return }
-            let resetOutOfBounds = oldValue == .zero
-            normalizeDividers(for: windowFrame.height, resetOutOfBounds: resetOutOfBounds)
+            dividerModel.axisLength = windowFrame.height
         }
     }
 
@@ -67,19 +63,15 @@ final class OverlayVerticalViewModel {
         horizontalOverlayViewModel: OverlayViewModel = .shared,
         rulerSettings: RulerSettingsViewModel = .shared
     ) {
-        self.defaults = defaults
         self.horizontalOverlayViewModel = horizontalOverlayViewModel
         self.rulerSettings = rulerSettings
-
-        if let storedHandle = defaults.string(forKey: PersistenceKeys.verticalSelectedHandle),
-           let handle = VerticalDividerHandle(rawValue: storedHandle) {
-            self.selectedHandle = handle
-        } else {
-            self.selectedHandle = .top
-        }
-
-        self.topDividerY = loadDividerValue(forKey: PersistenceKeys.topDividerY)
-        self.bottomDividerY = loadDividerValue(forKey: PersistenceKeys.bottomDividerY)
+        self.dividerModel = DividerRangeModel(
+            defaults: defaults,
+            firstMarkerKey: PersistenceKeys.topDividerY,
+            secondMarkerKey: PersistenceKeys.bottomDividerY,
+            selectedHandleKey: PersistenceKeys.verticalSelectedHandle,
+            defaultSelectedHandle: .top
+        )
 
         startObservingKeyInputs()
     }
@@ -96,60 +88,17 @@ final class OverlayVerticalViewModel {
     }
 
     var dividerDistancePixels: Int {
-        guard let topDividerY, let bottomDividerY else { return 0 }
-        return Int((abs(bottomDividerY - topDividerY) * backingScale).rounded())
+        Int((dividerModel.markerDistance * backingScale).rounded())
     }
 
     func updateDividers(with rawY: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTypes) {
-        let rawBounded = boundedDividerValue(rawY / max(magnification, 0.1), maxValue: axisLength)
         let boundedY = snappedValue(rawValue: rawY, axisLength: axisLength, magnification: magnification, unitType: unitType)
-        if topDividerY == nil {
-            topDividerY = boundedY
-            selectedHandle = .top
-            return
-        }
-
-        if bottomDividerY == nil {
-            if let topDividerY, boundedY < topDividerY {
-                bottomDividerY = topDividerY
-                self.topDividerY = boundedY
-                selectedHandle = .top
-            } else {
-                bottomDividerY = boundedY
-                selectedHandle = .bottom
-            }
-            return
-        }
-
-        guard let topDividerY, let bottomDividerY else { return }
-
-        if boundedY <= topDividerY {
-            self.topDividerY = boundedY
-            selectedHandle = .top
-            return
-        }
-
-        if boundedY >= bottomDividerY {
-            self.bottomDividerY = boundedY
-            selectedHandle = .bottom
-            return
-        }
-
-        let topDistance = abs(boundedY - topDividerY)
-        let bottomDistance = abs(bottomDividerY - boundedY)
-        if topDistance <= bottomDistance {
-            self.topDividerY = boundedY
-            selectedHandle = .top
-        } else {
-            self.bottomDividerY = boundedY
-            selectedHandle = .bottom
-        }
+        let updatedMarker = dividerModel.updateDividers(with: boundedY, maxValue: axisLength)
+        selectedHandle = updatedMarker == .first ? .top : .bottom
     }
 
     func boundedDividerValue(_ value: CGFloat, maxValue: CGFloat? = nil) -> CGFloat {
-        let upperBound = maxValue ?? windowFrame.height
-        guard upperBound > 0 else { return value }
-        return min(max(value, 0), upperBound)
+        dividerModel.boundedDividerValue(value, maxValue: maxValue)
     }
 
     func snappedValue(rawValue: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTypes) -> CGFloat {
@@ -193,19 +142,6 @@ final class OverlayVerticalViewModel {
 
         snappedHandle = nil
         return boundedValue
-    }
-
-    private func loadDividerValue(forKey key: String) -> CGFloat? {
-        guard defaults.object(forKey: key) != nil else { return nil }
-        return CGFloat(defaults.double(forKey: key))
-    }
-
-    private func storeDividerValue(_ value: CGFloat?, forKey key: String) {
-        if let value {
-            defaults.set(Double(value), forKey: key)
-        } else {
-            defaults.removeObject(forKey: key)
-        }
     }
 
     private func startObservingKeyInputs() {
@@ -260,53 +196,13 @@ final class OverlayVerticalViewModel {
         case .left, .right:
             return
         }
-       
+
+        let bounded = boundedDividerValue(nextValue, maxValue: windowFrame.height)
         switch handle {
         case .top:
-            topDividerY = nextValue
+            topDividerY = bounded
         case .bottom:
-            bottomDividerY = nextValue
+            bottomDividerY = bounded
         }
-    }
-
-    private func normalizeDividers(for height: CGFloat, resetOutOfBounds: Bool) {
-        guard let topDividerY, let bottomDividerY else { return }
-        let minY: CGFloat = 0
-        let maxY: CGFloat = height
-        let isOutOfBounds = topDividerY < minY
-            || bottomDividerY > maxY
-            || topDividerY > maxY
-            || bottomDividerY < minY
-            || topDividerY > bottomDividerY
-
-        if resetOutOfBounds && isOutOfBounds {
-            let defaults = defaultDividerPositions(for: height)
-            self.topDividerY = defaults.top
-            self.bottomDividerY = defaults.bottom
-            return
-        }
-
-        var clampedTop = min(max(topDividerY, minY), maxY)
-        var clampedBottom = min(max(bottomDividerY, minY), maxY)
-
-        if clampedTop > clampedBottom {
-            let defaults = defaultDividerPositions(for: height)
-            clampedTop = defaults.top
-            clampedBottom = defaults.bottom
-        }
-
-        if clampedTop != topDividerY {
-            self.topDividerY = clampedTop
-        }
-
-        if clampedBottom != bottomDividerY {
-            self.bottomDividerY = clampedBottom
-        }
-    }
-
-    private func defaultDividerPositions(for height: CGFloat) -> (top: CGFloat, bottom: CGFloat) {
-        let top = height / 3.0
-        let bottom = (height / 3.0) * 2.0
-        return (min(max(top, 0), height), min(max(bottom, 0), height))
     }
 }
