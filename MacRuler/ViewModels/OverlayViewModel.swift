@@ -11,25 +11,15 @@ import SwiftUI
 final class OverlayViewModel {
     private let defaults: DefaultsStoring
     private var keyDownObserver: NSObjectProtocol?
-    private let dividerModel: DividerRangeModel<DividerHandle>
 
     /// Process-wide shared horizontal overlay state used by the live app runtime.
     /// Access on the main actor when mutating from UI code.
     static let shared = OverlayViewModel()
 
-    var leftDividerX: CGFloat? {
-        get { dividerModel.firstMarkerValue }
-        set { dividerModel.firstMarkerValue = newValue }
-    }
-
-    var rightDividerX: CGFloat? {
-        get { dividerModel.secondMarkerValue }
-        set { dividerModel.secondMarkerValue = newValue }
-    }
-
-    var selectedHandle: DividerHandle {
-        get { dividerModel.selectedHandle }
-        set { dividerModel.selectedHandle = newValue }
+    var dividerX: CGFloat? {
+        didSet {
+            storeDividerValue(dividerX, forKey: PersistenceKeys.dividerX)
+        }
     }
 
     var selectedPoints: DividerStep {
@@ -47,24 +37,18 @@ final class OverlayViewModel {
     var backingScale: CGFloat = 1.0
     var windowFrame: CGRect = .zero {
         didSet {
-            guard windowFrame.width > 0 else { return }
-            dividerModel.axisLength = windowFrame.width
+            guard windowFrame.width > 0, let dividerX else { return }
+            self.dividerX = boundedDividerValue(dividerX, maxValue: windowFrame.width)
         }
     }
 
     init(defaults: DefaultsStoring = UserDefaults.standard) {
         self.defaults = defaults
-        self.dividerModel = DividerRangeModel(
-            defaults: defaults,
-            firstMarkerKey: PersistenceKeys.leftDividerX,
-            secondMarkerKey: PersistenceKeys.rightDividerX,
-            selectedHandleKey: PersistenceKeys.selectedHandle,
-            defaultSelectedHandle: .left
-        )
 
         let storedPoints = defaults.integer(forKey: PersistenceKeys.selectedPoints)
         self.selectedPoints = DividerStep(rawValue: storedPoints) ?? .one
         self.showDividerDance = defaults.bool(forKey: PersistenceKeys.showDividerDance)
+        self.dividerX = Self.loadDividerValue(from: defaults, forKey: PersistenceKeys.dividerX)
         startObservingKeyInputs()
     }
 
@@ -76,16 +60,33 @@ final class OverlayViewModel {
     }
 
     var dividerDistancePixels: Int {
-        Int((dividerModel.markerDistance * backingScale).rounded())
+        guard let dividerX else { return 0 }
+        return Int((dividerX * backingScale).rounded())
     }
 
     func updateDividers(with x: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTypes) {
-        let updatedMarker = dividerModel.updateDividers(with: x, maxValue: axisLength)
-        selectedHandle = updatedMarker == .first ? .left : .right
+        let safeMagnification = max(magnification, 0.1)
+        let rawX = x / safeMagnification
+        dividerX = boundedDividerValue(rawX, maxValue: axisLength)
     }
 
     func boundedDividerValue(_ value: CGFloat, maxValue: CGFloat? = nil) -> CGFloat {
-        dividerModel.boundedDividerValue(value, maxValue: maxValue)
+        let upperBound = maxValue ?? windowFrame.width
+        guard upperBound > 0 else { return value }
+        return min(max(value, 0), upperBound)
+    }
+
+    private static func loadDividerValue(from defaults: DefaultsStoring, forKey key: String) -> CGFloat? {
+        guard defaults.object(forKey: key) != nil else { return nil }
+        return CGFloat(defaults.double(forKey: key))
+    }
+
+    private func storeDividerValue(_ value: CGFloat?, forKey key: String) {
+        if let value {
+            defaults.set(Double(value), forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
+        }
     }
 
     private func startObservingKeyInputs() {
@@ -118,36 +119,11 @@ final class OverlayViewModel {
             return
         }
 
+        guard let dividerX else { return }
+
         let pixelStep = selectedPoints.rawValue * (isDouble ? 2 : 1)
         let delta = CGFloat(pixelStep) / max(backingScale, 0.1)
-
-        switch selectedHandle {
-        case .left:
-            guard let leftDividerX else { return }
-            applyDelta(delta, direction: direction, to: leftDividerX, handle: .left)
-        case .right:
-            guard let rightDividerX else { return }
-            applyDelta(delta, direction: direction, to: rightDividerX, handle: .right)
-        }
-    }
-
-    private func applyDelta(_ delta: CGFloat, direction: DividerKeyDirection, to currentValue: CGFloat, handle: DividerHandle) {
-        let nextValue: CGFloat
-        switch direction {
-        case .left:
-            nextValue = currentValue - delta
-        case .right:
-            nextValue = currentValue + delta
-        case .up, .down:
-            return
-        }
-
-        let bounded = boundedDividerValue(nextValue, maxValue: windowFrame.width)
-        switch handle {
-        case .left:
-            leftDividerX = bounded
-        case .right:
-            rightDividerX = bounded
-        }
+        let nextValue: CGFloat = direction == .left ? dividerX - delta : dividerX + delta
+        self.dividerX = boundedDividerValue(nextValue, maxValue: windowFrame.width)
     }
 }

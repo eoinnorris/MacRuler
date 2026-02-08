@@ -17,36 +17,18 @@ struct OverlayVerticalRulerView: View {
             let scaledHeight = geometry.size.height / magnification
 
             ZStack {
-                if let topDividerY = overlayViewModel.topDividerY {
+                if let dividerY = overlayViewModel.dividerY {
                     HorizontalDividerLine(
-                        type: .top,
-                        y: topDividerY * magnification,
+                        y: dividerY * magnification,
                         width: geometry.size.width,
-                        backingScale: overlayViewModel.backingScale)
-                    .contentShape(Rectangle().inset(by: -8))
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                overlayViewModel.selectedHandle = .top
-                                let rawBounded = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
-                                overlayViewModel.topDividerY = rawBounded
-                            }
+                        backingScale: overlayViewModel.backingScale
                     )
-                }
-
-                if let bottomDividerY = overlayViewModel.bottomDividerY {
-                    HorizontalDividerLine(
-                        type: .bottom,
-                        y: bottomDividerY * magnification,
-                        width: geometry.size.width,
-                        backingScale: overlayViewModel.backingScale)
                     .contentShape(Rectangle().inset(by: -8))
                     .gesture(
                         DragGesture()
                             .onChanged { value in
-                                overlayViewModel.selectedHandle = .bottom
                                 let rawBounded = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
-                                overlayViewModel.bottomDividerY = rawBounded
+                                overlayViewModel.dividerY = rawBounded
                             }
                     )
                 }
@@ -56,19 +38,12 @@ struct OverlayVerticalRulerView: View {
     }
 }
 
-private enum HorizontalDividerLineType {
-    case top
-    case bottom
-}
-
 private struct HorizontalDividerLine: View {
-    let type: HorizontalDividerLineType
     let y: CGFloat
     let width: CGFloat
     let backingScale: CGFloat
 
     @State private var isHovering: Bool = false
-    @State private var pulse: Bool = false
 
     private var lineWidth: CGFloat {
         if isHovering {
@@ -93,8 +68,6 @@ private struct HorizontalDividerLine: View {
             .onHover { value in
                 isHovering = value
             }
-            .scaleEffect(1.0)
-            .opacity(1.0)
             .frame(width: width, height: lineWidth)
             .position(x: width / 2, y: y)
     }

@@ -33,16 +33,6 @@ struct MacOSRulerApp: App {
         }
         .commands {
             CommandMenu("HRuler") {
-                Button(DividerHandle.left.displayName) {
-                    overlayViewModel.selectedHandle = .left
-                }
-                .keyboardShortcut("1", modifiers: [.command])
-                Button(DividerHandle.right.displayName) {
-                    overlayViewModel.selectedHandle = .right
-                }
-                .keyboardShortcut("2", modifiers: [.command])
-                Divider()
-                
                 Button("Move Left") {
                     DividerKeyNotification.post(direction: .left, isDouble: false)
                 }
@@ -67,16 +57,6 @@ struct MacOSRulerApp: App {
                 Toggle("Attach to vertical ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
             }
             CommandMenu("VRuler") {
-                Button(VerticalDividerHandle.top.displayName) {
-                    overlayVerticalViewModel.selectedHandle = .top
-                }
-                .keyboardShortcut("3", modifiers: [.command])
-                Button(VerticalDividerHandle.bottom.displayName) {
-                    overlayVerticalViewModel.selectedHandle = .bottom
-                }
-                .keyboardShortcut("4", modifiers: [.command])
-                
-                Divider()
                 Button("Move Up") {
                     DividerKeyNotification.post(direction: .up, isDouble: false)
                 }
