@@ -21,8 +21,11 @@ struct HorizontalRulerView: View {
         VStack(spacing: 0) {
             Spacer()
             ZStack {
-                RulerBackGround(rulerType: .horizontal,
-                                rulerSettingsViewModel: settings)
+                RulerBackGround(
+                    rulerType: .horizontal,
+                    rulerSettingsViewModel: settings,
+                    magnification: CGFloat(max(magnificationViewModel.magnification, 0.1))
+                )
                 .frame(height: 44.0)
                 .background(
                     RulerFrameReader {  rulerFrame, windowFrame, screen in
@@ -61,8 +64,9 @@ struct HorizontalRulerView: View {
             .frame(maxWidth: .infinity)
         }
         .onTapGesture { location in
+            let magnification = CGFloat(max(magnificationViewModel.magnification, 0.1))
             withAnimation(.easeInOut(duration: 0.2)) {
-                overlayViewModel.updateDividers(with: location.x)
+                overlayViewModel.updateDividers(with: location.x / magnification)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))

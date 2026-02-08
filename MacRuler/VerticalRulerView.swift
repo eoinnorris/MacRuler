@@ -16,10 +16,16 @@ struct VerticalRulerView: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                RulerBackGround(rulerType: .vertical,
-                                rulerSettingsViewModel: settings)
+                RulerBackGround(
+                    rulerType: .vertical,
+                    rulerSettingsViewModel: settings,
+                    magnification: CGFloat(max(magnificationViewModel.magnification, 0.1))
+                )
                 .frame(width: 44.0)
-                OverlayVerticalView(overlayViewModel: overlayViewModel)
+                OverlayVerticalView(
+                    overlayViewModel: overlayViewModel,
+                    magnificationViewModel: magnificationViewModel
+                )
                 WindowScaleReader(
                     backingScale: $overlayViewModel.backingScale,
                     windowFrame: Binding(
@@ -49,8 +55,9 @@ struct VerticalRulerView: View {
             .frame(height: Constants.verticalReadoutHeight)
         }
         .onTapGesture { location in
+            let magnification = CGFloat(max(magnificationViewModel.magnification, 0.1))
             withAnimation(.easeInOut(duration: 0.2)) {
-                overlayViewModel.updateDividers(with: location.y)
+                overlayViewModel.updateDividers(with: location.y / magnification)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
