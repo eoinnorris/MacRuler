@@ -49,16 +49,6 @@ final class OverlayVerticalViewModel {
 
     var snappedHandle: VerticalDividerHandle?
     
-    var topHandleSelected: Bool {
-        get { selectedHandle == .top }
-        set { selectedHandle = .top  }
-    }
-    
-    var bottomHandleSelected: Bool {
-        get { selectedHandle == .bottom }
-        set { selectedHandle = .bottom  }
-    }
-
     var backingScale: CGFloat = 1.0
     var windowFrame: CGRect = .zero {
         didSet {
