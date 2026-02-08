@@ -199,27 +199,21 @@ final class OverlayVerticalViewModel {
     }
 
     private func startObservingKeyInputs() {
-        let directionKey = DividerKeyNotification.directionKey
-        let isDoubleKey = DividerKeyNotification.isDoubleKey
-
         keyDownObserver = NotificationCenter.default.addObserver(
             forName: DividerKeyNotification.name,
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            let directionRaw = notification.userInfo?[directionKey] as? String ?? ""
-            let isDouble = notification.userInfo?[isDoubleKey] as? Bool ?? false
-            guard let localSelf = self else { return }
+            guard
+                let localSelf = self,
+                let payload = DividerKeyNotification.payload(from: notification)
+            else {
+                return
+            }
 
             Task { @MainActor in
-                guard
-                    let direction = DividerKeyDirection(rawValue: directionRaw)
-                else {
-                    return
-                }
-
-                localSelf.handleDividerKeyNotification(direction: direction,
-                                                   isDouble: isDouble)
+                localSelf.handleDividerKeyNotification(direction: payload.direction,
+                                                       isDouble: payload.isDouble)
             }
         }
     }
