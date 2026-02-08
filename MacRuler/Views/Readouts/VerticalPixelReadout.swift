@@ -15,7 +15,7 @@ struct VerticalPixelReadout: View {
 
     var body: some View {
         let unitType = rulerSettingsViewModel.unitType
-        let distancePoints = CGFloat(overlayViewModel.dividerDistancePixels)
+        let distancePoints = overlayViewModel.dividerY ?? 0
         let displayValue = unitType.formattedDistance(points: distancePoints, screenScale: overlayViewModel.backingScale)
         let magnificationLabel = formatMagnificationLabel(magnificationViewModel.magnification)
         Menu {
