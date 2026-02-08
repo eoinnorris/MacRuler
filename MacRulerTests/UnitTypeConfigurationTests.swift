@@ -4,7 +4,7 @@ import XCTest
 final class UnitTypeConfigurationTests: XCTestCase {
 
     func testPixelsTickConfiguration() {
-        let config = UnitTyoes.pixels.tickConfiguration
+        let config = UnitTypes.pixels.tickConfiguration
 
         XCTAssertEqual(config.pointsPerUnit, 1)
         XCTAssertEqual(config.minorEveryInUnits, 10)
@@ -17,7 +17,7 @@ final class UnitTypeConfigurationTests: XCTestCase {
     }
 
     func testMillimetersTickConfiguration() {
-        let config = UnitTyoes.mm.tickConfiguration
+        let config = UnitTypes.mm.tickConfiguration
 
         XCTAssertEqual(config.pointsPerUnit, 72 / 25.4, accuracy: 0.0001)
         XCTAssertEqual(config.minorEveryInPoints, 72 / 25.4, accuracy: 0.0001)
@@ -26,7 +26,7 @@ final class UnitTypeConfigurationTests: XCTestCase {
     }
 
     func testCentimetersTickConfigurationUsesExpectedRatios() {
-        let config = UnitTyoes.cm.tickConfiguration
+        let config = UnitTypes.cm.tickConfiguration
 
         XCTAssertEqual(config.pointsPerUnit, 72 / 2.54, accuracy: 0.0001)
         XCTAssertEqual(config.majorStep, 5)
@@ -34,7 +34,7 @@ final class UnitTypeConfigurationTests: XCTestCase {
     }
 
     func testInchesTickConfigurationUsesExpectedRatios() {
-        let config = UnitTyoes.inches.tickConfiguration
+        let config = UnitTypes.inches.tickConfiguration
 
         XCTAssertEqual(config.pointsPerUnit, 72, accuracy: 0.0001)
         XCTAssertEqual(config.majorStep, 2)
