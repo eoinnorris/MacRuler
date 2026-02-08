@@ -17,7 +17,7 @@ final class MagnificationViewModel {
     var rulerWindowFrame: CGRect = .zero
     var screen: NSScreen?
     var dancingAntsFrame: CGRect = .zero
-    var isMagnifierVisible: Bool = false
+    var isMagnifierVisible: Bool = true
     var magnification: Double = 1.0
 
     private init() {}
