@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @Binding var rulerSettingsViewModel:RulerSettingsViewModel
-//    @Environment(RulerSettingsViewModel.self) private var rulerSettingsViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -70,9 +69,7 @@ fileprivate struct AdvancedSettingsView: View {
 
     var body: some View {
         Section("Advanced") {
-            Toggle("Enable Snapping", isOn: $rulerSettingsViewModel.snapEnabled)
             Toggle("Snap to major ruler ticks", isOn: $rulerSettingsViewModel.snapToMajorTicks)
-                .disabled(!rulerSettingsViewModel.snapEnabled)
             Stepper(
                 value: $rulerSettingsViewModel.snapTolerancePoints,
                 in: 1...20,
@@ -80,7 +77,6 @@ fileprivate struct AdvancedSettingsView: View {
             ) {
                 Text("Tolerance: \(Int(rulerSettingsViewModel.snapTolerancePoints)) pt")
             }
-            .disabled(!rulerSettingsViewModel.snapEnabled)
 
             Toggle(
                 "Use fixed grid step",
@@ -89,7 +85,6 @@ fileprivate struct AdvancedSettingsView: View {
                     set: { rulerSettingsViewModel.snapGridStepPoints = $0 ? 10 : nil }
                 )
             )
-            .disabled(!rulerSettingsViewModel.snapEnabled)
 
             if rulerSettingsViewModel.snapGridStepPoints != nil {
                 Stepper(
@@ -99,7 +94,6 @@ fileprivate struct AdvancedSettingsView: View {
                 ) {
                     Text("Grid step: \(Int(snapGridStepBinding.wrappedValue)) pt")
                 }
-                .disabled(!rulerSettingsViewModel.snapEnabled)
             }
         }
     }

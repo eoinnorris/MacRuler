@@ -7,32 +7,6 @@
 
 import SwiftUI
 
-enum DividerHandle: String, CaseIterable, Identifiable {
-    case left
-    case right
-
-    var id: String { rawValue }
-    var displayName: String {
-        switch self {
-        case .left:
-            return "Select left handle"
-        case .right:
-            return "Select right handle"
-        }
-    }
-}
-
-enum DividerStep: Int, CaseIterable, Identifiable {
-    case one = 1
-    case five = 5
-    case ten = 10
-
-    var id: Int { rawValue }
-    var displayName: String {
-        "\(rawValue)px"
-    }
-}
-
 @Observable
 final class OverlayViewModel {
     private let defaults: DefaultsStoring
@@ -220,19 +194,13 @@ final class OverlayViewModel {
         case .up, .down:
             return
         }
-//        let snapped = snappedValue(
-//            rawValue: nextValue,
-//            axisLength: windowFrame.width,
-//            magnification: 1,
-//        )
-//        let isSnapped = abs(snapped - boundedDividerValue(nextValue, maxValue: windowFrame.width)) > 0.001
-//        setHandleSnappedState(handle, isSnapped: isSnapped)
-//        switch handle {
-//        case .left:
-//            leftDividerX = snapped
-//        case .right:
-//            rightDividerX = snapped
-//        }
+      
+        switch handle {
+        case .left:
+            leftDividerX = nextValue
+        case .right:
+            rightDividerX = nextValue
+        }
     }
 
     private func normalizeDividers(for width: CGFloat, resetOutOfBounds: Bool) {

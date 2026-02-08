@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct OverlayVerticalView: View {
+struct OverlayVerticalRulerView: View {
     let overlayViewModel: OverlayVerticalViewModel
     @Bindable var magnificationViewModel: MagnificationViewModel
 

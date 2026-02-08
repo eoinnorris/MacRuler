@@ -8,7 +8,7 @@
 import SwiftUI
 
 
-struct OverlayHorizontalView: View {
+struct OverlayHorizontalRulerView: View {
     let overlayViewModel: OverlayViewModel
     @Bindable var magnificationViewModel: MagnificationViewModel
 
@@ -183,11 +183,5 @@ private struct DancingAntsRectangle: View {
         }
         .frame(width: rect.width, height: rect.height)
         .position(x: rect.midX, y: rect.midY)
-//        .onAppear {
-//            dashPhase = 0
-//            withAnimation(.linear(duration: DividerDanceMetrics.animationDuration).repeatForever(autoreverses: false)) {
-//                dashPhase = -(DividerDanceMetrics.dashLength + DividerDanceMetrics.dashSpacing)
-//            }
-//        }
     }
 }

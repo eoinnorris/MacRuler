@@ -22,7 +22,7 @@ struct VerticalRulerView: View {
                     magnification: CGFloat(max(magnificationViewModel.magnification, 0.1))
                 )
                 .frame(width: 44.0)
-                OverlayVerticalView(
+                OverlayVerticalRulerView(
                     overlayViewModel: overlayViewModel,
                     magnificationViewModel: magnificationViewModel
                 )
