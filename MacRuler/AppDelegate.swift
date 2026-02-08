@@ -8,6 +8,7 @@
 import SwiftUI
 import AppKit
 import Observation
+@preconcurrency import ScreenCaptureKit
 
 private final class SelectionOverlayWindow: NSPanel {
     var onEscape: (() -> Void)?
@@ -31,7 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var verticalController: NSWindowController?
     private var selectionMagnifierController: NSWindowController?
     private var selectionMagnifierWindowDelegate: MagnifierWindowDelegate?
-    private var currentSelectionSession: SelectionSession?
+    @MainActor private var currentSelectionSession: SelectionSession?
     private var selectionOverlayController: NSWindowController?
     private var statusItem: NSStatusItem?
     private var statusMenu: NSMenu?
@@ -113,6 +114,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         setupStatusItem()
         startRulerAttachmentObservation()
         startRulerWindowObservation()
+        configureCaptureControllerCallbacks()
+        showSelectionMagnifierWindow()
     }
 
     private func makePanel<Content: View>(
@@ -282,6 +285,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.terminate(nil)
     }
 
+    private func configureCaptureControllerCallbacks() {
+        captureController.onDidUpdateFilter = { [weak self] filter in
+            Task { @MainActor [weak self] in
+                self?.handleWindowSelection(filter: filter)
+            }
+        }
+    }
+
+    @MainActor
+    private func handleWindowSelection(filter: SCContentFilter) {
+        let selectionRect = filter.contentRect
+        guard selectionRect.width > 1, selectionRect.height > 1 else { return }
+
+        let screen = screenForFilter(filter)
+        let containerHeight = screen?.frame.height ?? selectionRect.maxY
+        let globalFrame = Constants.globalRectToSCRect(selectionRect, containerHeight: containerHeight)
+        let session = SelectionSession(
+            selectionRecScreen: selectionRect,
+            selectionRectGlobal: globalFrame,
+            screen: screen
+        )
+        showSelectionMagnifierWindow(for: session)
+    }
+
+    private func screenForFilter(_ filter: SCContentFilter) -> NSScreen? {
+        guard let cgDisplayID = filter.display?.displayID else { return NSScreen.main }
+        return NSScreen.screens.first { screen in
+            guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else {
+                return false
+            }
+            return number.uint32Value == cgDisplayID
+        } ?? NSScreen.main
+    }
+
     private func storedHorizontalWidth(defaultWidth: CGFloat, screenWidth: CGFloat) -> CGFloat {
         let storedWidth = UserDefaults.standard.double(forKey: PersistenceKeys.horizontalRulerFrame)
         var width = storedWidth > 0 ? storedWidth : defaultWidth
@@ -415,44 +452,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
 
-    private func showSelectionMagnifierWindow(for session: SelectionSession) {
-        currentSelectionSession?.isWindowVisible = false
-        currentSelectionSession = session
-        session.showHorizontalRuler = isHorizontalRulerVisible()
-        session.showVerticalRuler = isVerticalRulerVisible()
+    @MainActor
+    private func showSelectionMagnifierWindow(for session: SelectionSession? = nil) {
+        if let session {
+            currentSelectionSession?.isWindowVisible = false
+            currentSelectionSession = session
+            session.showHorizontalRuler = isHorizontalRulerVisible()
+            session.showVerticalRuler = isVerticalRulerVisible()
+            session.isWindowVisible = true
+        }
 
         if let controller = selectionMagnifierController,
            let window = controller.window {
-            window.contentView = NSHostingView(rootView: ScreenSelectionMagnifierView(session: session))
+            window.contentView = NSHostingView(
+                rootView: SelectionMagnifierRootView(session: currentSelectionSession)
+            )
             window.title = "Selection Magnification"
             controller.showWindow(nil)
             window.makeKeyAndOrderFront(nil)
-            session.isWindowVisible = true
+            currentSelectionSession?.isWindowVisible = true
             return
         }
 
-        let window = makeSelectionMagnifierWindow(for: session)
+        let window = makeSelectionMagnifierWindow(session: currentSelectionSession)
         let controller = NSWindowController(window: window)
         selectionMagnifierController = controller
         controller.showWindow(nil)
         controller.window?.makeKeyAndOrderFront(nil)
-        session.isWindowVisible = true
+        currentSelectionSession?.isWindowVisible = true
     }
 
+    @MainActor
     private func hideSelectionMagnifierWindow() {
         selectionMagnifierController?.window?.orderOut(nil)
         currentSelectionSession?.isWindowVisible = false
     }
 
+    @MainActor
     private func closeSelectionSession() {
         hideSelectionMagnifierWindow()
-        selectionMagnifierController = nil
-        selectionMagnifierWindowDelegate = nil
         currentSelectionSession = nil
+        if let window = selectionMagnifierController?.window {
+            window.contentView = NSHostingView(rootView: SelectionMagnifierRootView(session: nil))
+        }
     }
 
-    private func makeSelectionMagnifierWindow(for session: SelectionSession) -> NSWindow {
-        let screenFrame = session.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+    @MainActor
+    private func makeSelectionMagnifierWindow(session: SelectionSession?) -> NSWindow {
+        let screenFrame = session?.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
         let defaultWidth = screenFrame == .zero ? 240 : screenFrame.width / 3.0
         let size = NSSize(width: defaultWidth, height: 240)
         let origin = NSPoint(
@@ -468,7 +515,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         window.title = "Selection Magnification"
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 240, height: 180)
-        window.contentView = NSHostingView(rootView: ScreenSelectionMagnifierView(session: session))
+        window.contentView = NSHostingView(rootView: SelectionMagnifierRootView(session: session))
 
         let delegate = MagnifierWindowDelegate { [weak self] in
             self?.closeSelectionSession()
