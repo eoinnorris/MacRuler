@@ -22,13 +22,24 @@ struct OverlayVerticalView: View {
                         type: .top,
                         y: topDividerY * magnification,
                         width: geometry.size.width,
-                        backingScale: overlayViewModel.backingScale
+                        backingScale: overlayViewModel.backingScale,
+                        isSnapped: overlayViewModel.snappedHandle == .top,
+                        pulseToken: overlayViewModel.snapPulseToken
                     )
+                    .contentShape(Rectangle().inset(by: -8))
                     .gesture(
                         DragGesture()
                             .onChanged { value in
                                 overlayViewModel.selectedHandle = .top
-                                overlayViewModel.topDividerY = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
+                                let snapped = overlayViewModel.snappedValue(
+                                    rawValue: value.location.y,
+                                    axisLength: scaledHeight,
+                                    magnification: magnification,
+                                    unitType: RulerSettingsViewModel.shared.unitType
+                                )
+                                let rawBounded = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
+                                overlayViewModel.setHandleSnappedState(.top, isSnapped: abs(snapped - rawBounded) > 0.001)
+                                overlayViewModel.topDividerY = snapped
                             }
                     )
                 }
@@ -38,13 +49,24 @@ struct OverlayVerticalView: View {
                         type: .bottom,
                         y: bottomDividerY * magnification,
                         width: geometry.size.width,
-                        backingScale: overlayViewModel.backingScale
+                        backingScale: overlayViewModel.backingScale,
+                        isSnapped: overlayViewModel.snappedHandle == .bottom,
+                        pulseToken: overlayViewModel.snapPulseToken
                     )
+                    .contentShape(Rectangle().inset(by: -8))
                     .gesture(
                         DragGesture()
                             .onChanged { value in
                                 overlayViewModel.selectedHandle = .bottom
-                                overlayViewModel.bottomDividerY = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
+                                let snapped = overlayViewModel.snappedValue(
+                                    rawValue: value.location.y,
+                                    axisLength: scaledHeight,
+                                    magnification: magnification,
+                                    unitType: RulerSettingsViewModel.shared.unitType
+                                )
+                                let rawBounded = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
+                                overlayViewModel.setHandleSnappedState(.bottom, isSnapped: abs(snapped - rawBounded) > 0.001)
+                                overlayViewModel.bottomDividerY = snapped
                             }
                     )
                 }
@@ -64,8 +86,11 @@ private struct HorizontalDividerLine: View {
     let y: CGFloat
     let width: CGFloat
     let backingScale: CGFloat
+    let isSnapped: Bool
+    let pulseToken: Int
 
     @State private var isHovering: Bool = false
+    @State private var pulse: Bool = false
 
     private var lineWidth: CGFloat {
         if isHovering {
@@ -80,9 +105,9 @@ private struct HorizontalDividerLine: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        Color.black.opacity(0.4),
-                        Color.gray.opacity(0.9),
-                        Color.white.opacity(0.4)
+                        isSnapped ? Color.blue.opacity(0.45) : Color.black.opacity(0.4),
+                        isSnapped ? Color.cyan.opacity(0.9) : Color.gray.opacity(0.9),
+                        isSnapped ? Color.white.opacity(0.8) : Color.white.opacity(0.4)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -90,6 +115,16 @@ private struct HorizontalDividerLine: View {
             )
             .onHover { value in
                 isHovering = value
+            }
+            .scaleEffect(pulse ? 1.05 : 1.0)
+            .opacity(pulse ? 0.9 : 1.0)
+            .animation(.easeInOut(duration: 0.16), value: pulse)
+            .onChange(of: pulseToken) { _, _ in
+                guard isSnapped else { return }
+                pulse = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+                    pulse = false
+                }
             }
             .frame(width: width, height: lineWidth)
             .position(x: width / 2, y: y)

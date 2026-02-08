@@ -18,7 +18,7 @@ struct SettingsView: View {
                 Divider()
                 RulerSettingsView()
                 Divider()
-                AdvancedSettingsView()
+                AdvancedSettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
             }
         }
         .padding(20)
@@ -59,11 +59,48 @@ fileprivate struct RulerSettingsView: View {
 }
 
 fileprivate struct AdvancedSettingsView: View {
+    @Binding var rulerSettingsViewModel: RulerSettingsViewModel
+
+    private var snapGridStepBinding: Binding<CGFloat> {
+        Binding(
+            get: { rulerSettingsViewModel.snapGridStepPoints ?? 10 },
+            set: { rulerSettingsViewModel.snapGridStepPoints = max($0, 1) }
+        )
+    }
+
     var body: some View {
         Section("Advanced") {
-            Text("This is the Advanced section.")
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.top)
+            Toggle("Enable Snapping", isOn: $rulerSettingsViewModel.snapEnabled)
+            Toggle("Snap to major ruler ticks", isOn: $rulerSettingsViewModel.snapToMajorTicks)
+                .disabled(!rulerSettingsViewModel.snapEnabled)
+            Stepper(
+                value: $rulerSettingsViewModel.snapTolerancePoints,
+                in: 1...20,
+                step: 1
+            ) {
+                Text("Tolerance: \(Int(rulerSettingsViewModel.snapTolerancePoints)) pt")
+            }
+            .disabled(!rulerSettingsViewModel.snapEnabled)
+
+            Toggle(
+                "Use fixed grid step",
+                isOn: Binding(
+                    get: { rulerSettingsViewModel.snapGridStepPoints != nil },
+                    set: { rulerSettingsViewModel.snapGridStepPoints = $0 ? 10 : nil }
+                )
+            )
+            .disabled(!rulerSettingsViewModel.snapEnabled)
+
+            if rulerSettingsViewModel.snapGridStepPoints != nil {
+                Stepper(
+                    value: snapGridStepBinding,
+                    in: 1...200,
+                    step: 1
+                ) {
+                    Text("Grid step: \(Int(snapGridStepBinding.wrappedValue)) pt")
+                }
+                .disabled(!rulerSettingsViewModel.snapEnabled)
+            }
         }
     }
 }

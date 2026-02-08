@@ -46,6 +46,9 @@ final class OverlayVerticalViewModel {
             defaults.set(selectedHandle.rawValue, forKey: PersistenceKeys.verticalSelectedHandle)
         }
     }
+
+    var snappedHandle: VerticalDividerHandle?
+    var snapPulseToken: Int = 0
     
     var topHandleSelected: Bool {
         get { selectedHandle == .top }
@@ -98,9 +101,12 @@ final class OverlayVerticalViewModel {
         return Int((abs(bottomDividerY - topDividerY) * backingScale).rounded())
     }
 
-    func updateDividers(with y: CGFloat) {
-        let boundedY = boundedDividerValue(y, maxValue: windowFrame.height)
+    func updateDividers(with rawY: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTyoes) {
+        let rawBounded = boundedDividerValue(rawY / max(magnification, 0.1), maxValue: axisLength)
+        let boundedY = snappedValue(rawValue: rawY, axisLength: axisLength, magnification: magnification, unitType: unitType)
+        let isSnapped = abs(boundedY - rawBounded) > 0.001
         if topDividerY == nil {
+            setHandleSnappedState(.top, isSnapped: isSnapped)
             topDividerY = boundedY
             selectedHandle = .top
             return
@@ -108,10 +114,12 @@ final class OverlayVerticalViewModel {
 
         if bottomDividerY == nil {
             if let topDividerY, boundedY < topDividerY {
+                setHandleSnappedState(.top, isSnapped: isSnapped)
                 bottomDividerY = topDividerY
                 self.topDividerY = boundedY
                 selectedHandle = .top
             } else {
+                setHandleSnappedState(.bottom, isSnapped: isSnapped)
                 bottomDividerY = boundedY
                 selectedHandle = .bottom
             }
@@ -121,12 +129,14 @@ final class OverlayVerticalViewModel {
         guard let topDividerY, let bottomDividerY else { return }
 
         if boundedY <= topDividerY {
+            setHandleSnappedState(.top, isSnapped: isSnapped)
             self.topDividerY = boundedY
             selectedHandle = .top
             return
         }
 
         if boundedY >= bottomDividerY {
+            setHandleSnappedState(.bottom, isSnapped: isSnapped)
             self.bottomDividerY = boundedY
             selectedHandle = .bottom
             return
@@ -135,9 +145,11 @@ final class OverlayVerticalViewModel {
         let topDistance = abs(boundedY - topDividerY)
         let bottomDistance = abs(bottomDividerY - boundedY)
         if topDistance <= bottomDistance {
+            setHandleSnappedState(.top, isSnapped: isSnapped)
             self.topDividerY = boundedY
             selectedHandle = .top
         } else {
+            setHandleSnappedState(.bottom, isSnapped: isSnapped)
             self.bottomDividerY = boundedY
             selectedHandle = .bottom
         }
@@ -147,6 +159,58 @@ final class OverlayVerticalViewModel {
         let upperBound = maxValue ?? windowFrame.height
         guard upperBound > 0 else { return value }
         return min(max(value, 0), upperBound)
+    }
+
+    func snappedValue(rawValue: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTyoes) -> CGFloat {
+        let logicalValue = rawValue / max(magnification, 0.1)
+        let boundedValue = boundedDividerValue(logicalValue, maxValue: axisLength)
+        let snapSettings = RulerSettingsViewModel.shared.handleSnapConfiguration
+
+        guard snapSettings.snapEnabled else {
+            snappedHandle = nil
+            return boundedValue
+        }
+
+        let tolerance = max(snapSettings.snapTolerancePoints, 0)
+        var candidates: [CGFloat] = [0, axisLength]
+
+        if snapSettings.snapToMajorTicks {
+            let majorStep = unitType.tickConfiguration.majorEveryInPoints
+            if majorStep > 0 {
+                let majorTick = (boundedValue / majorStep).rounded() * majorStep
+                candidates.append(majorTick)
+            }
+        }
+
+        if let gridStep = snapSettings.snapGridStepPoints, gridStep > 0 {
+            let gridTick = (boundedValue / gridStep).rounded() * gridStep
+            candidates.append(gridTick)
+        }
+
+        let nearest = candidates
+            .map { boundedDividerValue($0, maxValue: axisLength) }
+            .min { abs($0 - boundedValue) < abs($1 - boundedValue) }
+
+        guard let nearest else {
+            snappedHandle = nil
+            return boundedValue
+        }
+
+        if abs(nearest - boundedValue) <= tolerance {
+            return nearest
+        }
+
+        snappedHandle = nil
+        return boundedValue
+    }
+
+    func setHandleSnappedState(_ handle: VerticalDividerHandle, isSnapped: Bool) {
+        if isSnapped {
+            snappedHandle = handle
+            snapPulseToken += 1
+        } else if snappedHandle == handle {
+            snappedHandle = nil
+        }
     }
 
     private func loadDividerValue(forKey key: String) -> CGFloat? {
@@ -203,14 +267,14 @@ final class OverlayVerticalViewModel {
         switch selectedHandle {
         case .top:
             guard let topDividerY else { return }
-            applyDelta(delta, direction: direction, to: topDividerY, setter: { self.topDividerY = $0 })
+            applyDelta(delta, direction: direction, to: topDividerY, handle: .top)
         case .bottom:
             guard let bottomDividerY else { return }
-            applyDelta(delta, direction: direction, to: bottomDividerY, setter: { self.bottomDividerY = $0 })
+            applyDelta(delta, direction: direction, to: bottomDividerY, handle: .bottom)
         }
     }
 
-    private func applyDelta(_ delta: CGFloat, direction: DividerKeyDirection, to currentValue: CGFloat, setter: (CGFloat) -> Void) {
+    private func applyDelta(_ delta: CGFloat, direction: DividerKeyDirection, to currentValue: CGFloat, handle: VerticalDividerHandle) {
         let nextValue: CGFloat
         switch direction {
         case .up:
@@ -220,7 +284,20 @@ final class OverlayVerticalViewModel {
         case .left, .right:
             return
         }
-        setter(boundedDividerValue(nextValue, maxValue: windowFrame.height))
+        let snapped = snappedValue(
+            rawValue: nextValue,
+            axisLength: windowFrame.height,
+            magnification: 1,
+            unitType: RulerSettingsViewModel.shared.unitType
+        )
+        let isSnapped = abs(snapped - boundedDividerValue(nextValue, maxValue: windowFrame.height)) > 0.001
+        setHandleSnappedState(handle, isSnapped: isSnapped)
+        switch handle {
+        case .top:
+            topDividerY = snapped
+        case .bottom:
+            bottomDividerY = snapped
+        }
     }
 
     private func normalizeDividers(for height: CGFloat, resetOutOfBounds: Bool) {
