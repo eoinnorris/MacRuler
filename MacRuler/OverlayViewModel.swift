@@ -117,7 +117,7 @@ final class OverlayViewModel {
         return Int((abs(rightDividerX - leftDividerX) * backingScale).rounded())
     }
     
-    func updateDividers(with x: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTyoes) {
+    func updateDividers(with x: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTypes) {
 
         if leftDividerX == nil {
             leftDividerX = x

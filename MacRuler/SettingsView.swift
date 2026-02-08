@@ -32,7 +32,7 @@ fileprivate struct UnitsSettingsView: View {
     var body: some View {
         Section("Units") {
             Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {
-                ForEach(UnitTyoes.allCases) { unit in
+                ForEach(UnitTypes.allCases) { unit in
                     Text(unit.displayName).tag(unit)
                 }
             }

@@ -31,7 +31,7 @@ struct TickConfiguration {
     }
 }
 
-extension UnitTyoes {
+extension UnitTypes {
     var tickConfiguration: TickConfiguration {
         switch self {
         case .pixels:

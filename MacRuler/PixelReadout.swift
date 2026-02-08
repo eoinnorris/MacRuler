@@ -22,7 +22,7 @@ struct PixelReadout: View {
         let magnificationLabel = formatMagnificationLabel(magnificationViewModel.magnification)
         Menu {
             Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {
-                ForEach(UnitTyoes.allCases) { unit in
+                ForEach(UnitTypes.allCases) { unit in
                     Text(unit.displayName).tag(unit)
                 }
             }
@@ -49,7 +49,7 @@ struct VerticalPixelReadout: View {
         let magnificationLabel = formatMagnificationLabel(magnificationViewModel.magnification)
         Menu {
             Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {
-                ForEach(UnitTyoes.allCases) { unit in
+                ForEach(UnitTypes.allCases) { unit in
                     Text(unit.displayName).tag(unit)
                 }
             }

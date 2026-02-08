@@ -100,7 +100,7 @@ final class OverlayVerticalViewModel {
         return Int((abs(bottomDividerY - topDividerY) * backingScale).rounded())
     }
 
-    func updateDividers(with rawY: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTyoes) {
+    func updateDividers(with rawY: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTypes) {
         let rawBounded = boundedDividerValue(rawY / max(magnification, 0.1), maxValue: axisLength)
         let boundedY = snappedValue(rawValue: rawY, axisLength: axisLength, magnification: magnification, unitType: unitType)
         if topDividerY == nil {
@@ -152,7 +152,7 @@ final class OverlayVerticalViewModel {
         return min(max(value, 0), upperBound)
     }
 
-    func snappedValue(rawValue: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTyoes) -> CGFloat {
+    func snappedValue(rawValue: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTypes) -> CGFloat {
         let logicalValue = rawValue / max(magnification, 0.1)
         let boundedValue = boundedDividerValue(logicalValue, maxValue: axisLength)
         let snapSettings = RulerSettingsViewModel.shared.handleSnapConfiguration

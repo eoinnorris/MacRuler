@@ -302,7 +302,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let containerHeight = screen?.frame.height ?? selectionRect.maxY
         let globalFrame = Constants.globalRectToSCRect(selectionRect, containerHeight: containerHeight)
         let session = SelectionSession(
-            selectionRecScreen: selectionRect,
+            selectionRectScreen: selectionRect,
             selectionRectGlobal: globalFrame,
             screen: screen
         )
@@ -404,7 +404,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         updateDynamicRulerAttachment(for: window)
     }
     
-    enum RulerAttachmwnt {
+    enum RulerAttachment {
         case H2V
         case V2H
     }
@@ -571,7 +571,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     let globalFrame = Constants.globalRectToSCRect(selectionRect, containerHeight: screen.frame.height)
                     
                     let session = SelectionSession(
-                        selectionRecScreen: selectionRect,
+                        selectionRectScreen: selectionRect,
                         selectionRectGlobal: globalFrame,
                         screen: screen
                     )

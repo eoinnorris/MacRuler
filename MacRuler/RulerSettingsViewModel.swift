@@ -14,7 +14,7 @@ final class RulerSettingsViewModel {
 
     private let defaults: UserDefaults
     
-    var unitType: UnitTyoes {
+    var unitType: UnitTypes {
         didSet {
             defaults.set(unitType.rawValue, forKey: PersistenceKeys.unitType)
         }
@@ -67,7 +67,7 @@ final class RulerSettingsViewModel {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         if let storedValue = defaults.string(forKey: PersistenceKeys.unitType),
-           let storedUnit = UnitTyoes(rawValue: storedValue) {
+           let storedUnit = UnitTypes(rawValue: storedValue) {
             self.unitType = storedUnit
         } else {
             self.unitType = .pixels
@@ -89,7 +89,7 @@ final class RulerSettingsViewModel {
     }
 }
 
-enum UnitTyoes: String, CaseIterable, Identifiable {
+enum UnitTypes: String, CaseIterable, Identifiable {
     case cm
     case mm
     case inches
