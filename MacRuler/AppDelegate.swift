@@ -29,7 +29,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private var horizontalController: NSWindowController?
     private var verticalController: NSWindowController?
-    private var magnifierController: NSWindowController?
     private var selectionMagnifierController: NSWindowController?
     private var selectionMagnifierWindowDelegate: MagnifierWindowDelegate?
     private var currentSelectionSession: SelectionSession?
@@ -38,15 +37,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var statusMenu: NSMenu?
     private var horizontalMenuItem: NSMenuItem?
     private var verticalMenuItem: NSMenuItem?
-    private var magnifierMenuItem: NSMenuItem?
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
-    private let magnificationViewModel = MagnificationViewModel.shared
     private let captureController = CaptureController()
-    private lazy var magnifierWindowDelegate = MagnifierWindowDelegate { [weak self] in
-        self?.magnificationViewModel.isMagnifierVisible = false
-    }
     private let rulerSettingsViewModel = RulerSettingsViewModel.shared
-    private var magnificationObservationTask: Task<Void, Never>?
     private var rulerAttachmentObservationTask: Task<Void, Never>?
     private var rulerWindowObservationTokens: [NSObjectProtocol] = []
     private weak var lastActiveRulerWindow: NSWindow?
@@ -118,8 +111,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         vPanel.orderOut(nil)
 
         setupStatusItem()
-        startMagnificationObservation()
-        syncMagnifierVisibility()
         startRulerAttachmentObservation()
         startRulerWindowObservation()
     }
@@ -185,11 +176,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(verticalItem)
         verticalMenuItem = verticalItem
 
-        let magnifierItem = NSMenuItem(title: "Show Magnification", action: #selector(toggleMagnifier), keyEquivalent: "")
-        magnifierItem.target = self
-        menu.addItem(magnifierItem)
-        magnifierMenuItem = magnifierItem
-
         menu.addItem(.separator())
 
         let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
@@ -217,8 +203,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             verticalMenuItem?.title = window.isVisible ? "Hide Vertical Ruler" : "Show Vertical Ruler"
             verticalMenuItem?.state = window.isVisible ? .on : .off
         }
-        magnifierMenuItem?.title = magnificationViewModel.isMagnifierVisible ? "Hide Magnification" : "Show Magnification"
-        magnifierMenuItem?.state = magnificationViewModel.isMagnifierVisible ? .on : .off
     }
 
     func menuWillOpen(_ menu: NSMenu) {
@@ -290,11 +274,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         setVerticalRulerVisible(!isVerticalRulerVisible())
     }
 
-    @objc private func toggleMagnifier() {
-        magnificationViewModel.isMagnifierVisible.toggle()
-        refreshStatusMenu()
-    }
-
     @objc private func openSettings() {
         NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
     }
@@ -313,29 +292,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return min(width, screenWidth)
     }
     
-    func startObserving() {
-        self.syncMagnifierVisibility()
-        self.startMagnificationObservation()
-    }
-
-
-    @MainActor
-    private func startMagnificationObservation() {
-        magnificationObservationTask?.cancel()
-        magnificationObservationTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            withObservationTracking {
-                _ = self.magnificationViewModel.isMagnifierVisible
-            } onChange: { [weak self] in
-                guard let localSelf = self else { return }
-                Task { @MainActor in
-                    localSelf.startObserving()
-                }
-            }
-        }
-    }
-
-
     @MainActor
     private func startRulerWindowObservation() {
         rulerWindowObservationTokens.forEach { NotificationCenter.default.removeObserver($0) }
@@ -458,52 +414,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-
-    private func syncMagnifierVisibility() {
-        if magnificationViewModel.isMagnifierVisible {
-            showMagnifierWindow()
-        } else {
-            hideMagnifierWindow()
-        }
-    }
-
-
-    private func showMagnifierWindow() {
-        if magnifierController == nil {
-            let window = makeMagnifierWindow()
-            magnifierController = NSWindowController(window: window)
-        }
-        magnifierController?.showWindow(nil)
-        magnifierController?.window?.makeKeyAndOrderFront(nil)
-    }
-
-
-    private func hideMagnifierWindow() {
-        magnifierController?.window?.orderOut(nil)
-    }
-
-
-    private func makeMagnifierWindow() -> NSWindow {
-        let screenFrame = NSScreen.main?.visibleFrame ?? .zero
-        let defaultWidth = screenFrame == .zero ? 240 : screenFrame.width / 3.0
-        let size = NSSize(width: defaultWidth, height: 240)
-        let origin = NSPoint(
-            x: screenFrame.minX + (screenFrame.width - size.width) / 2.0,
-            y: screenFrame.minY + max((screenFrame.height / 2.0 - size.height) / 2.0, 0)
-        )
-        let window = NSWindow(
-            contentRect: NSRect(origin: origin, size: size),
-            styleMask: [.titled, .closable, .resizable, .miniaturizable],
-            backing: .buffered,
-            defer: false
-        )
-        window.title = "Magnification"
-        window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 240, height: 180)
-        window.contentView = NSHostingView(rootView: MagnificationWindowView(viewModel: magnificationViewModel))
-        window.delegate = magnifierWindowDelegate
-        return window
-    }
 
     private func showSelectionMagnifierWindow(for session: SelectionSession) {
         currentSelectionSession?.isWindowVisible = false

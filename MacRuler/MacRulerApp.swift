@@ -7,7 +7,6 @@
 
 import SwiftUI
 import AppKit
-import Observation
 @preconcurrency import ScreenCaptureKit
 
 @main
@@ -17,7 +16,6 @@ struct MacOSRulerApp: App {
     @State private var overlayViewModel = OverlayViewModel.shared
     @State private var overlayVerticalViewModel = OverlayVerticalViewModel.shared
     @State private var debugSettings = DebugSettingsModel.shared
-    @State private var magnificationViewModel = MagnificationViewModel.shared
     
     var body: some Scene {
         // No default window; we’ll drive our own panels.
@@ -72,9 +70,6 @@ struct MacOSRulerApp: App {
                 .keyboardShortcut(.downArrow, modifiers: [.command])
                 Divider()
                 Toggle("Attach to horizontal ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
-            }
-            CommandMenu("Magnification") {
-                Toggle("Show Magnification", isOn: $magnificationViewModel.isMagnifierVisible)
             }
             CommandMenu("Screen picker") {
                 Button("Select Window") {
