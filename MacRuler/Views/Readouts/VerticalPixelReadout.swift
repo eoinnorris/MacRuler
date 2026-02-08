@@ -35,7 +35,7 @@ struct VerticalPixelReadout: View {
     }
 }
 
-private func formatMagnificationLabel(_ magnification: Double) -> String {
+func formatMagnificationLabel(_ magnification: Double) -> String {
     let roundedValue = magnification.rounded()
     if abs(magnification - roundedValue) < 0.0001 {
         return "\(Int(roundedValue)) x"

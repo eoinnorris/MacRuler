@@ -49,6 +49,7 @@ struct OverlayHorizontalRulerView: View {
                     .gesture(
                         DragGesture()
                             .onChanged { value in
+                                overlayViewModel.selectedHandle = .left
                                 let rawBounded = overlayViewModel.boundedDividerValue(value.location.x / magnification, maxValue: scaledWidth)
                                 overlayViewModel.leftDividerX = rawBounded
                             }
@@ -65,6 +66,7 @@ struct OverlayHorizontalRulerView: View {
                     .gesture(
                         DragGesture()
                             .onChanged { value in
+                                overlayViewModel.selectedHandle = .right
                                 let rawBounded = overlayViewModel.boundedDividerValue(value.location.x / magnification, maxValue: scaledWidth)
                                 overlayViewModel.rightDividerX = rawBounded
                             }
