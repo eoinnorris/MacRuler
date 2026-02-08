@@ -118,9 +118,7 @@ final class OverlayViewModel {
     }
     
     func updateDividers(with x: CGFloat, axisLength: CGFloat, magnification: CGFloat, unitType: UnitTyoes) {
-//        let rawBounded = boundedDividerValue(rawX / max(magnification, 0.1), maxValue: axisLength)
-//        let boundedX = snappedValue(rawValue: rawX, axisLength: axisLength, magnification: magnification, unitType: unitType)
-//        let isSnapped = abs(boundedX - rawBounded) > 0.001
+
         if leftDividerX == nil {
             leftDividerX = x
             return
