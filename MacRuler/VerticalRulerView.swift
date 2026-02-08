@@ -11,6 +11,7 @@ struct VerticalRulerView: View {
     @Bindable var overlayViewModel: OverlayVerticalViewModel
     @Bindable var settings: RulerSettingsViewModel
     @Bindable var debugSettings: DebugSettingsModel
+    @Bindable var magnificationViewModel: MagnificationViewModel
 
     var body: some View {
         VStack(spacing: 0) {
@@ -40,7 +41,8 @@ struct VerticalRulerView: View {
                 Spacer()
                 VerticalPixelReadout(
                     overlayViewModel: overlayViewModel,
-                    rulerSettingsViewModel: settings
+                    rulerSettingsViewModel: settings,
+                    magnificationViewModel: magnificationViewModel
                 )
                 Spacer()
             }

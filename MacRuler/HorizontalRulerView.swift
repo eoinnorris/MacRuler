@@ -46,7 +46,8 @@ struct HorizontalRulerView: View {
                     Spacer()
                     HStack(spacing: 0) {
                         PixelReadout(overlayViewModel: overlayViewModel,
-                                     rulerSettingsViewModel: settings)
+                                     rulerSettingsViewModel: settings,
+                                     magnificationViewModel: magnificationViewModel)
                         Spacer()
                     }
                     .frame(height: 24.0)

@@ -12,12 +12,14 @@ import SwiftUI
 struct PixelReadout: View {
     @Bindable var overlayViewModel: OverlayViewModel
     @Bindable var rulerSettingsViewModel:RulerSettingsViewModel
+    @Bindable var magnificationViewModel: MagnificationViewModel
 
 
     var body: some View {
         let unitType = rulerSettingsViewModel.unitType
         let distancePoints = CGFloat(overlayViewModel.dividerDistancePixels)
         let displayValue = unitType.formattedDistance(points: distancePoints, screenScale: overlayViewModel.backingScale)
+        let magnificationLabel = formatMagnificationLabel(magnificationViewModel.magnification)
         Menu {
             Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {
                 ForEach(UnitTyoes.allCases) { unit in
@@ -29,7 +31,7 @@ struct PixelReadout: View {
                 Text("Settings…")
             }
         } label: {
-            Text("\(displayValue) \(unitType.unitSymbol)")
+            Text("\(displayValue) \(unitType.unitSymbol) • \(magnificationLabel)")
                 .pixelReadoutTextStyle()
         }
     }
@@ -38,11 +40,13 @@ struct PixelReadout: View {
 struct VerticalPixelReadout: View {
     @Bindable var overlayViewModel: OverlayVerticalViewModel
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
+    @Bindable var magnificationViewModel: MagnificationViewModel
 
     var body: some View {
         let unitType = rulerSettingsViewModel.unitType
         let distancePoints = CGFloat(overlayViewModel.dividerDistancePixels)
         let displayValue = unitType.formattedDistance(points: distancePoints, screenScale: overlayViewModel.backingScale)
+        let magnificationLabel = formatMagnificationLabel(magnificationViewModel.magnification)
         Menu {
             Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {
                 ForEach(UnitTyoes.allCases) { unit in
@@ -54,8 +58,17 @@ struct VerticalPixelReadout: View {
                 Text("Settings…")
             }
         } label: {
-            Text("\(displayValue) \(unitType.unitSymbol)")
+            Text("\(displayValue) \(unitType.unitSymbol) • \(magnificationLabel)")
                 .pixelReadoutTextStyle()
         }
     }
+}
+
+private func formatMagnificationLabel(_ magnification: Double) -> String {
+    let roundedValue = magnification.rounded()
+    if abs(magnification - roundedValue) < 0.0001 {
+        return "\(Int(roundedValue)) x"
+    }
+
+    return String(format: "%.1f x", magnification)
 }
