@@ -152,32 +152,26 @@ struct RulerBackGround : View {
     }
     
     var horizontalGradient: some View {
-        
-        ZStack {
-            // ✅ Yellow gradient background
-            LinearGradient(
-                colors: [
-                    Color.yellow.opacity(0.85),
-                    Color.init(hex: "#FFBE00"),
-                    Color.yellow.opacity(0.85)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
+        LinearGradient(
+            stops: [
+                .init(color: Color.yellow.opacity(0.8), location: 0.0),
+                .init(color: Color.init(hex: "#FFCF3A"), location: 0.55),
+                .init(color: Color.init(hex: "#FFBE00"), location: 1.0)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 
     var verticalGradient: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color.yellow.opacity(0.85),
-                    Color.init(hex: "#FFBE00"),
-                    Color.yellow.opacity(0.85)
-                ],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        }
+        LinearGradient(
+            stops: [
+                .init(color: Color.init(hex: "#FFBE00"), location: 0.0),
+                .init(color: Color.init(hex: "#FFCF3A"), location: 0.45),
+                .init(color: Color.yellow.opacity(0.8), location: 1.0)
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
     }
 }
