@@ -34,7 +34,7 @@ struct OverlayHorizontalRulerView: View {
 
                     // 2) Hit target (this is what receives hover + drag)
                     Rectangle()
-                        .fill(Color.red)
+                        .fill(Color.clear)
                         .frame(width: hitWidth, height: geometry.size.height)
                         .position(x: x, y: geometry.size.height / 2)
                         .contentShape(Rectangle())

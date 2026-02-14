@@ -48,9 +48,9 @@ struct HorizontalRulerView: View {
                 ).frame(width: 0, height: 0)
                 
                 VStack {
-                    RulerLocked(rulerType: .horizontal)
                     Spacer()
                     HStack(spacing: 0) {
+                        RulerLocked(rulerType: .horizontal)
                         Spacer()
                         HorizontalPixelReadout(overlayViewModel: overlayViewModel,
                                      rulerSettingsViewModel: settings,
@@ -61,8 +61,6 @@ struct HorizontalRulerView: View {
                     .padding(.bottom, 56.0)
                     .background(Color.clear)
                 }
-               
-                
             }
             .frame(maxWidth: .infinity)
         }
@@ -95,7 +93,10 @@ struct RulerLocked : View{
     let rulerType:RulerType
 
     var body: some View {
-        Image("lock")
+        Image(systemName:"lock")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(.primary)
+            .background(.white.opacity(0.35), in: Circle())
     }
 }
 
