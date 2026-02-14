@@ -11,7 +11,7 @@ struct OverlayHorizontalRulerView: View {
     let overlayViewModel: OverlayViewModel
     @Bindable var magnificationViewModel: MagnificationViewModel
     @State private var isDividerHovering: Bool = false
-    @State private var isDividerDragging: Bool = false
+    @GestureState private var isDividerDragging: Bool = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -29,27 +29,32 @@ struct OverlayHorizontalRulerView: View {
                     .contentShape(Rectangle().inset(by: -8))
                     .onHover { isHovering in
                         isDividerHovering = isHovering
-                        syncHorizontalRulerBackgroundMovability()
+                        setHorizontalBackgroundLock(isLocked: isHovering, reason: .dividerHover)
                     }
                     .gesture(
                         DragGesture()
+                            .updating($isDividerDragging) { _, state, _ in
+                                state = true
+                            }
                             .onChanged { value in
-                                if !isDividerDragging {
-                                    isDividerDragging = true
-                                    syncHorizontalRulerBackgroundMovability()
-                                }
+                                setHorizontalBackgroundLock(isLocked: true, reason: .dividerDrag)
                                 let rawBounded = overlayViewModel.boundedDividerValue(value.location.x / magnification, maxValue: scaledWidth)
                                 overlayViewModel.dividerX = rawBounded
                             }
                             .onEnded { _ in
-                                isDividerDragging = false
-                                syncHorizontalRulerBackgroundMovability()
+                                setHorizontalBackgroundLock(isLocked: false, reason: .dividerDrag)
                             }
                     )
+                    .onChange(of: isDividerDragging) { _, isDragging in
+                        if !isDragging {
+                            // Drag can terminate outside the divider path, so this guarantees unlock on cancellation/reset.
+                            setHorizontalBackgroundLock(isLocked: false, reason: .dividerDrag)
+                        }
+                    }
                     .onDisappear {
                         isDividerHovering = false
-                        isDividerDragging = false
-                        syncHorizontalRulerBackgroundMovability()
+                        setHorizontalBackgroundLock(isLocked: false, reason: .dividerHover)
+                        setHorizontalBackgroundLock(isLocked: false, reason: .dividerDrag)
                     }
                 }
             }
@@ -57,10 +62,10 @@ struct OverlayHorizontalRulerView: View {
         }
     }
 
-    private func syncHorizontalRulerBackgroundMovability() {
-        let shouldEnableBackgroundMovement = !(isDividerHovering || isDividerDragging)
+    private func setHorizontalBackgroundLock(isLocked: Bool, reason: AppDelegate.RulerBackgroundLockReason) {
+        // Locking window-background dragging prevents the ruler window from moving while the divider is being edited.
         Task { @MainActor in
-            AppDelegate.shared?.setHorizontalRulerBackgroundMovable(shouldEnableBackgroundMovement)
+            AppDelegate.shared?.setHorizontalRulerBackgroundLocked(isLocked, reason: reason)
         }
     }
 }
