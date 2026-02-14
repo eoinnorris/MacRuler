@@ -49,7 +49,7 @@ private struct DividerLine: View {
         if isHovering {
             return max(5, 7 / backingScale)
         } else {
-            return max(3, 5 / backingScale)
+            return max(1, 3 / backingScale)
         }
     }
 
