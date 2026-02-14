@@ -89,14 +89,41 @@ struct HorizontalRulerView: View {
 }
 
 struct RulerLocked : View{
-    
-    let rulerType:RulerType
+    let rulerType: RulerType
+    @State private var isLocked: Bool = false
 
     var body: some View {
-        Image(systemName:"lock")
-            .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(.primary)
-            .background(.white.opacity(0.35), in: Circle())
+        Button {
+            guard rulerType == .horizontal else { return }
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                isLocked.toggle()
+            }
+            Task { @MainActor in
+                AppDelegate.shared?.setHorizontalRulerBackgroundLocked(
+                    isLocked,
+                    reason: .manualToggle
+                )
+            }
+        } label: {
+            Image(systemName: isLocked ? "lock.fill" : "lock.open")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(isLocked ? .white : .primary)
+                .padding(6)
+                .background(
+                    isLocked ? Color.blue.opacity(0.9) : Color.white.opacity(0.35),
+                    in: Circle()
+                )
+                .scaleEffect(isLocked ? 1.0 : 0.92)
+                .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isLocked)
+        }
+        .buttonStyle(.plain)
+        .help(isLocked ? "Unlock ruler window dragging" : "Lock ruler window dragging")
+        .task {
+            guard rulerType == .horizontal else { return }
+            isLocked = await MainActor.run {
+                AppDelegate.shared?.isHorizontalRulerBackgroundLocked() ?? false
+            }
+        }
     }
 }
 

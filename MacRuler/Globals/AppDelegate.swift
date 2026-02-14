@@ -34,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     enum RulerBackgroundLockReason: Hashable {
         case dividerHover
         case dividerDrag
+        case manualToggle
     }
 
     /// Weak process-wide reference for bridging legacy AppKit actions into SwiftUI callbacks.
@@ -275,6 +276,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             reason: reason,
             movableSetter: setHorizontalRulerBackgroundMovable
         )
+    }
+
+    @MainActor
+    func isHorizontalRulerBackgroundLocked() -> Bool {
+        !horizontalBackgroundLockReasons.isEmpty
     }
 
     @MainActor
