@@ -19,7 +19,7 @@ struct HorizontalPixelReadout: View {
         let unitType = rulerSettingsViewModel.unitType
         let distancePoints = overlayViewModel.dividerX ?? 0
         let displayValue = unitType.formattedDistance(points: distancePoints, screenScale: overlayViewModel.backingScale)
-        let magnificationLabel = formatMagnificationLabel(magnificationViewModel.magnification)
+        let magnificationLabel = MagnificationViewModel.formatLabel(magnificationViewModel.magnification)
         Menu {
             Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {
                 ForEach(UnitTypes.allCases) { unit in

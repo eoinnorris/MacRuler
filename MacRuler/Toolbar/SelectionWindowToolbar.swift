@@ -64,7 +64,7 @@ struct SelectionWindowToolbar: View {
                 step: MagnificationViewModel.magnificationStep
             )
                 .frame(width: 140)
-            Text(String(format: "%.0f%%", session.magnification * 100))
+            Text(MagnificationViewModel.formatLabel(session.magnification))
                 .monospacedDigit()
                 .font(.system(.caption, design: .rounded))
                 .foregroundStyle(.secondary)
