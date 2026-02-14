@@ -10,6 +10,10 @@ import AppKit
 import Observation
 @preconcurrency import ScreenCaptureKit
 
+extension Notification.Name {
+    static let rulerVisibilityDidChange = Notification.Name("rulerVisibilityDidChange")
+}
+
 private final class SelectionOverlayWindow: NSPanel {
     var onEscape: (() -> Void)?
 
@@ -235,6 +239,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             window.orderOut(nil)
         }
         refreshStatusMenu()
+        postRulerVisibilityDidChange()
     }
 
     @MainActor
@@ -246,6 +251,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             window.orderOut(nil)
         }
         refreshStatusMenu()
+        postRulerVisibilityDidChange()
+    }
+
+    @MainActor
+    private func postRulerVisibilityDidChange() {
+        NotificationCenter.default.post(
+            name: .rulerVisibilityDidChange,
+            object: self,
+            userInfo: [
+                "horizontalVisible": isHorizontalRulerVisible(),
+                "verticalVisible": isVerticalRulerVisible()
+            ]
+        )
     }
 
     @MainActor
