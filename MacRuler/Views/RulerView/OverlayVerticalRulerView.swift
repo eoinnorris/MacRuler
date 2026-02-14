@@ -47,23 +47,26 @@ private struct HorizontalDividerLine: View {
 
     private var lineWidth: CGFloat {
         if isHovering {
-            return max(7, 10 / backingScale)
-        } else {
             return max(5, 7 / backingScale)
+        } else {
+            return max(3, 5 / backingScale)
         }
     }
 
     var body: some View {
         Rectangle()
-            .fill(
-                LinearGradient(
-                    colors: [ Color.black.opacity(0.4),
-                              Color.gray.opacity(0.9),
-                              Color.white.opacity(0.4)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+            .fill(isHovering ?
+                  AnyShapeStyle(
+                    LinearGradient(
+                        colors: [ Color.black.opacity(0.4),
+                                  Color.gray.opacity(0.9),
+                                  Color.white.opacity(0.4)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                  ) :
+                  AnyShapeStyle(Color.gray.opacity(0.75))
             )
             .onHover { value in
                 isHovering = value
