@@ -16,12 +16,16 @@ struct VerticalRulerView: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                RulerBackGround(
-                    rulerType: .vertical,
-                    rulerSettingsViewModel: settings,
-                    magnification: CGFloat(max(magnificationViewModel.magnification, 0.1))
-                )
-                .frame(width: 44.0)
+                HStack {
+                    RulerBackGround(
+                        rulerType: .vertical,
+                        rulerSettingsViewModel: settings,
+                        magnification: CGFloat(max(magnificationViewModel.magnification, 0.1))
+                    )
+                    .frame(width: 44.0)
+                    Spacer()
+                }
+               
                 OverlayVerticalRulerView(
                     overlayViewModel: overlayViewModel,
                     magnificationViewModel: magnificationViewModel
@@ -44,7 +48,6 @@ struct VerticalRulerView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             HStack {
-                Spacer()
                 VerticalPixelReadout(
                     overlayViewModel: overlayViewModel,
                     rulerSettingsViewModel: settings,

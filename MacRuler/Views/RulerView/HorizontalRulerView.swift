@@ -21,12 +21,15 @@ struct HorizontalRulerView: View {
         VStack(spacing: 0) {
             Spacer()
             ZStack {
-                RulerBackGround(
-                    rulerType: .horizontal,
-                    rulerSettingsViewModel: settings,
-                    magnification: CGFloat(max(magnificationViewModel.magnification, 0.1))
-                )
-                .frame(height: 44.0)
+                VStack{
+                    RulerBackGround(
+                        rulerType: .horizontal,
+                        rulerSettingsViewModel: settings,
+                        magnification: CGFloat(max(magnificationViewModel.magnification, 0.1))
+                    )
+                    .frame(height: 44.0)
+                    Spacer()
+                }
                 .background(
                     RulerFrameReader {  rulerFrame, windowFrame, screen in
                         magnificationViewModel.rulerFrame = rulerFrame
@@ -42,20 +45,19 @@ struct HorizontalRulerView: View {
                 WindowScaleReader(
                     backingScale: $overlayViewModel.backingScale,
                     windowFrame: $overlayViewModel.windowFrame
-                )
-                    .frame(width: 0, height: 0)
+                ).frame(width: 0, height: 0)
                 
                 VStack {
                     Spacer()
                     HStack(spacing: 0) {
+                        Spacer()
                         HorizontalPixelReadout(overlayViewModel: overlayViewModel,
                                      rulerSettingsViewModel: settings,
                                      magnificationViewModel: magnificationViewModel)
-                        Spacer()
                     }
                     .frame(height: 24.0)
                     .padding(.horizontal, 0)
-                    .padding(.bottom,20 )
+                    .padding(.bottom, 56.0)
                     .background(Color.clear)
                 }
                
