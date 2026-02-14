@@ -10,6 +10,8 @@ import SwiftUI
 struct OverlayHorizontalRulerView: View {
     let overlayViewModel: OverlayViewModel
     @Bindable var magnificationViewModel: MagnificationViewModel
+    @State private var isDividerHovering: Bool = false
+    @State private var isDividerDragging: Bool = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -21,19 +23,44 @@ struct OverlayHorizontalRulerView: View {
                     DividerLine(
                         x: dividerX * magnification,
                         height: geometry.size.height,
-                        backingScale: overlayViewModel.backingScale
+                        backingScale: overlayViewModel.backingScale,
+                        isHovering: isDividerHovering
                     )
                     .contentShape(Rectangle().inset(by: -8))
+                    .onHover { isHovering in
+                        isDividerHovering = isHovering
+                        syncHorizontalRulerBackgroundMovability()
+                    }
                     .gesture(
                         DragGesture()
                             .onChanged { value in
+                                if !isDividerDragging {
+                                    isDividerDragging = true
+                                    syncHorizontalRulerBackgroundMovability()
+                                }
                                 let rawBounded = overlayViewModel.boundedDividerValue(value.location.x / magnification, maxValue: scaledWidth)
                                 overlayViewModel.dividerX = rawBounded
                             }
+                            .onEnded { _ in
+                                isDividerDragging = false
+                                syncHorizontalRulerBackgroundMovability()
+                            }
                     )
+                    .onDisappear {
+                        isDividerHovering = false
+                        isDividerDragging = false
+                        syncHorizontalRulerBackgroundMovability()
+                    }
                 }
             }
             .contentShape(Rectangle())
+        }
+    }
+
+    private func syncHorizontalRulerBackgroundMovability() {
+        let shouldEnableBackgroundMovement = !(isDividerHovering || isDividerDragging)
+        Task { @MainActor in
+            AppDelegate.shared?.setHorizontalRulerBackgroundMovable(shouldEnableBackgroundMovement)
         }
     }
 }
@@ -42,8 +69,7 @@ private struct DividerLine: View {
     let x: CGFloat
     let height: CGFloat
     let backingScale: CGFloat
-
-    @State private var isHovering: Bool = false
+    let isHovering: Bool
 
     private var lineWidth: CGFloat {
         if isHovering {
@@ -68,9 +94,6 @@ private struct DividerLine: View {
                   ) :
                   AnyShapeStyle(Color.gray.opacity(0.75))
             )
-            .onHover { value in
-                isHovering = value
-            }
             .frame(width: lineWidth, height: height)
             .position(x: x, y: height / 2)
     }
