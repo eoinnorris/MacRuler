@@ -20,43 +20,55 @@ struct OverlayHorizontalRulerView: View {
                 let scaledWidth = geometry.size.width / magnification
 
                 if let dividerX = overlayViewModel.dividerX {
+                    let x = dividerX * magnification
+                    let hitWidth: CGFloat = 16  // tweak to taste
+
+                    // 1) Draw the line (no hit testing)
                     DividerLine(
-                        x: dividerX * magnification,
+                        x: x,
                         height: geometry.size.height,
                         backingScale: overlayViewModel.backingScale,
                         isHovering: isDividerHovering
                     )
-                    .contentShape(Rectangle().inset(by: -8))
-                    .onHover { isHovering in
-                        isDividerHovering = isHovering
-                        setHorizontalBackgroundLock(isLocked: isHovering, reason: .dividerHover)
-                    }
-                    .gesture(
-                        DragGesture()
-                            .updating($isDividerDragging) { _, state, _ in
-                                state = true
-                            }
-                            .onChanged { value in
-                                setHorizontalBackgroundLock(isLocked: true, reason: .dividerDrag)
-                                let rawBounded = overlayViewModel.boundedDividerValue(value.location.x / magnification, maxValue: scaledWidth)
-                                overlayViewModel.dividerX = rawBounded
-                            }
-                            .onEnded { _ in
+                    .allowsHitTesting(false)
+
+                    // 2) Hit target (this is what receives hover + drag)
+                    Rectangle()
+                        .fill(Color.red)
+                        .frame(width: hitWidth, height: geometry.size.height)
+                        .position(x: x, y: geometry.size.height / 2)
+                        .contentShape(Rectangle())
+                        .onHover { isHovering in
+                            isDividerHovering = isHovering
+                            setHorizontalBackgroundLock(isLocked: isHovering, reason: .dividerHover)
+                        }
+                        .gesture(
+                            DragGesture()
+                                .updating($isDividerDragging) { _, state, _ in state = true }
+                                .onChanged { value in
+                                    setHorizontalBackgroundLock(isLocked: true, reason: .dividerDrag)
+                                    let rawBounded = overlayViewModel.boundedDividerValue(
+                                        value.location.x / magnification,
+                                        maxValue: scaledWidth
+                                    )
+                                    overlayViewModel.dividerX = rawBounded
+                                }
+                                .onEnded { _ in
+                                    setHorizontalBackgroundLock(isLocked: false, reason: .dividerDrag)
+                                }
+                        )
+                        .onChange(of: isDividerDragging) { _, isDragging in
+                            if !isDragging {
                                 setHorizontalBackgroundLock(isLocked: false, reason: .dividerDrag)
                             }
-                    )
-                    .onChange(of: isDividerDragging) { _, isDragging in
-                        if !isDragging {
-                            // Drag can terminate outside the divider path, so this guarantees unlock on cancellation/reset.
+                        }
+                        .onDisappear {
+                            isDividerHovering = false
+                            setHorizontalBackgroundLock(isLocked: false, reason: .dividerHover)
                             setHorizontalBackgroundLock(isLocked: false, reason: .dividerDrag)
                         }
-                    }
-                    .onDisappear {
-                        isDividerHovering = false
-                        setHorizontalBackgroundLock(isLocked: false, reason: .dividerHover)
-                        setHorizontalBackgroundLock(isLocked: false, reason: .dividerDrag)
-                    }
                 }
+
             }
             .contentShape(Rectangle())
         }
