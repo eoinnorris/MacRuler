@@ -48,6 +48,7 @@ struct HorizontalRulerView: View {
                 ).frame(width: 0, height: 0)
                 
                 VStack {
+                    RulerLocked(rulerType: .horizontal)
                     Spacer()
                     HStack(spacing: 0) {
                         Spacer()
