@@ -57,17 +57,20 @@ struct VerticalRulerView: View {
             }
             .frame(height: Constants.verticalReadoutHeight)
         }
-        .onTapGesture { location in
-            let magnification = CGFloat(max(magnificationViewModel.magnification, 0.1))
-            withAnimation(.easeInOut(duration: 0.2)) {
-                overlayViewModel.updateDividers(
-                    with: location.y,
-                    axisLength: overlayViewModel.windowFrame.height,
-                    magnification: magnification,
-                    unitType: settings.unitType
-                )
-            }
-        }
+        .gesture(
+            SpatialTapGesture(count: 2)
+                .onEnded { value in
+                    let magnification = CGFloat(max(magnificationViewModel.magnification, 0.1))
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        overlayViewModel.updateDividers(
+                            with: value.location.y,
+                            axisLength: overlayViewModel.windowFrame.height,
+                            magnification: magnification,
+                            unitType: settings.unitType
+                        )
+                    }
+                }
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .background(
