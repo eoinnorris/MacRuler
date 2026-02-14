@@ -31,6 +31,11 @@ private final class SelectionOverlayWindow: NSPanel {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
+    enum RulerBackgroundLockReason: Hashable {
+        case dividerHover
+        case dividerDrag
+    }
+
     /// Weak process-wide reference for bridging legacy AppKit actions into SwiftUI callbacks.
     /// This is assigned during launch on the main thread and should be read from UI/MainActor code only.
     static weak var shared: AppDelegate?
@@ -52,6 +57,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var rulerAttachmentObservationTask: Task<Void, Never>?
     private var rulerWindowObservationTokens: [NSObjectProtocol] = []
     private weak var lastActiveRulerWindow: NSWindow?
+    private var horizontalBackgroundLockReasons: Set<RulerBackgroundLockReason> = []
+    private var verticalBackgroundLockReasons: Set<RulerBackgroundLockReason> = []
 
     
     func makeHorizontalRulerView() -> some View {
@@ -261,9 +268,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @MainActor
+    func setHorizontalRulerBackgroundLocked(_ isLocked: Bool, reason: RulerBackgroundLockReason) {
+        updateBackgroundLockReasons(
+            &horizontalBackgroundLockReasons,
+            isLocked: isLocked,
+            reason: reason,
+            movableSetter: setHorizontalRulerBackgroundMovable
+        )
+    }
+
+    @MainActor
     func setVerticalRulerBackgroundMovable(_ movable: Bool) {
         guard let window = verticalController?.window else { return }
         window.isMovableByWindowBackground = movable
+    }
+
+    @MainActor
+    func setVerticalRulerBackgroundLocked(_ isLocked: Bool, reason: RulerBackgroundLockReason) {
+        updateBackgroundLockReasons(
+            &verticalBackgroundLockReasons,
+            isLocked: isLocked,
+            reason: reason,
+            movableSetter: setVerticalRulerBackgroundMovable
+        )
+    }
+
+    @MainActor
+    private func updateBackgroundLockReasons(
+        _ reasons: inout Set<RulerBackgroundLockReason>,
+        isLocked: Bool,
+        reason: RulerBackgroundLockReason,
+        movableSetter: (Bool) -> Void
+    ) {
+        let hasReason = reasons.contains(reason)
+        guard hasReason != isLocked else { return }
+
+        if isLocked {
+            reasons.insert(reason)
+        } else {
+            reasons.remove(reason)
+        }
+
+        movableSetter(reasons.isEmpty)
     }
 
     @MainActor
