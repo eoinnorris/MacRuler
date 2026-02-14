@@ -255,6 +255,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @MainActor
+    func setHorizontalRulerBackgroundMovable(_ movable: Bool) {
+        guard let window = horizontalController?.window else { return }
+        window.isMovableByWindowBackground = movable
+    }
+
+    @MainActor
+    func setVerticalRulerBackgroundMovable(_ movable: Bool) {
+        guard let window = verticalController?.window else { return }
+        window.isMovableByWindowBackground = movable
+    }
+
+    @MainActor
     private func postRulerVisibilityDidChange() {
         NotificationCenter.default.post(
             name: .rulerVisibilityDidChange,
