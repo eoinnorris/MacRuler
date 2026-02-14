@@ -300,6 +300,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @MainActor
+    func isVerticalRulerBackgroundLocked() -> Bool {
+        !verticalBackgroundLockReasons.isEmpty
+    }
+
+    @MainActor
     private func updateBackgroundLockReasons(
         _ reasons: inout Set<RulerBackgroundLockReason>,
         isLocked: Bool,

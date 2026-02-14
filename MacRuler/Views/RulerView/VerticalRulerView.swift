@@ -47,7 +47,8 @@ struct VerticalRulerView: View {
                 .frame(width: 0, height: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            HStack {
+            HStack(spacing: 6) {
+                RulerLocked(rulerType: .vertical)
                 VerticalPixelReadout(
                     overlayViewModel: overlayViewModel,
                     rulerSettingsViewModel: settings,
@@ -55,6 +56,7 @@ struct VerticalRulerView: View {
                 )
                 Spacer()
             }
+            .padding(.leading, 2)
             .frame(height: Constants.verticalReadoutHeight)
         }
         .gesture(
