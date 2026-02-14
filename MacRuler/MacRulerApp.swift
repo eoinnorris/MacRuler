@@ -72,12 +72,12 @@ struct MacOSRulerApp: App {
                 Button("Increase Magnification") {
                     appDelegate.increaseSelectionMagnification()
                 }
-                .keyboardShortcut("+", modifiers: [.command])
+                .keyboardShortcut("=", modifiers: [.command])
 
                 Button("Decrease Magnification") {
                     appDelegate.decreaseSelectionMagnification()
                 }
-                .keyboardShortcut("=", modifiers: [.command])
+                .keyboardShortcut("-", modifiers: [.command])
 
                 Divider()
 
