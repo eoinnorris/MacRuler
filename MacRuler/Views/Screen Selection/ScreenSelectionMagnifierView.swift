@@ -68,6 +68,9 @@ struct ScreenSelectionMagnifierView: View {
             session.magnification = clampedMagnification
             magnificationViewModel.magnification = clampedMagnification
         }
+        .onReceive(NotificationCenter.default.publisher(for: .rulerVisibilityDidChange)) { notification in
+            syncRulerToggleStateWithVisibility(from: notification)
+        }
         .onChange(of: session.magnification) { _, newValue in
             let clampedValue = magnificationViewModel.clamp(newValue)
             if clampedValue != newValue {
@@ -87,7 +90,14 @@ struct ScreenSelectionMagnifierView: View {
     }
 
     @MainActor
-    private func syncRulerToggleStateWithVisibility() {
+    private func syncRulerToggleStateWithVisibility(from notification: Notification? = nil) {
+        if let horizontalVisible = notification?.userInfo?["horizontalVisible"] as? Bool,
+           let verticalVisible = notification?.userInfo?["verticalVisible"] as? Bool {
+            session.showHorizontalRuler = horizontalVisible
+            session.showVerticalRuler = verticalVisible
+            return
+        }
+
         guard let appDelegate else { return }
         session.showHorizontalRuler = appDelegate.isHorizontalRulerVisible()
         session.showVerticalRuler = appDelegate.isVerticalRulerVisible()
