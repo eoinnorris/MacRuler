@@ -289,6 +289,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.terminate(nil)
     }
 
+
+    @MainActor
+    func increaseSelectionMagnification() {
+        adjustSelectionMagnification(increasing: true)
+    }
+
+    @MainActor
+    func decreaseSelectionMagnification() {
+        adjustSelectionMagnification(increasing: false)
+    }
+
+    @MainActor
+    private func adjustSelectionMagnification(increasing: Bool) {
+        guard NSApp.isActive else { return }
+        guard let session = currentSelectionSession, session.isWindowVisible else { return }
+
+        let nextMagnification = increasing
+            ? dependencies.magnification.increaseMagnification()
+            : dependencies.magnification.decreaseMagnification()
+
+        dependencies.magnification.magnification = nextMagnification
+        session.magnification = nextMagnification
+    }
+
     private func configureCaptureControllerCallbacks() {
         captureController.onDidUpdateFilter = { [weak self] filter in
             Task { @MainActor [weak self] in

@@ -64,10 +64,17 @@ struct ScreenSelectionMagnifierView: View {
         }
         .onAppear {
             syncRulerToggleStateWithVisibility()
-            magnificationViewModel.magnification = session.magnification
+            let clampedMagnification = magnificationViewModel.clamp(session.magnification)
+            session.magnification = clampedMagnification
+            magnificationViewModel.magnification = clampedMagnification
         }
         .onChange(of: session.magnification) { _, newValue in
-            magnificationViewModel.magnification = newValue
+            let clampedValue = magnificationViewModel.clamp(newValue)
+            if clampedValue != newValue {
+                session.magnification = clampedValue
+                return
+            }
+            magnificationViewModel.magnification = clampedValue
         }
         .onDisappear {
             selectionPreviewTask?.cancel()
