@@ -58,13 +58,17 @@ struct SelectionWindowToolbar: View {
         HStack(spacing: 6) {
             Image(systemName: "plus.magnifyingglass")
                 .foregroundStyle(.secondary)
-            Slider(value: $session.magnification, in: 1...5, step: 0.2)
+            Slider(
+                value: $session.magnification,
+                in: MagnificationViewModel.minimumMagnification...MagnificationViewModel.maximumMagnification,
+                step: MagnificationViewModel.magnificationStep
+            )
                 .frame(width: 140)
             Text(String(format: "%.0f%%", session.magnification * 100))
                 .monospacedDigit()
                 .font(.system(.caption, design: .rounded))
                 .foregroundStyle(.secondary)
-                .frame(width: 44, alignment: .trailing)
+                .frame(width: 54, alignment: .trailing)
         }
     }
 }

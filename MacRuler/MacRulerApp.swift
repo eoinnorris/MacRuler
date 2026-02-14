@@ -69,6 +69,18 @@ struct MacOSRulerApp: App {
                 Toggle("Attach to horizontal ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
             }
             CommandMenu("Screen picker") {
+                Button("Increase Magnification") {
+                    appDelegate.increaseSelectionMagnification()
+                }
+                .keyboardShortcut("+", modifiers: [.command])
+
+                Button("Decrease Magnification") {
+                    appDelegate.decreaseSelectionMagnification()
+                }
+                .keyboardShortcut("=", modifiers: [.command])
+
+                Divider()
+
                 Button("Select Window") {
                     appDelegate.beginWindowSelection()
                 }
