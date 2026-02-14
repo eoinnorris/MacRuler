@@ -10,15 +10,24 @@ import SwiftUI
 struct SelectionMagnifierContentView: View {
     @Bindable var session: SelectionSession
     @Bindable var controller: StreamCaptureObserver
+    @Bindable var horizontalOverlayViewModel: OverlayViewModel = .shared
+    @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel = .shared
 
     var body: some View {
-        ScreenSelectionMagnifierImage(session: session, controller: controller)
+        ScreenSelectionMagnifierImage(
+            session: session,
+            controller: controller,
+            horizontalOverlayViewModel: horizontalOverlayViewModel,
+            verticalOverlayViewModel: verticalOverlayViewModel
+        )
     }
 }
 
 private struct ScreenSelectionMagnifierImage: View {
     @Bindable var session: SelectionSession
     @Bindable var controller: StreamCaptureObserver
+    @Bindable var horizontalOverlayViewModel: OverlayViewModel
+    @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
 
     var body: some View {
         GeometryReader { proxy in
@@ -91,6 +100,20 @@ private struct ScreenSelectionMagnifierImage: View {
                 .buttonStyle(.plain)
                 .padding(10)
             }
+            .overlay(alignment: .bottomTrailing) {
+                let labels = activeReadoutLabels()
+
+                if !labels.isEmpty {
+                    Text(labels.joined(separator: ", "))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(.black.opacity(0.65))
+                        .clipShape(Capsule())
+                        .padding(10)
+                }
+            }
             .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
             .background(
                 RoundedRectangle(cornerRadius: 10)
@@ -108,5 +131,23 @@ private struct ScreenSelectionMagnifierImage: View {
             controller.updateCaptureRect(centeredOn: newValue,
                                          screenBound: session.screen?.frame ?? .zero)
         }
+    }
+
+    private func activeReadoutLabels() -> [String] {
+        var labels: [String] = []
+
+        if session.showHorizontalRuler {
+            labels.append("H:\(roundedPointValue(horizontalOverlayViewModel.dividerX)) pt")
+        }
+
+        if session.showVerticalRuler {
+            labels.append("V:\(roundedPointValue(verticalOverlayViewModel.dividerY)) pt")
+        }
+
+        return labels
+    }
+
+    private func roundedPointValue(_ value: CGFloat?) -> Int {
+        Int((value ?? 0).rounded())
     }
 }
