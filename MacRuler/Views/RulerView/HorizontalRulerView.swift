@@ -89,6 +89,15 @@ struct HorizontalRulerView: View {
     }
 }
 
+struct RulerLocked : View{
+    
+    let rulerType:RulerType
+
+    var body: some View {
+        Image("lock")
+    }
+}
+
 private struct SettingsButton: View {
     var body: some View {
         Button {
