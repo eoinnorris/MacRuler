@@ -110,11 +110,12 @@ struct RulerLocked : View{
                 .foregroundStyle(isLocked ? .white : .primary)
                 .padding(6)
                 .background(
-                    isLocked ? Color.blue.opacity(0.9) : Color.white.opacity(0.35),
+                    isLocked ? Color.white.opacity(0.35) : Color.white.opacity(0.35),
                     in: Circle()
                 )
+                .contentTransition(.symbolEffect(.replace))
                 .scaleEffect(isLocked ? 1.0 : 0.92)
-                .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isLocked)
+//                .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isLocked)
         }
         .buttonStyle(.plain)
         .help(isLocked ? "Unlock ruler window dragging" : "Lock ruler window dragging")
