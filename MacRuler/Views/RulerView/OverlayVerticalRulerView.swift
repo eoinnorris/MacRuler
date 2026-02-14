@@ -11,7 +11,6 @@ struct OverlayVerticalRulerView: View {
     let overlayViewModel: OverlayVerticalViewModel
     @Bindable var magnificationViewModel: MagnificationViewModel
     @State private var isDividerHovering: Bool = false
-    @GestureState private var isDividerDragging: Bool = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -29,43 +28,20 @@ struct OverlayVerticalRulerView: View {
                     .contentShape(Rectangle().inset(by: -8))
                     .onHover { isHovering in
                         isDividerHovering = isHovering
-                        setVerticalBackgroundLock(isLocked: isHovering, reason: .dividerHover)
                     }
                     .gesture(
                         DragGesture()
-                            .updating($isDividerDragging) { _, state, _ in
-                                state = true
-                            }
                             .onChanged { value in
-                                setVerticalBackgroundLock(isLocked: true, reason: .dividerDrag)
                                 let rawBounded = overlayViewModel.boundedDividerValue(value.location.y / magnification, maxValue: scaledHeight)
                                 overlayViewModel.dividerY = rawBounded
                             }
-                            .onEnded { _ in
-                                setVerticalBackgroundLock(isLocked: false, reason: .dividerDrag)
-                            }
                     )
-                    .onChange(of: isDividerDragging) { _, isDragging in
-                        if !isDragging {
-                            // Drag can terminate outside the divider path, so this guarantees unlock on cancellation/reset.
-                            setVerticalBackgroundLock(isLocked: false, reason: .dividerDrag)
-                        }
-                    }
                     .onDisappear {
                         isDividerHovering = false
-                        setVerticalBackgroundLock(isLocked: false, reason: .dividerHover)
-                        setVerticalBackgroundLock(isLocked: false, reason: .dividerDrag)
                     }
                 }
             }
             .contentShape(Rectangle())
-        }
-    }
-
-    private func setVerticalBackgroundLock(isLocked: Bool, reason: AppDelegate.RulerBackgroundLockReason) {
-        // Locking window-background dragging prevents the ruler window from moving while the divider is being edited.
-        Task { @MainActor in
-            AppDelegate.shared?.setVerticalRulerBackgroundLocked(isLocked, reason: reason)
         }
     }
 }
