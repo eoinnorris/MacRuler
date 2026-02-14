@@ -17,7 +17,7 @@ struct VerticalPixelReadout: View {
         let unitType = rulerSettingsViewModel.unitType
         let distancePoints = overlayViewModel.dividerY ?? 0
         let displayValue = unitType.formattedDistance(points: distancePoints, screenScale: overlayViewModel.backingScale)
-        let magnificationLabel = formatMagnificationLabel(magnificationViewModel.magnification)
+        let magnificationLabel = MagnificationViewModel.formatLabel(magnificationViewModel.magnification)
         Menu {
             Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {
                 ForEach(UnitTypes.allCases) { unit in
@@ -33,13 +33,4 @@ struct VerticalPixelReadout: View {
                 .pixelReadoutTextStyle()
         }
     }
-}
-
-func formatMagnificationLabel(_ magnification: Double) -> String {
-    let roundedValue = magnification.rounded()
-    if abs(magnification - roundedValue) < 0.0001 {
-        return "\(Int(roundedValue)) x"
-    }
-
-    return String(format: "%.1f x", magnification)
 }

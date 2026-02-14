@@ -29,12 +29,27 @@ final class MagnificationViewModel {
         min(max(value, Self.minimumMagnification), Self.maximumMagnification)
     }
 
+    func normalizedMagnification(_ value: Double) -> Double {
+        let clampedValue = clamp(value)
+        let steppedValue = (clampedValue / Self.magnificationStep).rounded() * Self.magnificationStep
+        return clamp((steppedValue * 10).rounded() / 10)
+    }
+
     func increaseMagnification() -> Double {
-        clamp(magnification + Self.magnificationStep)
+        normalizedMagnification(magnification + Self.magnificationStep)
     }
 
     func decreaseMagnification() -> Double {
-        clamp(magnification - Self.magnificationStep)
+        normalizedMagnification(magnification - Self.magnificationStep)
+    }
+
+    static func formatLabel(_ magnification: Double) -> String {
+        let roundedValue = magnification.rounded()
+        if abs(magnification - roundedValue) < 0.0001 {
+            return "\(Int(roundedValue)) x"
+        }
+
+        return String(format: "%.1f x", magnification)
     }
 
     init() {}
