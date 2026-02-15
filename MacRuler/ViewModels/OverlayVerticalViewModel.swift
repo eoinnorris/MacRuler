@@ -15,7 +15,6 @@ final class OverlayVerticalViewModel {
 
     /// Process-wide shared vertical overlay state used by the live app runtime.
     /// Access on the main actor when mutating from UI code.
-    static let shared = OverlayVerticalViewModel()
 
     var dividerY: CGFloat? {
         didSet {
@@ -33,7 +32,7 @@ final class OverlayVerticalViewModel {
 
     init(
         defaults: DefaultsStoring = UserDefaults.standard,
-        horizontalOverlayViewModel: OverlayViewModel = .shared,
+        horizontalOverlayViewModel: OverlayViewModel,
         rulerSettings: RulerSettingsViewModel = .shared
     ) {
         self.defaults = defaults

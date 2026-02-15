@@ -10,8 +10,8 @@ import SwiftUI
 struct SelectionMagnifierContentView: View {
     @Bindable var session: SelectionSession
     @Bindable var controller: StreamCaptureObserver
-    @Bindable var horizontalOverlayViewModel: OverlayViewModel = .shared
-    @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel = .shared
+    @Bindable var horizontalOverlayViewModel: OverlayViewModel
+    @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel = .shared
 
     var body: some View {

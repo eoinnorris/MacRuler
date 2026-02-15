@@ -14,7 +14,6 @@ final class OverlayViewModel {
 
     /// Process-wide shared horizontal overlay state used by the live app runtime.
     /// Access on the main actor when mutating from UI code.
-    static let shared = OverlayViewModel()
 
     var dividerX: CGFloat? {
         didSet {

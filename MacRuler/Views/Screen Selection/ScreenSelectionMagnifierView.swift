@@ -12,6 +12,9 @@ import UniformTypeIdentifiers
 struct SelectionMagnifierRootView: View {
     let session: SelectionSession?
     let appDelegate: AppDelegate?
+    var horizontalOverlayViewModel: OverlayViewModel
+    var verticalOverlayViewModel: OverlayVerticalViewModel
+    
     @Bindable var magnificationViewModel: MagnificationViewModel
 
     var body: some View {
@@ -20,7 +23,9 @@ struct SelectionMagnifierRootView: View {
                 ScreenSelectionMagnifierView(
                     session: session,
                     appDelegate: appDelegate,
-                    magnificationViewModel: magnificationViewModel
+                    magnificationViewModel: magnificationViewModel,
+                    horizontalOverlayViewModel: horizontalOverlayViewModel,
+                    verticalOverlayViewModel:verticalOverlayViewModel
                 )
             } else {
                 SelectionHintView(appDelegate: appDelegate)
@@ -36,6 +41,9 @@ struct ScreenSelectionMagnifierView: View {
     @State private var controller = StreamCaptureObserver()
     @State private var selectionPreviewWindow: NSWindow?
     @State private var selectionPreviewTask: Task<Void, Never>?
+    
+    var horizontalOverlayViewModel: OverlayViewModel
+    var verticalOverlayViewModel: OverlayVerticalViewModel
 
     var body: some View {
         VStack(spacing: 10) {
@@ -44,7 +52,10 @@ struct ScreenSelectionMagnifierView: View {
                 snapshotAction: takeSnapshot,
                 canTakeSnapshot: controller.frameImage != nil
             )
-            SelectionMagnifierContentView(session: session, controller: controller)
+            SelectionMagnifierContentView(session: session,
+                                          controller: controller,
+                                          horizontalOverlayViewModel:horizontalOverlayViewModel,
+                                          verticalOverlayViewModel:verticalOverlayViewModel)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .padding(12)

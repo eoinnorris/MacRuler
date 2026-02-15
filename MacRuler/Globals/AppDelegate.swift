@@ -60,7 +60,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private weak var lastActiveRulerWindow: NSWindow?
     private var horizontalBackgroundLockReasons: Set<RulerBackgroundLockReason> = []
     private var verticalBackgroundLockReasons: Set<RulerBackgroundLockReason> = []
-
+    
     
     func makeHorizontalRulerView() -> some View {
         HorizontalRulerView(overlayViewModel: dependencies.overlay,
@@ -584,6 +584,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 rootView: SelectionMagnifierRootView(
                     session: currentSelectionSession,
                     appDelegate: self,
+                    horizontalOverlayViewModel: dependencies.horizontalOverlayViewModel,
+                    verticalOverlayViewModel: dependencies.verticalOverlayViewModel,
                     magnificationViewModel: dependencies.magnification
                 )
             )
@@ -617,6 +619,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 rootView: SelectionMagnifierRootView(
                     session: nil,
                     appDelegate: self,
+                    horizontalOverlayViewModel: dependencies.horizontalOverlayViewModel,
+                    verticalOverlayViewModel: dependencies.verticalOverlayViewModel,
                     magnificationViewModel: dependencies.magnification
                 )
             )
@@ -645,6 +649,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             rootView: SelectionMagnifierRootView(
                 session: session,
                 appDelegate: self,
+                horizontalOverlayViewModel: dependencies.horizontalOverlayViewModel,
+                verticalOverlayViewModel: dependencies.verticalOverlayViewModel,
                 magnificationViewModel: dependencies.magnification
             )
         )

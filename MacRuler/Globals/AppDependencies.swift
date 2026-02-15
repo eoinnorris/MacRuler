@@ -11,6 +11,8 @@ final class AppDependencies {
     let overlayVertical: OverlayVerticalViewModel
     let debugSettings: DebugSettingsModel
     let magnification: MagnificationViewModel
+    let horizontalOverlayViewModel:OverlayViewModel
+    let verticalOverlayViewModel:OverlayVerticalViewModel
 
     init(defaultsStore: DefaultsStoring = UserDefaults.standard) {
         self.defaultsStore = defaultsStore
@@ -25,5 +27,8 @@ final class AppDependencies {
         )
         self.debugSettings = DebugSettingsModel()
         self.magnification = MagnificationViewModel()
+        let horizontalOverlayViewModel = OverlayViewModel()
+        self.horizontalOverlayViewModel = horizontalOverlayViewModel
+        self.verticalOverlayViewModel = OverlayVerticalViewModel(defaults: defaultsStore, horizontalOverlayViewModel: horizontalOverlayViewModel)
     }
 }
