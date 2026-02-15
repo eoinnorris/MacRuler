@@ -12,8 +12,8 @@ import UniformTypeIdentifiers
 struct SelectionMagnifierRootView: View {
     let session: SelectionSession?
     let appDelegate: AppDelegate?
-    var horizontalOverlayViewModel: OverlayViewModel
-    var verticalOverlayViewModel: OverlayVerticalViewModel
+    @Bindable var horizontalOverlayViewModel: OverlayViewModel
+    @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     
     @Bindable var magnificationViewModel: MagnificationViewModel
 

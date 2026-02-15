@@ -33,6 +33,7 @@ private struct ScreenSelectionMagnifierImage: View {
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
 
     var body: some View {
+        let _ = print("dividerX read:", horizontalOverlayViewModel.dividerX as Any)
         GeometryReader { proxy in
             ZStack {
                 if let frameImage = controller.frameImage {
