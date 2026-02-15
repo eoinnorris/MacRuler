@@ -12,13 +12,15 @@ struct SelectionMagnifierContentView: View {
     @Bindable var controller: StreamCaptureObserver
     @Bindable var horizontalOverlayViewModel: OverlayViewModel = .shared
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel = .shared
+    @Bindable var rulerSettingsViewModel: RulerSettingsViewModel = .shared
 
     var body: some View {
         ScreenSelectionMagnifierImage(
             session: session,
             controller: controller,
             horizontalOverlayViewModel: horizontalOverlayViewModel,
-            verticalOverlayViewModel: verticalOverlayViewModel
+            verticalOverlayViewModel: verticalOverlayViewModel,
+            rulerSettingsViewModel: rulerSettingsViewModel
         )
     }
 }
@@ -28,6 +30,7 @@ private struct ScreenSelectionMagnifierImage: View {
     @Bindable var controller: StreamCaptureObserver
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
+    @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
 
     var body: some View {
         GeometryReader { proxy in
@@ -135,19 +138,28 @@ private struct ScreenSelectionMagnifierImage: View {
 
     private func activeReadoutLabels() -> [String] {
         var labels: [String] = []
+        let unitType = rulerSettingsViewModel.unitType
 
         if session.showHorizontalRuler {
-            labels.append("H:\(roundedPointValue(horizontalOverlayViewModel.dividerX)) pt")
+            let horizontalComponents = ReadoutDisplayHelper.makeComponents(
+                distancePoints: horizontalOverlayViewModel.dividerX ?? 0,
+                unitType: unitType,
+                screenScale: horizontalOverlayViewModel.backingScale,
+                magnification: session.magnification
+            )
+            labels.append("H:\(horizontalComponents.text)")
         }
 
         if session.showVerticalRuler {
-            labels.append("V:\(roundedPointValue(verticalOverlayViewModel.dividerY)) pt")
+            let verticalComponents = ReadoutDisplayHelper.makeComponents(
+                distancePoints: verticalOverlayViewModel.dividerY ?? 0,
+                unitType: unitType,
+                screenScale: verticalOverlayViewModel.backingScale,
+                magnification: session.magnification
+            )
+            labels.append("V:\(verticalComponents.text)")
         }
 
         return labels
-    }
-
-    private func roundedPointValue(_ value: CGFloat?) -> Int {
-        Int((value ?? 0).rounded())
     }
 }
