@@ -80,7 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let vf = screen.visibleFrame  // avoids menu bar + dock
 
         // Horizontal panel (top third area)
-        let defaultWidth = min(450, vf.width - 40)
+        let defaultWidth = min(550, vf.width - 40)
         let hWidth = storedHorizontalWidth(
             defaultWidth: defaultWidth,
             screenWidth: vf.width
@@ -265,6 +265,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func setHorizontalRulerBackgroundMovable(_ movable: Bool) {
         guard let window = horizontalController?.window else { return }
         window.isMovableByWindowBackground = movable
+    }
+    
+    var isHorizontalRulerBackgroundMovable: Bool {
+        (horizontalController?.window?.isMovableByWindowBackground ?? false)
+    }
+    
+    var isVerticalRulerBackgroundMovable: Bool {
+        (verticalController?.window?.isMovableByWindowBackground ?? false)
     }
 
     @MainActor

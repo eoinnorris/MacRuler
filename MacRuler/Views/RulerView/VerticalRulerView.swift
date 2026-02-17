@@ -12,6 +12,9 @@ struct VerticalRulerView: View {
     @Bindable var settings: RulerSettingsViewModel
     @Bindable var debugSettings: DebugSettingsModel
     @Bindable var magnificationViewModel: MagnificationViewModel
+    
+    @State private var rulerLocked: Bool = true
+
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,6 +33,8 @@ struct VerticalRulerView: View {
                     overlayViewModel: overlayViewModel,
                     magnificationViewModel: magnificationViewModel
                 )
+                .allowsHitTesting(rulerLocked)
+                .opacity(rulerLocked ? 1.0 : 0.0)
                 WindowScaleReader(
                     backingScale: $overlayViewModel.backingScale,
                     windowFrame: Binding(
@@ -48,7 +53,7 @@ struct VerticalRulerView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             HStack(spacing: 6) {
-                RulerLocked(rulerType: .vertical)
+                RulerLocked(rulerType: .vertical, isLocked: $rulerLocked)
                 VerticalPixelReadout(
                     overlayViewModel: overlayViewModel,
                     rulerSettingsViewModel: settings,

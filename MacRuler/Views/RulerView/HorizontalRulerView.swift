@@ -16,7 +16,9 @@ struct HorizontalRulerView: View {
     @Bindable var debugSettings: DebugSettingsModel
     @Bindable var magnificationViewModel: MagnificationViewModel
 
+    @State private var rulerLocked: Bool = true
 
+    
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
@@ -40,7 +42,8 @@ struct HorizontalRulerView: View {
                 OverlayHorizontalRulerView(
                     overlayViewModel: overlayViewModel,
                     magnificationViewModel: magnificationViewModel
-                )
+                ).allowsHitTesting(rulerLocked)
+                 .opacity(rulerLocked ? 1.0 : 0.0)
                 // ✅ Invisible window reader (tracks backing scale)
                 WindowScaleReader(
                     backingScale: $overlayViewModel.backingScale,
@@ -50,7 +53,8 @@ struct HorizontalRulerView: View {
                 VStack {
                     Spacer()
                     HStack(spacing: 0) {
-                        RulerLocked(rulerType: .horizontal)
+                        RulerLocked(rulerType: .horizontal,
+                                    isLocked: $rulerLocked)
                         Spacer()
                         HorizontalPixelReadout(overlayViewModel: overlayViewModel,
                                      rulerSettingsViewModel: settings,
@@ -90,7 +94,8 @@ struct HorizontalRulerView: View {
 
 struct RulerLocked : View{
     let rulerType: RulerType
-    @State private var isLocked: Bool = false
+    @Binding var isLocked: Bool
+    @State private var rulerLocked: Bool = true
 
     var body: some View {
         Button {
@@ -122,7 +127,6 @@ struct RulerLocked : View{
                 )
                 .contentTransition(.symbolEffect(.replace))
                 .scaleEffect(isLocked ? 1.0 : 0.92)
-//                .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isLocked)
         }
         .buttonStyle(.plain)
         .help(isLocked ? "Unlock ruler window dragging" : "Lock ruler window dragging")
