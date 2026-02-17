@@ -52,6 +52,7 @@ struct SelectionWindowToolbar: View {
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
+        .tint(.brandPrimary)
     }
 
     private var magnificationControls: some View {

@@ -154,9 +154,9 @@ struct RulerBackGround : View {
     var horizontalGradient: some View {
         LinearGradient(
             stops: [
-                .init(color: Color.yellow.opacity(0.8), location: 0.0),
-                .init(color: Color.init(hex: "#FFCF3A"), location: 0.55),
-                .init(color: Color.init(hex: "#FFBE00"), location: 1.0)
+                .init(color: Color.brandPrimary.opacity(0.7), location: 0.0),
+                .init(color: Color.brandPrimary.opacity(0.85), location: 0.55),
+                .init(color: Color.brandPrimary, location: 1.0)
             ],
             startPoint: .top,
             endPoint: .bottom
@@ -166,9 +166,9 @@ struct RulerBackGround : View {
     var verticalGradient: some View {
         LinearGradient(
             stops: [
-                .init(color: Color.init(hex: "#FFBE00"), location: 0.0),
-                .init(color: Color.init(hex: "#FFCF3A"), location: 0.45),
-                .init(color: Color.yellow.opacity(0.8), location: 1.0)
+                .init(color: Color.brandPrimary, location: 0.0),
+                .init(color: Color.brandPrimary.opacity(0.85), location: 0.45),
+                .init(color: Color.brandPrimary.opacity(0.7), location: 1.0)
             ],
             startPoint: .leading,
             endPoint: .trailing

@@ -22,6 +22,7 @@ struct SettingsView: View {
         }
         .padding(20)
         .frame(width: 270)
+        .tint(.brandPrimary)
     }
 }
 
