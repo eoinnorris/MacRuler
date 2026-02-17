@@ -55,6 +55,8 @@ struct MacOSRulerApp: App {
                 }
                 Divider()
                 Toggle("Attach to vertical ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
+                Toggle("Lock horizontal ruler window", isOn: $rulerSettingsViewModel.horizontalRulerLocked)
+                    .keyboardShortcut("l", modifiers: [.command])
             }
             CommandMenu("VRuler") {
                 Button("Move Up") {
@@ -67,6 +69,8 @@ struct MacOSRulerApp: App {
                 .keyboardShortcut(.downArrow, modifiers: [.command])
                 Divider()
                 Toggle("Attach to horizontal ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
+                Toggle("Lock vertical ruler window", isOn: $rulerSettingsViewModel.verticalRulerLocked)
+                    .keyboardShortcut("v", modifiers: [.command])
             }
             CommandMenu("Screen picker") {
                 Button("Increase Magnification") {

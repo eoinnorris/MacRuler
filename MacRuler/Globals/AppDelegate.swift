@@ -56,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let dependencies = AppDependencies.live
     private lazy var rulerSettingsViewModel = dependencies.rulerSettings
     private var rulerAttachmentObservationTask: Task<Void, Never>?
+    private var rulerLockObservationTask: Task<Void, Never>?
     private var rulerWindowObservationTokens: [NSObjectProtocol] = []
     private weak var lastActiveRulerWindow: NSWindow?
     private var horizontalBackgroundLockReasons: Set<RulerBackgroundLockReason> = []
@@ -128,6 +129,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         setupStatusItem()
         startRulerAttachmentObservation()
+        startRulerLockObservation()
+        handleRulerLockChange()
         startRulerWindowObservation()
         configureCaptureControllerCallbacks()
         showSelectionMagnifierWindow()
@@ -484,6 +487,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 }
             )
         }
+    }
+
+
+    @MainActor
+    private func startRulerLockObservation() {
+        rulerLockObservationTask?.cancel()
+        rulerLockObservationTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            withObservationTracking {
+                _ = self.rulerSettingsViewModel.horizontalRulerLocked
+                _ = self.rulerSettingsViewModel.verticalRulerLocked
+            } onChange: { [weak self] in
+                guard let localSelf = self else { return }
+                Task { @MainActor in
+                    localSelf.handleRulerLockChange()
+                    localSelf.startRulerLockObservation()
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func handleRulerLockChange() {
+        setHorizontalRulerBackgroundLocked(
+            rulerSettingsViewModel.horizontalRulerLocked,
+            reason: .manualToggle
+        )
+        setVerticalRulerBackgroundLocked(
+            rulerSettingsViewModel.verticalRulerLocked,
+            reason: .manualToggle
+        )
     }
 
     @MainActor

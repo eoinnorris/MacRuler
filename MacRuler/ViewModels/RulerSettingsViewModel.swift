@@ -49,6 +49,10 @@ final class RulerSettingsViewModel {
             defaults.set(snapToMajorTicks, forKey: PersistenceKeys.snapToMajorTicks)
         }
     }
+
+    var horizontalRulerLocked: Bool
+
+    var verticalRulerLocked: Bool
     
     init(defaults: DefaultsStoring = UserDefaults.standard) {
             self.defaults = defaults
@@ -80,6 +84,9 @@ final class RulerSettingsViewModel {
 
             // snapToMajorTicks with default
             self.snapToMajorTicks = defaults.object(forKey: PersistenceKeys.snapToMajorTicks) as? Bool ?? false
+
+            self.horizontalRulerLocked = false
+            self.verticalRulerLocked = false
         }
 //    
 //    init(defaults: DefaultsStoring = UserDefaults.standard) {
@@ -101,5 +108,4 @@ final class RulerSettingsViewModel {
 //        self.snapToMajorTicks = defaults.object(forKey: PersistenceKeys.snapToMajorTicks) as? Bool ?? false
 //    }
 }
-
 

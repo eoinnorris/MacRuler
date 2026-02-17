@@ -16,9 +16,6 @@ struct HorizontalRulerView: View {
     @Bindable var debugSettings: DebugSettingsModel
     @Bindable var magnificationViewModel: MagnificationViewModel
 
-    @State private var rulerLocked: Bool = true
-
-    
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
@@ -42,8 +39,8 @@ struct HorizontalRulerView: View {
                 OverlayHorizontalRulerView(
                     overlayViewModel: overlayViewModel,
                     magnificationViewModel: magnificationViewModel
-                ).allowsHitTesting(rulerLocked)
-                 .opacity(rulerLocked ? 1.0 : 0.0)
+                ).allowsHitTesting(settings.horizontalRulerLocked)
+                 .opacity(settings.horizontalRulerLocked ? 1.0 : 0.0)
                 // ✅ Invisible window reader (tracks backing scale)
                 WindowScaleReader(
                     backingScale: $overlayViewModel.backingScale,
@@ -54,7 +51,7 @@ struct HorizontalRulerView: View {
                     Spacer()
                     HStack(spacing: 0) {
                         RulerLocked(rulerType: .horizontal,
-                                    isLocked: $rulerLocked)
+                                    isLocked: $settings.horizontalRulerLocked)
                         Spacer()
                         HorizontalPixelReadout(overlayViewModel: overlayViewModel,
                                      rulerSettingsViewModel: settings,
@@ -71,6 +68,11 @@ struct HorizontalRulerView: View {
         .gesture(
             SpatialTapGesture(count: 2)
                 .onEnded { value in
+                    if !settings.horizontalRulerLocked {
+                        settings.horizontalRulerLocked = true
+                        return
+                    }
+
                     let magnification = CGFloat(max(magnificationViewModel.magnification, 0.1))
                     withAnimation(.easeInOut(duration: 0.2)) {
                         overlayViewModel.updateDividers(
