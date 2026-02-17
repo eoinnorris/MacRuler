@@ -10,7 +10,6 @@ import SwiftUI
 struct RulerLocked : View{
     let rulerType: RulerType
     @Binding var isLocked: Bool
-    @State private var rulerLocked: Bool = true
 
     var body: some View {
         Button {
@@ -45,15 +44,5 @@ struct RulerLocked : View{
         }
         .buttonStyle(.plain)
         .help(isLocked ? "Unlock ruler window dragging" : "Lock ruler window dragging")
-        .task {
-            isLocked = await MainActor.run {
-                switch rulerType {
-                case .horizontal:
-                    AppDelegate.shared?.isHorizontalRulerBackgroundLocked() ?? false
-                case .vertical:
-                    AppDelegate.shared?.isVerticalRulerBackgroundLocked() ?? false
-                }
-            }
-        }
     }
 }
