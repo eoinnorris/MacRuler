@@ -21,6 +21,15 @@ struct RulerBackGround : View {
              HorizontalRulerBackGround
         }
     }
+
+    private var shouldShowLabels: Bool {
+        switch rulerType {
+        case .vertical:
+            rulerSettingsViewModel.verticalRulerBackgroundSize == .large
+        case .horizontal:
+            rulerSettingsViewModel.horizontalRulerBackgroundSize == .large
+        }
+    }
     
     var HorizontalRulerBackGround: some View {
         
@@ -54,7 +63,7 @@ struct RulerBackGround : View {
                 context.stroke(minor, with: .color(.black.opacity(0.35)), lineWidth: 1)
                 context.stroke(major, with: .color(.black.opacity(0.65)), lineWidth: 1.2)
 
-                if labelStep > 0 {
+                if shouldShowLabels && labelStep > 0 {
                     for tickIndex in 0...totalTicks
                     where tickIndex.isMultiple(of: labelStep)
                         && tickIndex.isMultiple(of: majorStep)
@@ -118,7 +127,7 @@ struct RulerBackGround : View {
                 context.stroke(minor, with: .color(.black.opacity(0.35)), lineWidth: 1)
                 context.stroke(major, with: .color(.black.opacity(0.65)), lineWidth: 1.2)
 
-                if labelStep > 0 {
+                if shouldShowLabels && labelStep > 0 {
                     for tickIndex in 0...totalTicks
                     where tickIndex.isMultiple(of: labelStep)
                         && tickIndex.isMultiple(of: majorStep)
