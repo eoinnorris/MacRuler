@@ -8,7 +8,6 @@
 import SwiftUI
 
 extension Color {
-    static let brandPrimary = Color("BrandPrimary")
 
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

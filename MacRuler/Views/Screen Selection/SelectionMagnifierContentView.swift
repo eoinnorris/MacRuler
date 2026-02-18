@@ -97,7 +97,7 @@ private struct ScreenSelectionMagnifierImage: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(controller.isStreamLive ? Color.brandPrimary.opacity(0.9) : Color.orange.opacity(0.85))
+                        .background(controller.isStreamLive ? Color.green.opacity(0.9) : Color.orange.opacity(0.85))
                         .clipShape(Capsule())
                 }
                 .menuStyle(.button)
