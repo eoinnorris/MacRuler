@@ -36,18 +36,18 @@ struct MacOSRulerApp: App {
                 Button("Move Left") {
                     DividerKeyNotification.post(direction: .left, isDouble: false)
                 }
+                .keyboardShortcut(.leftArrow, modifiers: [.command])
                 Button("Move Right") {
                     DividerKeyNotification.post(direction: .right, isDouble: false)
                 }
+                .keyboardShortcut(.rightArrow, modifiers: [.command])
                 Divider()
                 Button("Make Smaller") {
                     rulerSettingsViewModel.horizontalRulerBackgroundSize = .small
                 }
-                .keyboardShortcut(.downArrow, modifiers: [.command])
                 Button("Make Larger") {
                     rulerSettingsViewModel.horizontalRulerBackgroundSize = .large
                 }
-                .keyboardShortcut(.upArrow, modifiers: [.command])
                 Divider()
                 Picker("Points", selection: $overlayViewModel.selectedPoints) {
                     ForEach(DividerStep.allCases) { step in
@@ -69,18 +69,18 @@ struct MacOSRulerApp: App {
                 Button("Move Up") {
                     DividerKeyNotification.post(direction: .up, isDouble: false)
                 }
+                .keyboardShortcut(.upArrow, modifiers: [.command])
                 Button("Move Down") {
                     DividerKeyNotification.post(direction: .down, isDouble: false)
                 }
+                .keyboardShortcut(.downArrow, modifiers: [.command])
                 Divider()
                 Button("Make Smaller") {
                     rulerSettingsViewModel.verticalRulerBackgroundSize = .small
                 }
-                .keyboardShortcut(.leftArrow, modifiers: [.command])
                 Button("Make Larger") {
                     rulerSettingsViewModel.verticalRulerBackgroundSize = .large
                 }
-                .keyboardShortcut(.rightArrow, modifiers: [.command])
                 Divider()
                 Toggle("Attach to horizontal ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
                 Toggle("Lock vertical ruler window", isOn: $rulerSettingsViewModel.verticalRulerLocked)
