@@ -23,7 +23,7 @@ struct VerticalRulerView: View {
                         rulerSettingsViewModel: settings,
                         magnification: CGFloat(max(magnificationViewModel.magnification, 0.1))
                     )
-                    .frame(width: 44.0)
+                    .frame(width: settings.verticalBackgroundThickness)
                     Spacer()
                 }
                

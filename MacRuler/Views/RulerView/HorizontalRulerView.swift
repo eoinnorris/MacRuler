@@ -26,7 +26,7 @@ struct HorizontalRulerView: View {
                         rulerSettingsViewModel: settings,
                         magnification: CGFloat(max(magnificationViewModel.magnification, 0.1))
                     )
-                    .frame(height: 44.0)
+                    .frame(height: settings.horizontalBackgroundThickness)
                     Spacer()
                 }
                 .background(
@@ -59,7 +59,7 @@ struct HorizontalRulerView: View {
                     }
                     .frame(height: 24.0)
                     .padding(.horizontal, 0)
-                    .padding(.bottom, 56.0)
+                    .padding(.bottom, settings.horizontalBackgroundThickness + 12.0)
                     .background(Color.clear)
                 }
             }

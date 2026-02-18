@@ -19,4 +19,6 @@ enum PersistenceKeys {
     static let snapTolerancePoints = "ruler.snap.tolerance"
     static let snapGridStepPoints = "ruler.snap.gridStep"
     static let snapToMajorTicks = "ruler.snap.majorTicks"
+    static let horizontalRulerBackgroundSize = "ruler.horizontal.backgroundSize"
+    static let verticalRulerBackgroundSize = "ruler.vertical.backgroundSize"
 }

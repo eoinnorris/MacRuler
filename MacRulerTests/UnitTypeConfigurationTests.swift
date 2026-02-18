@@ -40,4 +40,32 @@ final class UnitTypeConfigurationTests: XCTestCase {
         XCTAssertEqual(config.majorStep, 2)
         XCTAssertEqual(config.labelStep, 8)
     }
+
+    func testRulerBackgroundSizeDefaultsToLarge() {
+        let defaults = InMemoryDefaultsStore()
+        let viewModel = RulerSettingsViewModel(defaults: defaults)
+
+        XCTAssertEqual(viewModel.horizontalRulerBackgroundSize, .large)
+        XCTAssertEqual(viewModel.verticalRulerBackgroundSize, .large)
+        XCTAssertEqual(viewModel.horizontalBackgroundThickness, 44.0)
+        XCTAssertEqual(viewModel.verticalBackgroundThickness, 44.0)
+    }
+
+    func testRulerBackgroundSizePersistsInDefaults() {
+        let defaults = InMemoryDefaultsStore()
+        let viewModel = RulerSettingsViewModel(defaults: defaults)
+
+        viewModel.horizontalRulerBackgroundSize = .small
+        viewModel.verticalRulerBackgroundSize = .small
+
+        XCTAssertEqual(defaults.string(forKey: PersistenceKeys.horizontalRulerBackgroundSize), RulerBackgroundSize.small.rawValue)
+        XCTAssertEqual(defaults.string(forKey: PersistenceKeys.verticalRulerBackgroundSize), RulerBackgroundSize.small.rawValue)
+
+        let reloaded = RulerSettingsViewModel(defaults: defaults)
+        XCTAssertEqual(reloaded.horizontalRulerBackgroundSize, .small)
+        XCTAssertEqual(reloaded.verticalRulerBackgroundSize, .small)
+        XCTAssertEqual(reloaded.horizontalBackgroundThickness, 22.0)
+        XCTAssertEqual(reloaded.verticalBackgroundThickness, 22.0)
+    }
+
 }

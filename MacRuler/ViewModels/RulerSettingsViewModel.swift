@@ -7,6 +7,20 @@
 
 import SwiftUI
 
+enum RulerBackgroundSize: String, CaseIterable {
+    case large
+    case small
+
+    var scaleFactor: CGFloat {
+        switch self {
+        case .large:
+            1.0
+        case .small:
+            0.5
+        }
+    }
+}
+
 @Observable
 final class RulerSettingsViewModel {
 
@@ -53,6 +67,26 @@ final class RulerSettingsViewModel {
     var horizontalRulerLocked: Bool
 
     var verticalRulerLocked: Bool
+
+    var horizontalRulerBackgroundSize: RulerBackgroundSize {
+        didSet {
+            defaults.set(horizontalRulerBackgroundSize.rawValue, forKey: PersistenceKeys.horizontalRulerBackgroundSize)
+        }
+    }
+
+    var verticalRulerBackgroundSize: RulerBackgroundSize {
+        didSet {
+            defaults.set(verticalRulerBackgroundSize.rawValue, forKey: PersistenceKeys.verticalRulerBackgroundSize)
+        }
+    }
+
+    var horizontalBackgroundThickness: CGFloat {
+        Constants.rulerBackgroundLargeThickness * horizontalRulerBackgroundSize.scaleFactor
+    }
+
+    var verticalBackgroundThickness: CGFloat {
+        Constants.rulerBackgroundLargeThickness * verticalRulerBackgroundSize.scaleFactor
+    }
     
     init(defaults: DefaultsStoring = UserDefaults.standard) {
             self.defaults = defaults
@@ -87,6 +121,20 @@ final class RulerSettingsViewModel {
 
             self.horizontalRulerLocked = false
             self.verticalRulerLocked = false
+
+            if let raw = defaults.string(forKey: PersistenceKeys.horizontalRulerBackgroundSize),
+               let backgroundSize = RulerBackgroundSize(rawValue: raw) {
+                self.horizontalRulerBackgroundSize = backgroundSize
+            } else {
+                self.horizontalRulerBackgroundSize = .large
+            }
+
+            if let raw = defaults.string(forKey: PersistenceKeys.verticalRulerBackgroundSize),
+               let backgroundSize = RulerBackgroundSize(rawValue: raw) {
+                self.verticalRulerBackgroundSize = backgroundSize
+            } else {
+                self.verticalRulerBackgroundSize = .large
+            }
         }
 //    
 //    init(defaults: DefaultsStoring = UserDefaults.standard) {
@@ -108,4 +156,3 @@ final class RulerSettingsViewModel {
 //        self.snapToMajorTicks = defaults.object(forKey: PersistenceKeys.snapToMajorTicks) as? Bool ?? false
 //    }
 }
-
