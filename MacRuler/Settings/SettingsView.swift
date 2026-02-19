@@ -16,8 +16,6 @@ struct SettingsView: View {
                 UnitsSettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
                 Divider()
                 RulerSettingsView()
-                Divider()
-                AdvancedSettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
             }
         }
         .padding(20)
