@@ -11,6 +11,7 @@ struct OverlayHorizontalRulerView: View {
     let overlayViewModel: OverlayViewModel
     @Bindable var magnificationViewModel: MagnificationViewModel
     @State private var isDividerHovering: Bool = false
+    @State private var dragStartDividerX: CGFloat?
 
     var body: some View {
         GeometryReader { geometry in
@@ -42,11 +43,20 @@ struct OverlayHorizontalRulerView: View {
                         .gesture(
                             DragGesture()
                                 .onChanged { value in
+                                    if dragStartDividerX == nil {
+                                        dragStartDividerX = overlayViewModel.dividerX
+                                    }
+
+                                    let startXInView = (dragStartDividerX ?? overlayViewModel.dividerX ?? 0) * magnification
+                                    let draggedXInView = startXInView + value.translation.width
                                     let rawBounded = overlayViewModel.boundedDividerValue(
-                                        value.location.x / magnification,
+                                        draggedXInView / magnification,
                                         maxValue: scaledWidth
                                     )
                                     overlayViewModel.dividerX = rawBounded
+                                }
+                                .onEnded { _ in
+                                    dragStartDividerX = nil
                                 }
                         )
                         .onDisappear {
