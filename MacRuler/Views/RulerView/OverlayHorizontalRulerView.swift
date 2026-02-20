@@ -20,7 +20,7 @@ struct OverlayHorizontalRulerView: View {
 
                 if let dividerX = overlayViewModel.dividerX {
                     let x = dividerX * magnification
-                    let hitWidth: CGFloat = 16  // tweak to taste
+                    let hitWidth: CGFloat = 16
 
                     // 1) Draw the line (no hit testing)
                     DividerLine(
@@ -32,11 +32,10 @@ struct OverlayHorizontalRulerView: View {
                     .allowsHitTesting(false)
 
                     // 2) Hit target (this is what receives hover + drag)
-                    Rectangle()
-                        .fill(Color.clear)
+                    Color.clear
                         .frame(width: hitWidth, height: geometry.size.height)
-                        .position(x: x, y: geometry.size.height / 2)
                         .contentShape(Rectangle())
+                        .offset(x: x - (geometry.size.width / 2))
                         .onHover { isHovering in
                             isDividerHovering = isHovering
                         }
@@ -56,7 +55,6 @@ struct OverlayHorizontalRulerView: View {
                 }
 
             }
-            .contentShape(Rectangle())
         }
     }
 }
