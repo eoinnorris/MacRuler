@@ -19,8 +19,9 @@ struct VerticalPixelReadout: View {
         let readoutComponents = ReadoutDisplayHelper.makeComponents(
             distancePoints: distancePoints,
             unitType: unitType,
-            screenScale: overlayViewModel.backingScale,
-            magnification: magnificationViewModel.magnification
+            measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: overlayViewModel.backingScale),
+            magnification: magnificationViewModel.magnification,
+            showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
         )
         Menu {
             Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {

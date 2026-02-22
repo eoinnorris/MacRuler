@@ -69,4 +69,37 @@ final class UnitTypeConfigurationTests: XCTestCase {
         XCTAssertEqual(reloaded.verticalBackgroundThickness, 22.0)
     }
 
+
+    func testMeasurementScaleDefaultsAndEffectiveScaleResolution() {
+        let defaults = InMemoryDefaultsStore()
+        let viewModel = RulerSettingsViewModel(defaults: defaults)
+
+        XCTAssertEqual(viewModel.measurementScaleMode, .autoDisplay)
+        XCTAssertEqual(viewModel.manualMeasurementScale, 2.0)
+        XCTAssertTrue(viewModel.showMeasurementScaleOverrideBadge)
+        XCTAssertEqual(viewModel.effectiveMeasurementScale(displayScale: 1.0), 1.0)
+
+        viewModel.measurementScaleMode = .manual
+        viewModel.manualMeasurementScale = 2.5
+
+        XCTAssertEqual(viewModel.effectiveMeasurementScale(displayScale: 1.0), 2.5)
+        XCTAssertEqual(defaults.string(forKey: PersistenceKeys.measurementScaleMode), MeasurementScaleMode.manual.rawValue)
+        XCTAssertEqual(defaults.double(forKey: PersistenceKeys.measurementScaleManualValue), 2.5)
+    }
+
+    func testManualMeasurementScaleIsClampedAndPersists() {
+        let defaults = InMemoryDefaultsStore()
+        let viewModel = RulerSettingsViewModel(defaults: defaults)
+
+        viewModel.measurementScaleMode = .manual
+        viewModel.manualMeasurementScale = 10
+
+        XCTAssertEqual(viewModel.manualMeasurementScale, 4.0)
+        XCTAssertEqual(defaults.double(forKey: PersistenceKeys.measurementScaleManualValue), 4.0)
+
+        let reloaded = RulerSettingsViewModel(defaults: defaults)
+        XCTAssertEqual(reloaded.measurementScaleMode, .manual)
+        XCTAssertEqual(reloaded.manualMeasurementScale, 4.0)
+    }
+
 }
