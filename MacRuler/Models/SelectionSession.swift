@@ -11,6 +11,7 @@ import AppKit
 import Observation
 
 @Observable
+@MainActor
 final class SelectionSession: Identifiable {
     let id: UUID
     var selectionRectGlobal: CGRect

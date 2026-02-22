@@ -1,6 +1,7 @@
 import XCTest
 @testable import MacRuler
 
+@MainActor
 final class UnitTypeConfigurationTests: XCTestCase {
 
     func testPixelsTickConfiguration() {
