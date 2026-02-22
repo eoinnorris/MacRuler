@@ -36,4 +36,17 @@ final class UnitTypeFormattingTests: XCTestCase {
         let text = UnitTypes.inches.formattedDistance(points: 72, screenScale: 2)
         XCTAssertEqual(text, "0.50")
     }
+
+    func testReadoutComponentsIncludeScaleBadgeWhenOverrideEnabled() {
+        let components = ReadoutDisplayHelper.makeComponents(
+            distancePoints: 72,
+            unitType: .inches,
+            measurementScale: 2.0,
+            magnification: 1.0,
+            showMeasurementScaleOverride: true
+        )
+
+        XCTAssertTrue(components.text.localizedStandardContains("Scale 2.0x"))
+    }
+
 }

@@ -11,9 +11,14 @@ struct ReadoutDisplayComponents {
     let displayValue: String
     let unitSymbol: String
     let magnificationLabel: String
+    let measurementScaleLabel: String?
 
     var text: String {
-        "\(displayValue) \(unitSymbol) • \(magnificationLabel)"
+        var components = ["\(displayValue) \(unitSymbol)", magnificationLabel]
+        if let measurementScaleLabel {
+            components.append(measurementScaleLabel)
+        }
+        return components.joined(separator: " • ")
     }
 }
 
@@ -21,13 +26,19 @@ enum ReadoutDisplayHelper {
     static func makeComponents(
         distancePoints: CGFloat,
         unitType: UnitTypes,
-        screenScale: Double,
-        magnification: CGFloat
+        measurementScale: Double,
+        magnification: CGFloat,
+        showMeasurementScaleOverride: Bool
     ) -> ReadoutDisplayComponents {
-        ReadoutDisplayComponents(
-            displayValue: unitType.formattedDistance(points: distancePoints, screenScale: screenScale),
+        let scaleLabel = showMeasurementScaleOverride
+            ? "Scale \(measurementScale.formatted(.number.precision(.fractionLength(1))))x"
+            : nil
+
+        return ReadoutDisplayComponents(
+            displayValue: unitType.formattedDistance(points: distancePoints, screenScale: measurementScale),
             unitSymbol: unitType.unitSymbol,
-            magnificationLabel: MagnificationViewModel.formatLabel(magnification)
+            magnificationLabel: MagnificationViewModel.formatLabel(magnification),
+            measurementScaleLabel: scaleLabel
         )
     }
 }

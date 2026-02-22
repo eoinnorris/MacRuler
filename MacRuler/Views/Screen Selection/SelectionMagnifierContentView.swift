@@ -145,8 +145,9 @@ private struct ScreenSelectionMagnifierImage: View {
             let horizontalComponents = ReadoutDisplayHelper.makeComponents(
                 distancePoints: horizontalOverlayViewModel.dividerX ?? 0,
                 unitType: unitType,
-                screenScale: horizontalOverlayViewModel.backingScale,
-                magnification: session.magnification
+                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: horizontalOverlayViewModel.backingScale),
+                magnification: session.magnification,
+                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
             )
             labels.append("H:\(horizontalComponents.text)")
         }
@@ -155,8 +156,9 @@ private struct ScreenSelectionMagnifierImage: View {
             let verticalComponents = ReadoutDisplayHelper.makeComponents(
                 distancePoints: verticalOverlayViewModel.dividerY ?? 0,
                 unitType: unitType,
-                screenScale: verticalOverlayViewModel.backingScale,
-                magnification: session.magnification
+                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: verticalOverlayViewModel.backingScale),
+                magnification: session.magnification,
+                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
             )
             labels.append("V:\(verticalComponents.text)")
         }

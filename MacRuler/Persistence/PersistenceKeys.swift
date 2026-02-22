@@ -21,4 +21,7 @@ enum PersistenceKeys {
     static let snapToMajorTicks = "ruler.snap.majorTicks"
     static let horizontalRulerBackgroundSize = "ruler.horizontal.backgroundSize"
     static let verticalRulerBackgroundSize = "ruler.vertical.backgroundSize"
+    static let measurementScaleMode = "measurement.scale.mode"
+    static let measurementScaleManualValue = "measurement.scale.manualValue"
+    static let measurementScaleBadgeEnabled = "measurement.scale.badgeEnabled"
 }

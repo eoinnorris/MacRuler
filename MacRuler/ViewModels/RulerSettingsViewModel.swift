@@ -7,6 +7,25 @@
 
 import SwiftUI
 
+enum MeasurementScaleMode: String, CaseIterable, Identifiable {
+    case autoDisplay
+    case sourceCapture
+    case manual
+
+    var id: Self { self }
+
+    var displayName: String {
+        switch self {
+        case .autoDisplay:
+            "Auto (Display)"
+        case .sourceCapture:
+            "Source Capture"
+        case .manual:
+            "Manual"
+        }
+    }
+}
+
 enum RulerBackgroundSize: String, CaseIterable {
     case large
     case small
@@ -81,12 +100,52 @@ final class RulerSettingsViewModel {
         }
     }
 
+    var measurementScaleMode: MeasurementScaleMode {
+        didSet {
+            defaults.set(measurementScaleMode.rawValue, forKey: PersistenceKeys.measurementScaleMode)
+        }
+    }
+
+    var manualMeasurementScale: Double {
+        didSet {
+            let clampedScale = Self.clampMeasurementScale(manualMeasurementScale)
+            if clampedScale != manualMeasurementScale {
+                manualMeasurementScale = clampedScale
+                return
+            }
+            defaults.set(manualMeasurementScale, forKey: PersistenceKeys.measurementScaleManualValue)
+        }
+    }
+
+    var showMeasurementScaleOverrideBadge: Bool {
+        didSet {
+            defaults.set(showMeasurementScaleOverrideBadge, forKey: PersistenceKeys.measurementScaleBadgeEnabled)
+        }
+    }
+
     var horizontalBackgroundThickness: CGFloat {
         Constants.rulerBackgroundLargeThickness * horizontalRulerBackgroundSize.scaleFactor
     }
 
     var verticalBackgroundThickness: CGFloat {
         Constants.rulerBackgroundLargeThickness * verticalRulerBackgroundSize.scaleFactor
+    }
+
+    func effectiveMeasurementScale(displayScale: Double) -> Double {
+        switch measurementScaleMode {
+        case .autoDisplay, .sourceCapture:
+            max(displayScale, 0.1)
+        case .manual:
+            manualMeasurementScale
+        }
+    }
+
+    var shouldShowMeasurementScaleOverride: Bool {
+        showMeasurementScaleOverrideBadge && measurementScaleMode == .manual
+    }
+
+    private static func clampMeasurementScale(_ value: Double) -> Double {
+        min(max(value, 0.5), 4.0)
     }
     
     init(defaults: DefaultsStoring = UserDefaults.standard) {
@@ -136,6 +195,24 @@ final class RulerSettingsViewModel {
             } else {
                 self.verticalRulerBackgroundSize = .large
             }
+
+            if let storedMode = defaults.string(forKey: PersistenceKeys.measurementScaleMode),
+               let mode = MeasurementScaleMode(rawValue: storedMode) {
+                self.measurementScaleMode = mode
+            } else {
+                self.measurementScaleMode = .autoDisplay
+            }
+
+            if defaults.object(forKey: PersistenceKeys.measurementScaleManualValue) != nil {
+                self.manualMeasurementScale = Self.clampMeasurementScale(
+                    defaults.double(forKey: PersistenceKeys.measurementScaleManualValue)
+                )
+            } else {
+                self.manualMeasurementScale = 2.0
+            }
+
+            self.showMeasurementScaleOverrideBadge =
+                defaults.object(forKey: PersistenceKeys.measurementScaleBadgeEnabled) as? Bool ?? true
         }
 //    
 //    init(defaults: DefaultsStoring = UserDefaults.standard) {
