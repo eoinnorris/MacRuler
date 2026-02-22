@@ -8,6 +8,7 @@
 import SwiftUI
 
 @Observable
+@MainActor
 final class DebugSettingsModel {
     /// Process-wide shared debug settings used by the live app runtime.
     /// Access on the main actor when mutating from UI code.

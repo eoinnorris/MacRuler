@@ -10,6 +10,7 @@ import Observation
 import AppKit
 
 @Observable
+@MainActor
 final class MagnificationViewModel {
     /// Process-wide shared magnification state used by the live app runtime.
     /// Access on the main actor when mutating from UI code.
