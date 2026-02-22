@@ -35,17 +35,26 @@ final class StreamCaptureObserver: NSObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.pauseCapture()
+            if let localSelf = self {
+                Task { @MainActor in
+                    localSelf.pauseCapture()
+                }
+            }
         }
         wakeObserver = workspaceCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.restartCapture()
+            if let localSelf = self {
+                Task { @MainActor in
+                    localSelf.restartCapture()
+                }
+            }
         }
     }
 
+    @MainActor
     deinit {
         pauseTask?.cancel()
         let workspaceCenter = NSWorkspace.shared.notificationCenter
@@ -198,14 +207,10 @@ extension StreamCaptureObserver: SCStreamDelegate {
         NSLog("ScreenCaptureKit stream stopped: \(error.localizedDescription)")
         Task { @MainActor [weak self] in
             guard let self else { return }
-            let shouldRestart = false // isRunning
             self.isRunning = false
             self.isStreamLive = false
             self.stream = nil
             self.contentFilter = nil
-            if shouldRestart {
-                self.restartCapture()
-            }
         }
     }
 }

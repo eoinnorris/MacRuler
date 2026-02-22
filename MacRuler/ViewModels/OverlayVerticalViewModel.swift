@@ -34,7 +34,7 @@ final class OverlayVerticalViewModel {
     init(
         defaults: DefaultsStoring = UserDefaults.standard,
         horizontalOverlayViewModel: OverlayViewModel,
-        rulerSettings: RulerSettingsViewModel = .shared
+        rulerSettings: RulerSettingsViewModel
     ) {
         self.defaults = defaults
         self.horizontalOverlayViewModel = horizontalOverlayViewModel

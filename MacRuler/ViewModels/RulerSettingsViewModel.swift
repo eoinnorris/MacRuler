@@ -42,7 +42,7 @@ enum RulerBackgroundSize: String, CaseIterable {
 
 @Observable
 @MainActor
-final class RulerSettingsViewModel {
+@preconcurrency final class RulerSettingsViewModel {
 
     /// Process-wide shared settings used by the live app runtime.
     /// Access on the main actor when mutating from UI code.
