@@ -18,7 +18,6 @@ private struct PixelReadoutTextStyleModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(.system(.body, design: .rounded))
-            .fontWeight(.medium)
             .foregroundStyle(.primary)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
