@@ -8,6 +8,7 @@
 import SwiftUI
 
 @Observable
+@MainActor
 final class OverlayViewModel {
     private let defaults: DefaultsStoring
     private var keyDownObserver: NSObjectProtocol?

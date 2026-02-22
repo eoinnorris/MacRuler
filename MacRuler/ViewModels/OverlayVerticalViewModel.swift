@@ -8,6 +8,7 @@
 import SwiftUI
 
 @Observable
+@MainActor
 final class OverlayVerticalViewModel {
     private let defaults: DefaultsStoring
     private let horizontalOverlayViewModel: OverlayViewModel

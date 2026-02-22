@@ -11,12 +11,12 @@ import CoreMedia
 import SwiftUI
 
 @Observable
+@MainActor
 final class StreamCaptureObserver: NSObject {
    var frameImage: CGImage?
     var isStreamLive = false
 
     private let captureQueue = DispatchQueue(label: "ScreenCaptureMagnifier.Capture")
-    private let ciContext = CIContext()
     private var stream: SCStream?
     private var configuration = SCStreamConfiguration()
     private var contentFilter: SCContentFilter?
@@ -124,7 +124,7 @@ final class StreamCaptureObserver: NSObject {
         contentFilter = nil
         isRunning = false
         isStreamLive = false
-        Task {
+        Task { @MainActor in
             await start()
         }
     }
@@ -180,29 +180,31 @@ final class StreamCaptureObserver: NSObject {
 }
 
 extension StreamCaptureObserver: SCStreamOutput {
-    func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
+    nonisolated func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
         guard outputType == .screen,
               let pixelBuffer = sampleBuffer.imageBuffer else { return }
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else { return }
-        Task { @MainActor in
-            frameImage = cgImage
-            isStreamLive = true
+        let context = CIContext()
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
+        Task { @MainActor [weak self] in
+            self?.frameImage = cgImage
+            self?.isStreamLive = true
         }
     }
 }
 
 extension StreamCaptureObserver: SCStreamDelegate {
-    func stream(_ stream: SCStream, didStopWithError error: Error) {
+    nonisolated func stream(_ stream: SCStream, didStopWithError error: Error) {
         NSLog("ScreenCaptureKit stream stopped: \(error.localizedDescription)")
-        let shouldRestart = false // isRunning
-        isRunning = false
-        isStreamLive = false
-        self.stream = nil
-        contentFilter = nil
-        if shouldRestart {
-            captureQueue.async { [weak self] in
-                self?.restartCapture()
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let shouldRestart = false // isRunning
+            self.isRunning = false
+            self.isStreamLive = false
+            self.stream = nil
+            self.contentFilter = nil
+            if shouldRestart {
+                self.restartCapture()
             }
         }
     }

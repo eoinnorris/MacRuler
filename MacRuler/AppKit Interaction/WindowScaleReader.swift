@@ -23,7 +23,7 @@ struct WindowScaleReader: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
-        DispatchQueue.main.async { [weak view] in
+        Task { @MainActor [weak view] in
             guard let window = view?.window else { return }
             context.coordinator.attach(to: window)
         }
@@ -31,7 +31,7 @@ struct WindowScaleReader: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        DispatchQueue.main.async { [weak nsView] in
+        Task { @MainActor [weak nsView] in
             guard let window = nsView?.window else { return }
             context.coordinator.attach(to: window)
         }

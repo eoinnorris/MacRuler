@@ -8,6 +8,7 @@
 import SwiftUI
 
 @Observable
+@MainActor
 final class DividerRangeModel<Handle>
 where Handle: RawRepresentable, Handle.RawValue == String {
     enum UpdatedMarker {
