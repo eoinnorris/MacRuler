@@ -133,8 +133,9 @@ final class StreamCaptureObserver: NSObject {
         pauseTask?.cancel()
         guard isStreamLive else { return }
         pauseTask = Task { [weak self] in
-            let duration = UInt64(seconds * 1_000_000_000)
-            try? await Task.sleep(nanoseconds: duration)
+            let durationInNanoseconds = UInt64(seconds * 1_000_000_000)
+            let sleepDuration = Duration.nanoseconds(Int64(durationInNanoseconds))
+            try? await Task.sleep(for: sleepDuration)
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 self?.pauseCapture()
