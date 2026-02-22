@@ -66,9 +66,9 @@ extension UnitTypes {
         case .pixels:
             formatted = String(Int(unitValue.rounded()))
         case .mm:
-            formatted = String(format: "%.1f", unitValue / screenScale)
+            formatted = (unitValue / screenScale).formatted(.number.precision(.fractionLength(1)))
         case .cm, .inches:
-            formatted = String(format: "%.2f", unitValue /  screenScale)
+            formatted = (unitValue / screenScale).formatted(.number.precision(.fractionLength(2)))
         }
         return formatted
     }

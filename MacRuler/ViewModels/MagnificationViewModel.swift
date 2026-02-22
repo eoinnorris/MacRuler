@@ -49,7 +49,7 @@ final class MagnificationViewModel {
             return "\(Int(roundedValue)) x"
         }
 
-        return String(format: "%.1f x", magnification)
+        return "\(magnification.formatted(.number.precision(.fractionLength(1)))) x"
     }
 
     init() {}
