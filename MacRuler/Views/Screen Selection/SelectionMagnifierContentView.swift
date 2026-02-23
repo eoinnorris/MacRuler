@@ -36,6 +36,10 @@ private struct ScreenSelectionMagnifierImage: View {
     @State private var primaryCrosshairOffset: CGSize = .zero
     @State private var secondaryCrosshairOffset: CGSize = CGSize(width: 24, height: 24)
 
+    private var areCrosshairsEnabled: Bool {
+        rulerSettingsViewModel.showMagnifierCrosshair && rulerSettingsViewModel.showMagnifierSecondaryCrosshair
+    }
+
     var body: some View {
         GeometryReader { proxy in
             ZStack {
@@ -105,38 +109,51 @@ private struct ScreenSelectionMagnifierImage: View {
                     .stroke(.white.opacity(0.7), lineWidth: 1)
             )
             .overlay(alignment: .bottomLeading) {
-                Menu {
-                    if controller.isStreamLive {
-                        Button("Pause") {
-                            controller.pauseCapture()
-                        }
-                        Menu("Pause after…") {
-                            Button("1 second") {
-                                controller.pauseCapture(after: 1)
+                HStack(spacing: 8) {
+                    Menu {
+                        if controller.isStreamLive {
+                            Button("Pause") {
+                                controller.pauseCapture()
                             }
-                            Button("2 seconds") {
-                                controller.pauseCapture(after: 2)
+                            Menu("Pause after…") {
+                                Button("1 second") {
+                                    controller.pauseCapture(after: 1)
+                                }
+                                Button("2 seconds") {
+                                    controller.pauseCapture(after: 2)
+                                }
+                                Button("5 seconds") {
+                                    controller.pauseCapture(after: 5)
+                                }
                             }
-                            Button("5 seconds") {
-                                controller.pauseCapture(after: 5)
+                        } else {
+                            Button("Go Live") {
+                                controller.restartCapture()
                             }
                         }
-                    } else {
-                        Button("Go Live") {
-                            controller.restartCapture()
-                        }
+                    } label: {
+                        Text(controller.isStreamLive ? "Live" : "Paused")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(controller.isStreamLive ? Color.green.opacity(0.9) : Color.orange.opacity(0.85))
+                            .clipShape(.capsule)
                     }
-                } label: {
-                    Text(controller.isStreamLive ? "Live" : "Paused")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(controller.isStreamLive ? Color.green.opacity(0.9) : Color.orange.opacity(0.85))
-                        .clipShape(Capsule())
+                    .menuStyle(.button)
+                    .buttonStyle(.plain)
+
+                    Button("Crosshairs", systemImage: "scope") {
+                        let shouldEnableCrosshairs = !areCrosshairsEnabled
+                        rulerSettingsViewModel.showMagnifierCrosshair = shouldEnableCrosshairs
+                        rulerSettingsViewModel.showMagnifierSecondaryCrosshair = shouldEnableCrosshairs
+                    }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderless)
+                    .padding(6)
+                    .background(areCrosshairsEnabled ? .gray.opacity(0.3) : .black.opacity(0.2), in: .circle)
+                    .help("Toggle both crosshairs")
                 }
-                .menuStyle(.button)
-                .buttonStyle(.plain)
                 .padding(10)
             }
             .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
