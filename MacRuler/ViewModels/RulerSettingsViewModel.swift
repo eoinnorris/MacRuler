@@ -135,6 +135,12 @@ enum RulerBackgroundSize: String, CaseIterable {
         }
     }
 
+    var showMagnifierSecondaryCrosshair: Bool {
+        didSet {
+            defaults.set(showMagnifierSecondaryCrosshair, forKey: PersistenceKeys.magnifierSecondaryCrosshairEnabled)
+        }
+    }
+
     var horizontalBackgroundThickness: CGFloat {
         Constants.rulerBackgroundLargeThickness * horizontalRulerBackgroundSize.scaleFactor
     }
@@ -231,6 +237,9 @@ enum RulerBackgroundSize: String, CaseIterable {
 
             self.showMagnifierCrosshair =
                 defaults.object(forKey: PersistenceKeys.magnifierCrosshairEnabled) as? Bool ?? true
+
+            self.showMagnifierSecondaryCrosshair =
+                defaults.object(forKey: PersistenceKeys.magnifierSecondaryCrosshairEnabled) as? Bool ?? false
         }
 //    
 //    init(defaults: DefaultsStoring = UserDefaults.standard) {
