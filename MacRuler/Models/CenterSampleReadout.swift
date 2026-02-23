@@ -96,7 +96,7 @@ private extension CGImage {
             return nil
         }
 
-        switch bitmapInfo.byteOrderInfo {
+        switch bitmapInfo.byteOrder {
         case .order32Little:
             return (
                 red: Int(bytes[offset + 2]),
