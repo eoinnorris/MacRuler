@@ -102,4 +102,22 @@ final class UnitTypeConfigurationTests: XCTestCase {
         XCTAssertEqual(reloaded.manualMeasurementScale, 4.0)
     }
 
+    func testMagnifierPrecisionTogglesPersist() {
+        let defaults = InMemoryDefaultsStore()
+        let viewModel = RulerSettingsViewModel(defaults: defaults)
+
+        XCTAssertTrue(viewModel.showMagnifierPixelGrid)
+        XCTAssertTrue(viewModel.showMagnifierCrosshair)
+
+        viewModel.showMagnifierPixelGrid = false
+        viewModel.showMagnifierCrosshair = false
+
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierPixelGridEnabled) as? Bool, false)
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierCrosshairEnabled) as? Bool, false)
+
+        let reloaded = RulerSettingsViewModel(defaults: defaults)
+        XCTAssertFalse(reloaded.showMagnifierPixelGrid)
+        XCTAssertFalse(reloaded.showMagnifierCrosshair)
+    }
+
 }
