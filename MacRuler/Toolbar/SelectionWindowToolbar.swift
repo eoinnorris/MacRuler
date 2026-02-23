@@ -13,10 +13,6 @@ struct SelectionWindowToolbar: View {
     let snapshotAction: () -> Void
     let canTakeSnapshot: Bool
 
-    private var areCrosshairsEnabled: Bool {
-        rulerSettingsViewModel.showMagnifierCrosshair && rulerSettingsViewModel.showMagnifierSecondaryCrosshair
-    }
-
     var body: some View {
         HStack(spacing: 10) {
             magnificationControls
@@ -45,17 +41,6 @@ struct SelectionWindowToolbar: View {
             .toggleStyle(.button)
             .help("Show pixel grid")
 
-            if canTakeSnapshot {
-                Button("Crosshairs", systemImage: "scope") {
-                    let shouldEnableCrosshairs = !areCrosshairsEnabled
-                    rulerSettingsViewModel.showMagnifierCrosshair = shouldEnableCrosshairs
-                    rulerSettingsViewModel.showMagnifierSecondaryCrosshair = shouldEnableCrosshairs
-                }
-                .labelStyle(.iconOnly)
-                .buttonStyle(.borderless)
-                .background(areCrosshairsEnabled ? .gray.opacity(0.3) : .clear, in: .circle)
-                .help("Toggle both crosshairs")
-            }
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
