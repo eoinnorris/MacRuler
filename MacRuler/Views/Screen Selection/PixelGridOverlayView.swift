@@ -13,6 +13,7 @@ struct PixelGridOverlayView: View {
     let magnification: Double
     let screenScale: Double
     let showCrosshair: Bool
+    let showSecondaryCrosshair: Bool
     let showPixelGrid: Bool
 
     private var pixelStep: CGFloat {
@@ -46,18 +47,31 @@ struct PixelGridOverlayView: View {
             }
 
             if showCrosshair {
-                var crosshairPath = Path()
                 let center = CGPoint(x: size.width / 2, y: size.height / 2)
-                crosshairPath.move(to: CGPoint(x: center.x, y: 0))
-                crosshairPath.addLine(to: CGPoint(x: center.x, y: size.height))
-                crosshairPath.move(to: CGPoint(x: 0, y: center.y))
-                crosshairPath.addLine(to: CGPoint(x: size.width, y: center.y))
-                context.stroke(crosshairPath, with: .color(.white.opacity(0.85)), lineWidth: 1)
+                drawCrosshair(at: center, in: &context, size: size)
+
+                if showSecondaryCrosshair {
+                    let offset = CGPoint(x: 24, y: 24)
+                    let secondaryCenter = CGPoint(
+                        x: min(max(center.x + offset.x, 0), size.width),
+                        y: min(max(center.y + offset.y, 0), size.height)
+                    )
+                    drawCrosshair(at: secondaryCenter, in: &context, size: size)
+                }
             }
         }
         .frame(width: viewportSize.width, height: viewportSize.height)
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+
+    private func drawCrosshair(at center: CGPoint, in context: inout GraphicsContext, size: CGSize) {
+        var crosshairPath = Path()
+        crosshairPath.move(to: CGPoint(x: center.x, y: 0))
+        crosshairPath.addLine(to: CGPoint(x: center.x, y: size.height))
+        crosshairPath.move(to: CGPoint(x: 0, y: center.y))
+        crosshairPath.addLine(to: CGPoint(x: size.width, y: center.y))
+        context.stroke(crosshairPath, with: .color(.white.opacity(0.85)), lineWidth: 1)
     }
 
     private func alignedStart(originComponent: CGFloat, step: CGFloat) -> CGFloat {

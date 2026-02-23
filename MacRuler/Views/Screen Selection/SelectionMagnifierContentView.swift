@@ -70,6 +70,7 @@ private struct ScreenSelectionMagnifierImage: View {
                             magnification: session.magnification,
                             screenScale: Constants.screenScale,
                             showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
+                            showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
                             showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid
                         )
                         .overlay(alignment: .bottomTrailing) {

@@ -34,13 +34,6 @@ struct SelectionWindowToolbar: View {
             .toggleStyle(.button)
             .help("Show selection for 2 seconds")
 
-            Toggle(isOn: $session.showRulerOverlay) {
-                Label("Ruler overlay", systemImage: session.showRulerOverlay ? "ruler.fill" : "ruler")
-                    .labelStyle(.iconOnly)
-            }
-            .toggleStyle(.button)
-            .help("Show ruler overlay")
-
             Toggle(isOn: $rulerSettingsViewModel.showMagnifierPixelGrid) {
                 Label("Pixel grid", systemImage: rulerSettingsViewModel.showMagnifierPixelGrid ? "square.grid.3x3.fill" : "square.grid.3x3")
                     .labelStyle(.iconOnly)
@@ -55,15 +48,15 @@ struct SelectionWindowToolbar: View {
             .toggleStyle(.button)
             .help("Show center crosshair")
 
-            Spacer(minLength: 0)
-
-            Toggle("HRule", isOn: $session.showHorizontalRuler)
-                .toggleStyle(.button)
-                .help("Toggle horizontal ruler")
-
-            Toggle("VRuler", isOn: $session.showVerticalRuler)
-                .toggleStyle(.button)
-                .help("Toggle vertical ruler")
+            Toggle(isOn: $rulerSettingsViewModel.showMagnifierSecondaryCrosshair) {
+                Label(
+                    "Second crosshair",
+                    systemImage: rulerSettingsViewModel.showMagnifierSecondaryCrosshair ? "plus.square.fill" : "plus.square"
+                )
+                .labelStyle(.iconOnly)
+            }
+            .toggleStyle(.button)
+            .help("Show a second crosshair")
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
