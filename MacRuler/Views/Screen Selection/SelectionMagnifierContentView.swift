@@ -192,6 +192,13 @@ private struct ScreenSelectionMagnifierImage: View {
         var labels: [String] = []
         let unitType = rulerSettingsViewModel.unitType
 
+        if rulerSettingsViewModel.showMagnifierCrosshair && rulerSettingsViewModel.showMagnifierSecondaryCrosshair {
+            let magnification = max(session.magnification, 0.1)
+            let deltaX = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width) / magnification
+            let deltaY = abs(secondaryCrosshairOffset.height - primaryCrosshairOffset.height) / magnification
+            labels.append("Δ: \(deltaX.formatted(.number.precision(.fractionLength(1)))) pt × \(deltaY.formatted(.number.precision(.fractionLength(1)))) pt")
+        }
+
         if session.showHorizontalRuler {
             let horizontalComponents = ReadoutDisplayHelper.makeComponents(
                 distancePoints: horizontalOverlayViewModel.dividerX ?? 0,
