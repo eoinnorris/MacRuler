@@ -241,23 +241,4 @@ enum RulerBackgroundSize: String, CaseIterable {
             self.showMagnifierSecondaryCrosshair =
                 defaults.object(forKey: PersistenceKeys.magnifierSecondaryCrosshairEnabled) as? Bool ?? false
         }
-//    
-//    init(defaults: DefaultsStoring = UserDefaults.standard) {
-//        self.defaults = defaults
-//        if let storedValue = defaults.string(forKey: PersistenceKeys.unitType),
-//           let storedUnit = UnitTypes(rawValue: storedValue) {
-//            self.unitType = storedUnit
-//        } else {
-//            self.unitType = .pixels
-//        }
-//        
-//        self.attachBothRulers = defaults.bool(forKey: PersistenceKeys.attachRulers)
-//        if defaults.object(forKey: PersistenceKeys.snapTolerancePoints) != nil {
-//            self.snapTolerancePoints = CGFloat(defaults.double(forKey: PersistenceKeys.snapTolerancePoints))
-//        }
-//        if defaults.object(forKey: PersistenceKeys.snapGridStepPoints) != nil {
-//            self.snapGridStepPoints = CGFloat(defaults.double(forKey: PersistenceKeys.snapGridStepPoints))
-//        }
-//        self.snapToMajorTicks = defaults.object(forKey: PersistenceKeys.snapToMajorTicks) as? Bool ?? false
-//    }
 }

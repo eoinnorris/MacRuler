@@ -81,6 +81,7 @@ private struct ScreenSelectionMagnifierImage: View {
                             primaryCrosshairOffset: $primaryCrosshairOffset,
                             secondaryCrosshairOffset: $secondaryCrosshairOffset
                         )
+                        .allowsHitTesting(rulerSettingsViewModel.showMagnifierCrosshair)
                         .overlay(alignment: .bottomTrailing) {
                             if let sampleReadout {
                                 CenterSampleReadoutCapsule(
@@ -152,6 +153,7 @@ private struct ScreenSelectionMagnifierImage: View {
                     .buttonStyle(.borderless)
                     .padding(6)
                     .background(areCrosshairsEnabled ? .gray.opacity(0.3) : .black.opacity(0.2), in: .circle)
+                    .foregroundStyle(areCrosshairsEnabled ? .green : .primary)
                     .help("Toggle both crosshairs")
                 }
                 .padding(10)
