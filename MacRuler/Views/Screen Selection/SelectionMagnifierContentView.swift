@@ -33,6 +33,8 @@ private struct ScreenSelectionMagnifierImage: View {
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
     @State private var contentFrame: CGRect = .zero
+    @State private var primaryCrosshairOffset: CGSize = .zero
+    @State private var secondaryCrosshairOffset: CGSize = CGSize(width: 24, height: 24)
 
     var body: some View {
         GeometryReader { proxy in
@@ -71,7 +73,9 @@ private struct ScreenSelectionMagnifierImage: View {
                             screenScale: Constants.screenScale,
                             showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
                             showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
-                            showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid
+                            showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid,
+                            primaryCrosshairOffset: $primaryCrosshairOffset,
+                            secondaryCrosshairOffset: $secondaryCrosshairOffset
                         )
                         .overlay(alignment: .bottomTrailing) {
                             if let sampleReadout {
@@ -152,6 +156,17 @@ private struct ScreenSelectionMagnifierImage: View {
             controller.updateCaptureRect(centeredOn: newValue,
                                          screenBound: session.screen?.frame ?? .zero)
         }
+        .onChange(of: rulerSettingsViewModel.showMagnifierCrosshair) { _, _ in
+            resetCrosshairOffsets()
+        }
+        .onChange(of: rulerSettingsViewModel.showMagnifierSecondaryCrosshair) { _, _ in
+            secondaryCrosshairOffset = CGSize(width: 24, height: 24)
+        }
+    }
+
+    private func resetCrosshairOffsets() {
+        primaryCrosshairOffset = .zero
+        secondaryCrosshairOffset = CGSize(width: 24, height: 24)
     }
 
     private func activeReadoutLabels() -> [String] {
