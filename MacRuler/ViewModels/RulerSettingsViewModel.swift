@@ -123,6 +123,18 @@ enum RulerBackgroundSize: String, CaseIterable {
         }
     }
 
+    var showMagnifierPixelGrid: Bool {
+        didSet {
+            defaults.set(showMagnifierPixelGrid, forKey: PersistenceKeys.magnifierPixelGridEnabled)
+        }
+    }
+
+    var showMagnifierCrosshair: Bool {
+        didSet {
+            defaults.set(showMagnifierCrosshair, forKey: PersistenceKeys.magnifierCrosshairEnabled)
+        }
+    }
+
     var horizontalBackgroundThickness: CGFloat {
         Constants.rulerBackgroundLargeThickness * horizontalRulerBackgroundSize.scaleFactor
     }
@@ -213,6 +225,12 @@ enum RulerBackgroundSize: String, CaseIterable {
 
             self.showMeasurementScaleOverrideBadge =
                 defaults.object(forKey: PersistenceKeys.measurementScaleBadgeEnabled) as? Bool ?? true
+
+            self.showMagnifierPixelGrid =
+                defaults.object(forKey: PersistenceKeys.magnifierPixelGridEnabled) as? Bool ?? true
+
+            self.showMagnifierCrosshair =
+                defaults.object(forKey: PersistenceKeys.magnifierCrosshairEnabled) as? Bool ?? true
         }
 //    
 //    init(defaults: DefaultsStoring = UserDefaults.standard) {

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SelectionWindowToolbar: View {
     @Bindable var session: SelectionSession
+    @Bindable var rulerSettingsViewModel: RulerSettingsViewModel = .shared
     let snapshotAction: () -> Void
     let canTakeSnapshot: Bool
 
@@ -39,6 +40,20 @@ struct SelectionWindowToolbar: View {
             }
             .toggleStyle(.button)
             .help("Show ruler overlay")
+
+            Toggle(isOn: $rulerSettingsViewModel.showMagnifierPixelGrid) {
+                Label("Pixel grid", systemImage: rulerSettingsViewModel.showMagnifierPixelGrid ? "square.grid.3x3.fill" : "square.grid.3x3")
+                    .labelStyle(.iconOnly)
+            }
+            .toggleStyle(.button)
+            .help("Show pixel grid")
+
+            Toggle(isOn: $rulerSettingsViewModel.showMagnifierCrosshair) {
+                Label("Crosshair", systemImage: rulerSettingsViewModel.showMagnifierCrosshair ? "plus.circle.fill" : "plus.circle")
+                    .labelStyle(.iconOnly)
+            }
+            .toggleStyle(.button)
+            .help("Show center crosshair")
 
             Spacer(minLength: 0)
 

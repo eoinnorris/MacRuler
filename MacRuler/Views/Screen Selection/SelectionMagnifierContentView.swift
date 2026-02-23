@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreGraphics
 
 struct SelectionMagnifierContentView: View {
     @Bindable var session: SelectionSession
@@ -31,9 +32,9 @@ private struct ScreenSelectionMagnifierImage: View {
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
+    @State private var contentFrame: CGRect = .zero
 
     var body: some View {
-        let _ = print("dividerX read:", horizontalOverlayViewModel.dividerX as Any)
         GeometryReader { proxy in
             ZStack {
                 if let frameImage = controller.frameImage {
@@ -50,8 +51,37 @@ private struct ScreenSelectionMagnifierImage: View {
                                 height: max(magnifiedSize.height, proxy.size.height),
                                 alignment: .center
                             )
+                            .trackFrame(in: .named("magnifier-scroll"))
                     }
+                    .coordinateSpace(name: "magnifier-scroll")
+                    .onFrameChange { contentFrame = $0 }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .overlay {
+                        let sampleReadout = CenterSampleReadout.make(
+                            frameImage: frameImage,
+                            viewportSize: proxy.size,
+                            contentFrame: contentFrame,
+                            magnification: session.magnification,
+                            screenScale: Constants.screenScale
+                        )
+                        PixelGridOverlayView(
+                            viewportSize: proxy.size,
+                            contentOrigin: contentFrame.origin,
+                            magnification: session.magnification,
+                            screenScale: Constants.screenScale,
+                            showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
+                            showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid
+                        )
+                        .overlay(alignment: .bottomTrailing) {
+                            if let sampleReadout {
+                                CenterSampleReadoutCapsule(
+                                    sampleReadout: sampleReadout,
+                                    auxiliaryReadouts: activeReadoutLabels()
+                                )
+                                .padding(10)
+                            }
+                        }
+                    }
                 } else {
                     Color.black.opacity(0.2)
                 }
@@ -64,7 +94,7 @@ private struct ScreenSelectionMagnifierImage: View {
                 }
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .clipShape(.rect(cornerRadius: 10))
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(.white.opacity(0.7), lineWidth: 1)
@@ -103,20 +133,6 @@ private struct ScreenSelectionMagnifierImage: View {
                 .menuStyle(.button)
                 .buttonStyle(.plain)
                 .padding(10)
-            }
-            .overlay(alignment: .bottomTrailing) {
-                let labels = activeReadoutLabels()
-
-                if !labels.isEmpty {
-                    Text(labels.joined(separator: ", "))
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.black.opacity(0.65))
-                        .clipShape(Capsule())
-                        .padding(10)
-                }
             }
             .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
             .background(

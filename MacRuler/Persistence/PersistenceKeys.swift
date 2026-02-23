@@ -24,4 +24,6 @@ enum PersistenceKeys {
     static let measurementScaleMode = "measurement.scale.mode"
     static let measurementScaleManualValue = "measurement.scale.manualValue"
     static let measurementScaleBadgeEnabled = "measurement.scale.badgeEnabled"
+    static let magnifierPixelGridEnabled = "magnifier.pixelGrid.enabled"
+    static let magnifierCrosshairEnabled = "magnifier.crosshair.enabled"
 }
