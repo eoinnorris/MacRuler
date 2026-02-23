@@ -42,7 +42,7 @@ struct SelectionWindowToolbar: View {
             .help("Show pixel grid")
 
             Toggle(isOn: $rulerSettingsViewModel.showMagnifierCrosshair) {
-                Label("Crosshair", systemImage: rulerSettingsViewModel.showMagnifierCrosshair ? "plus.circle.fill" : "plus.circle")
+                Label("Crosshair", systemImage: "dot.crosshair")
                     .labelStyle(.iconOnly)
             }
             .toggleStyle(.button)
@@ -51,7 +51,7 @@ struct SelectionWindowToolbar: View {
             Toggle(isOn: $rulerSettingsViewModel.showMagnifierSecondaryCrosshair) {
                 Label(
                     "Second crosshair",
-                    systemImage: rulerSettingsViewModel.showMagnifierSecondaryCrosshair ? "plus.square.fill" : "plus.square"
+                    systemImage: rulerSettingsViewModel.showMagnifierSecondaryCrosshair ? "2.lane.fill" : "2.lane"
                 )
                 .labelStyle(.iconOnly)
             }

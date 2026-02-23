@@ -15,6 +15,9 @@ struct PixelGridOverlayView: View {
     let showCrosshair: Bool
     let showSecondaryCrosshair: Bool
     let showPixelGrid: Bool
+    @Binding var primaryCrosshairOffset: CGSize
+    @Binding var secondaryCrosshairOffset: CGSize
+
 
     private var pixelStep: CGFloat {
         CGFloat(max(magnification, 0.1) / max(screenScale, 0.1))
@@ -46,22 +49,64 @@ struct PixelGridOverlayView: View {
                 context.stroke(gridPath, with: .color(.white.opacity(0.2)), lineWidth: 0.5)
             }
 
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+
             if showCrosshair {
-                let center = CGPoint(x: size.width / 2, y: size.height / 2)
-                drawCrosshair(at: center, in: &context, size: size)
+                let primaryCenter = clampedPoint(
+                    for: CGPoint(
+                        x: center.x + primaryCrosshairOffset.width,
+                        y: center.y + primaryCrosshairOffset.height
+                    ),
+                    in: size
+                )
+                drawCrosshair(at: primaryCenter, in: &context, size: size)
 
                 if showSecondaryCrosshair {
-                    let offset = CGPoint(x: 24, y: 24)
-                    let secondaryCenter = CGPoint(
-                        x: min(max(center.x + offset.x, 0), size.width),
-                        y: min(max(center.y + offset.y, 0), size.height)
+                    let secondaryCenter = clampedPoint(
+                        for: CGPoint(
+                            x: center.x + secondaryCrosshairOffset.width,
+                            y: center.y + secondaryCrosshairOffset.height
+                        ),
+                        in: size
                     )
                     drawCrosshair(at: secondaryCenter, in: &context, size: size)
                 }
             }
         }
         .frame(width: viewportSize.width, height: viewportSize.height)
-        .allowsHitTesting(false)
+        .overlay {
+            GeometryReader { proxy in
+                let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+
+                if showCrosshair {
+                    Circle()
+                        .fill(.white.opacity(0.9))
+                        .frame(width: 12, height: 12)
+                        .position(clampedPoint(
+                            for: CGPoint(
+                                x: center.x + primaryCrosshairOffset.width,
+                                y: center.y + primaryCrosshairOffset.height
+                            ),
+                            in: proxy.size
+                        ))
+                        .gesture(primaryCrosshairDragGesture(in: proxy.size))
+
+                    if showSecondaryCrosshair {
+                        Circle()
+                            .fill(.white.opacity(0.7))
+                            .frame(width: 12, height: 12)
+                            .position(clampedPoint(
+                                for: CGPoint(
+                                    x: center.x + secondaryCrosshairOffset.width,
+                                    y: center.y + secondaryCrosshairOffset.height
+                                ),
+                                in: proxy.size
+                            ))
+                            .gesture(secondaryCrosshairDragGesture(in: proxy.size))
+                    }
+                }
+            }
+        }
         .accessibilityHidden(true)
     }
 
@@ -78,6 +123,36 @@ struct PixelGridOverlayView: View {
         let remainder = originComponent.truncatingRemainder(dividingBy: step)
         let normalized = remainder < 0 ? remainder + step : remainder
         return normalized
+    }
+
+    private func clampedPoint(for point: CGPoint, in size: CGSize) -> CGPoint {
+        CGPoint(
+            x: min(max(point.x, 0), size.width),
+            y: min(max(point.y, 0), size.height)
+        )
+    }
+
+    private func crosshairOffset(for location: CGPoint, in size: CGSize) -> CGSize {
+        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+        let clampedLocation = clampedPoint(for: location, in: size)
+        return CGSize(
+            width: clampedLocation.x - center.x,
+            height: clampedLocation.y - center.y
+        )
+    }
+
+    private func primaryCrosshairDragGesture(in size: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                primaryCrosshairOffset = crosshairOffset(for: value.location, in: size)
+            }
+    }
+
+    private func secondaryCrosshairDragGesture(in size: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                secondaryCrosshairOffset = crosshairOffset(for: value.location, in: size)
+            }
     }
 }
 
