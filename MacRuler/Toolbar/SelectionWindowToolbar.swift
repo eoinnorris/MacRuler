@@ -51,7 +51,7 @@ struct SelectionWindowToolbar: View {
             Toggle(isOn: $rulerSettingsViewModel.showMagnifierSecondaryCrosshair) {
                 Label(
                     "Second crosshair",
-                    systemImage: rulerSettingsViewModel.showMagnifierSecondaryCrosshair ? "2.lane.fill" : "2.lane"
+                    systemImage: rulerSettingsViewModel.showMagnifierSecondaryCrosshair ? "2.lane" : "2.lane"
                 )
                 .labelStyle(.iconOnly)
             }
