@@ -109,7 +109,7 @@ struct PixelGridOverlayView: View {
         }
         .onChange(of: magnification) { oldValue, newValue in
             guard newValue > oldValue else { return }
-            recenterCrosshairsAroundPrimary()
+//            recenterCrosshairsAroundPrimary()
         }
         .accessibilityHidden(true)
     }
