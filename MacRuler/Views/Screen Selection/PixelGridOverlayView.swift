@@ -107,7 +107,22 @@ struct PixelGridOverlayView: View {
                 }
             }
         }
+        .onChange(of: magnification) { oldValue, newValue in
+            guard newValue > oldValue else { return }
+            recenterCrosshairsAroundPrimary()
+        }
         .accessibilityHidden(true)
+    }
+
+    private func recenterCrosshairsAroundPrimary() {
+        let primaryOffset = primaryCrosshairOffset
+        guard primaryOffset != .zero else { return }
+
+        secondaryCrosshairOffset = CGSize(
+            width: secondaryCrosshairOffset.width - primaryOffset.width,
+            height: secondaryCrosshairOffset.height - primaryOffset.height
+        )
+        primaryCrosshairOffset = .zero
     }
 
     private func drawCrosshair(at center: CGPoint, in context: inout GraphicsContext, size: CGSize) {
