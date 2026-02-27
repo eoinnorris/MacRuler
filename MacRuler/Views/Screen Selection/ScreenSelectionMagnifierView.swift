@@ -23,6 +23,7 @@ struct ScreenSelectionMagnifierView: View {
     var body: some View {
         SelectionMagnifierContentView(session: session,
                                       controller: controller,
+                                      magnificationViewModel: magnificationViewModel,
                                       horizontalOverlayViewModel:horizontalOverlayViewModel,
                                       verticalOverlayViewModel:verticalOverlayViewModel)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
