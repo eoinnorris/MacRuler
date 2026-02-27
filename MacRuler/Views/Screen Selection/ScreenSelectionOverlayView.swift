@@ -19,10 +19,13 @@ struct ScreenSelectionOverlayView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let currentSelectionRect = selectionRect(in: geometry.size)
+
             ZStack {
-                Color.black.opacity(0.25)
-                if let selectionRect = selectionRect(in: geometry.size) {
-                    SelectionDancingAntsRectangle(rect: selectionRect)
+                greyBackdrop(selectionRect: currentSelectionRect)
+
+                if let currentSelectionRect {
+                    SelectionDancingAntsRectangle(rect: currentSelectionRect)
                         .allowsHitTesting(false)
                 }
             }
@@ -82,5 +85,26 @@ struct ScreenSelectionOverlayView: View {
     private func resetDrag() {
         dragStart = nil
         dragCurrent = nil
+    }
+
+    @ViewBuilder
+    private func greyBackdrop(selectionRect: CGRect?) -> some View {
+        if let selectionRect {
+            GreyoutOutsideSelectionShape(selectionRect: selectionRect)
+                .fill(Color.black.opacity(0.25), style: FillStyle(eoFill: true))
+        } else {
+            Color.black.opacity(0.25)
+        }
+    }
+}
+
+private struct GreyoutOutsideSelectionShape: Shape {
+    let selectionRect: CGRect
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.addRect(rect)
+        path.addRect(selectionRect)
+        return path
     }
 }
