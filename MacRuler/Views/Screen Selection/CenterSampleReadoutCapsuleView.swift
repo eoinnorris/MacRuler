@@ -9,6 +9,8 @@ import SwiftUI
 
 struct CenterSampleReadoutCapsule: View {
     let sampleReadout: CenterSampleReadout
+    let primaryReadouts: [String]
+    let secondaryReadouts: [String]
     let auxiliaryReadouts: [String]
     let unitType: UnitTypes
     let measurementScale: Double
@@ -16,7 +18,7 @@ struct CenterSampleReadoutCapsule: View {
 
     var body: some View {
         VStack(alignment: .trailing) {
-            ForEach(auxiliaryReadouts, id: \.self) { readout in
+            ForEach(primaryReadouts, id: \.self) { readout in
                 Text(readout)
             }
             Text("Center px: \(sampleReadout.coordinateLabel)")
@@ -28,6 +30,9 @@ struct CenterSampleReadoutCapsule: View {
                 Text("Center \(unitType.unitSymbol): \(convertedCoordinates)")
             }
             Text("\(sampleReadout.rgbLabel) · \(sampleReadout.hexValue)")
+            ForEach(secondaryReadouts, id: \.self) { readout in
+                Text(readout)
+            }
         }
         .font(.caption)
         .foregroundStyle(.white)

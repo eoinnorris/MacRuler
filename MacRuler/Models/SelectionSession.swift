@@ -10,6 +10,11 @@ import CoreGraphics
 import AppKit
 import Observation
 
+enum MagnifierReadoutMode: Equatable {
+    case crosshairOnly
+    case crosshairPlusRulers
+}
+
 @Observable
 @MainActor
 final class SelectionSession: Identifiable {
@@ -23,6 +28,14 @@ final class SelectionSession: Identifiable {
     var showHorizontalRuler: Bool
     var showVerticalRuler: Bool
     var isWindowVisible: Bool
+
+    var magnifierReadoutMode: MagnifierReadoutMode {
+        if showHorizontalRuler || showVerticalRuler {
+            .crosshairPlusRulers
+        } else {
+            .crosshairOnly
+        }
+    }
 
     init(
         id: UUID = UUID(),

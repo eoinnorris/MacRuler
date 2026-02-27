@@ -84,8 +84,11 @@ private struct ScreenSelectionMagnifierImage: View {
                         .allowsHitTesting(rulerSettingsViewModel.showMagnifierCrosshair)
                         .overlay(alignment: .bottomTrailing) {
                             if let sampleReadout {
+                                let readoutComposition = activeReadoutLabels()
                                 CenterSampleReadoutCapsule(
                                     sampleReadout: sampleReadout,
+                                    primaryReadouts: readoutComposition.primaryReadouts,
+                                    secondaryReadouts: readoutComposition.secondaryReadouts
                                     auxiliaryReadouts: activeReadoutLabels(),
                                     unitType: rulerSettingsViewModel.unitType,
                                     measurementScale: effectiveMeasurementScale(),
@@ -191,6 +194,24 @@ private struct ScreenSelectionMagnifierImage: View {
         secondaryCrosshairOffset = CGSize(width: 24, height: 24)
     }
 
+    private func activeReadoutLabels() -> MagnifierReadoutComposition {
+        MagnifierReadoutComposition.compose(
+            mode: session.magnifierReadoutMode,
+            unitType: rulerSettingsViewModel.unitType,
+            magnification: session.magnification,
+            showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
+            showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
+            primaryCrosshairOffset: primaryCrosshairOffset,
+            secondaryCrosshairOffset: secondaryCrosshairOffset,
+            horizontalDistancePoints: session.showHorizontalRuler ? horizontalOverlayViewModel.dividerX : nil,
+            horizontalDisplayScale: horizontalOverlayViewModel.backingScale,
+            verticalDistancePoints: session.showVerticalRuler ? verticalOverlayViewModel.dividerY : nil,
+            verticalDisplayScale: verticalOverlayViewModel.backingScale,
+            measurementScaleProvider: { displayScale in
+                rulerSettingsViewModel.effectiveMeasurementScale(displayScale: displayScale)
+            },
+            showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
+        )
 
     private func effectiveMeasurementScale(displayScale: Double = Constants.screenScale) -> Double {
         rulerSettingsViewModel.effectiveMeasurementScale(
