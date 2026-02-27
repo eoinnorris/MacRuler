@@ -33,15 +33,16 @@ private struct ScreenSelectionMagnifierImage: View {
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
     @State private var contentFrame: CGRect = .zero
-    @State private var primaryCrosshairOffset: CGSize = .zero
-    @State private var secondaryCrosshairOffset: CGSize = CGSize(width: 24, height: 24)
+    @State private var crosshairViewModel = MagnifierCrosshairViewModel()
 
     private var areCrosshairsEnabled: Bool {
         rulerSettingsViewModel.showMagnifierCrosshair && rulerSettingsViewModel.showMagnifierSecondaryCrosshair
     }
 
     var body: some View {
-        GeometryReader { proxy in
+        @Bindable var crosshairViewModel = crosshairViewModel
+
+        return GeometryReader { proxy in
             ZStack {
                 if let frameImage = controller.frameImage {
                     ScrollView([.horizontal, .vertical]) {
@@ -78,15 +79,15 @@ private struct ScreenSelectionMagnifierImage: View {
                             showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
                             showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
                             showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid,
-                            primaryCrosshairOffset: $primaryCrosshairOffset,
-                            secondaryCrosshairOffset: $secondaryCrosshairOffset
+                            primaryCrosshairOffset: $crosshairViewModel.primaryCrosshairOffset,
+                            secondaryCrosshairOffset: $crosshairViewModel.secondaryCrosshairOffset
                         )
                         .allowsHitTesting(rulerSettingsViewModel.showMagnifierCrosshair)
                         .overlay(alignment: .bottomTrailing) {
                             if let sampleReadout {
                                 CenterSampleReadoutCapsule(
                                     sampleReadout: sampleReadout,
-                                    auxiliaryReadouts: activeReadoutLabels()
+                                    auxiliaryReadouts: activeReadoutLabels(viewportSize: proxy.size)
                                 )
                                 .padding(10)
                             }
@@ -176,51 +177,27 @@ private struct ScreenSelectionMagnifierImage: View {
                                          screenBound: session.screen?.frame ?? .zero)
         }
         .onChange(of: rulerSettingsViewModel.showMagnifierCrosshair) { _, _ in
-            resetCrosshairOffsets()
+            crosshairViewModel.resetOffsets()
         }
         .onChange(of: rulerSettingsViewModel.showMagnifierSecondaryCrosshair) { _, _ in
-            secondaryCrosshairOffset = CGSize(width: 24, height: 24)
+            crosshairViewModel.resetSecondaryOffset()
         }
     }
 
-    private func resetCrosshairOffsets() {
-        primaryCrosshairOffset = .zero
-        secondaryCrosshairOffset = CGSize(width: 24, height: 24)
-    }
-
-    private func activeReadoutLabels() -> [String] {
-        var labels: [String] = []
-        let unitType = rulerSettingsViewModel.unitType
-
-        if rulerSettingsViewModel.showMagnifierCrosshair && rulerSettingsViewModel.showMagnifierSecondaryCrosshair {
-            let magnification = max(session.magnification, 0.1)
-            let deltaX = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width) / magnification
-            let deltaY = abs(secondaryCrosshairOffset.height - primaryCrosshairOffset.height) / magnification
-            labels.append("Δ: \(deltaX.formatted(.number.precision(.fractionLength(1)))) pt × \(deltaY.formatted(.number.precision(.fractionLength(1)))) pt")
-        }
-
-        if session.showHorizontalRuler {
-            let horizontalComponents = ReadoutDisplayHelper.makeComponents(
-                distancePoints: horizontalOverlayViewModel.dividerX ?? 0,
-                unitType: unitType,
-                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: horizontalOverlayViewModel.backingScale),
-                magnification: session.magnification,
-                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
-            )
-            labels.append("H:\(horizontalComponents.text)")
-        }
-
-        if session.showVerticalRuler {
-            let verticalComponents = ReadoutDisplayHelper.makeComponents(
-                distancePoints: verticalOverlayViewModel.dividerY ?? 0,
-                unitType: unitType,
-                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: verticalOverlayViewModel.backingScale),
-                magnification: session.magnification,
-                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
-            )
-            labels.append("V:\(verticalComponents.text)")
-        }
-
-        return labels
+    private func activeReadoutLabels(viewportSize: CGSize) -> [String] {
+        crosshairViewModel.formattedReadoutLabels(
+            unitType: rulerSettingsViewModel.unitType,
+            magnification: session.magnification,
+            showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
+            showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
+            showHorizontalRuler: session.showHorizontalRuler,
+            showVerticalRuler: session.showVerticalRuler,
+            horizontalDistancePoints: horizontalOverlayViewModel.dividerX ?? 0,
+            verticalDistancePoints: verticalOverlayViewModel.dividerY ?? 0,
+            horizontalMeasurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: horizontalOverlayViewModel.backingScale),
+            verticalMeasurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: verticalOverlayViewModel.backingScale),
+            showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride,
+            viewportSize: viewportSize
+        )
     }
 }

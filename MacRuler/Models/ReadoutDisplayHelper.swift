@@ -23,7 +23,12 @@ struct ReadoutDisplayComponents {
     }
 }
 
+
 enum ReadoutDisplayHelper {
+    static func makePointDeltaReadout(delta: CGSize) -> String {
+        "Δ: \(delta.width.formatted(.number.precision(.fractionLength(1)))) pt × \(delta.height.formatted(.number.precision(.fractionLength(1)))) pt"
+    }
+
     static func makeComponents(
         distancePoints: CGFloat,
         unitType: UnitTypes,
