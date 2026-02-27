@@ -86,7 +86,10 @@ private struct ScreenSelectionMagnifierImage: View {
                             if let sampleReadout {
                                 CenterSampleReadoutCapsule(
                                     sampleReadout: sampleReadout,
-                                    auxiliaryReadouts: activeReadoutLabels()
+                                    auxiliaryReadouts: activeReadoutLabels(),
+                                    unitType: rulerSettingsViewModel.unitType,
+                                    measurementScale: effectiveMeasurementScale(),
+                                    sourceScreenScale: Constants.screenScale
                                 )
                                 .padding(10)
                             }
@@ -188,6 +191,14 @@ private struct ScreenSelectionMagnifierImage: View {
         secondaryCrosshairOffset = CGSize(width: 24, height: 24)
     }
 
+
+    private func effectiveMeasurementScale(displayScale: Double = Constants.screenScale) -> Double {
+        rulerSettingsViewModel.effectiveMeasurementScale(
+            displayScale: displayScale,
+            sourceCaptureScale: Constants.screenScale
+        )
+    }
+
     private func activeReadoutLabels() -> [String] {
         var labels: [String] = []
         let unitType = rulerSettingsViewModel.unitType
@@ -207,7 +218,7 @@ private struct ScreenSelectionMagnifierImage: View {
             let horizontalComponents = ReadoutDisplayHelper.makeComponents(
                 distancePoints: horizontalOverlayViewModel.dividerX ?? 0,
                 unitType: unitType,
-                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: horizontalOverlayViewModel.backingScale),
+                measurementScale: effectiveMeasurementScale(displayScale: horizontalOverlayViewModel.backingScale),
                 magnification: session.magnification,
                 showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
             )
@@ -218,7 +229,7 @@ private struct ScreenSelectionMagnifierImage: View {
             let verticalComponents = ReadoutDisplayHelper.makeComponents(
                 distancePoints: verticalOverlayViewModel.dividerY ?? 0,
                 unitType: unitType,
-                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: verticalOverlayViewModel.backingScale),
+                measurementScale: effectiveMeasurementScale(displayScale: verticalOverlayViewModel.backingScale),
                 magnification: session.magnification,
                 showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
             )
