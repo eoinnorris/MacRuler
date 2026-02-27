@@ -14,12 +14,13 @@ struct ScreenSelectionOverlayView: View {
 
     @State private var dragStart: CGPoint?
     @State private var dragCurrent: CGPoint?
+    @State private var finalizedSelectionRect: CGRect?
     @State private var viewRectOnScreen: CGRect = .zero
     @State private var screen: NSScreen?
 
     var body: some View {
         GeometryReader { geometry in
-            let currentSelectionRect = selectionRect(in: geometry.size)
+            let currentSelectionRect = selectionRect(in: geometry.size) ?? finalizedSelectionRect
 
             ZStack {
                 greyBackdrop(selectionRect: currentSelectionRect)
@@ -41,25 +42,26 @@ struct ScreenSelectionOverlayView: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
+                        guard finalizedSelectionRect == nil else { return }
                         if dragStart == nil {
                             dragStart = value.startLocation
                         }
                         dragCurrent = value.location
                     }
-                    .onEnded { _ in
+                    .onEnded { value in
+                        if let finalizedSelectionRect {
+                            guard finalizedSelectionRect.contains(value.location) == false else { return }
+                            submitSelection(finalizedSelectionRect)
+                            return
+                        }
+
                         guard let selection = selectionRect(in: geometry.size) else {
                             resetDrag()
                             onCancel()
                             return
                         }
-                        let screenRect = CGRect(
-                            x: viewRectOnScreen.minX + selection.minX,
-                            y: viewRectOnScreen.minY + selection.minY,
-                            width: selection.width,
-                            height: selection.height
-                        )
+                        finalizedSelectionRect = selection
                         resetDrag()
-                        onSelection(screenRect, screen)
                     }
             )
             .onAppear {
@@ -85,6 +87,16 @@ struct ScreenSelectionOverlayView: View {
     private func resetDrag() {
         dragStart = nil
         dragCurrent = nil
+    }
+
+    private func submitSelection(_ selection: CGRect) {
+        let screenRect = CGRect(
+            x: viewRectOnScreen.minX + selection.minX,
+            y: viewRectOnScreen.minY + selection.minY,
+            width: selection.width,
+            height: selection.height
+        )
+        onSelection(screenRect, screen)
     }
 
     @ViewBuilder
