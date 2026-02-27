@@ -9,6 +9,7 @@ import CoreGraphics
 struct ScreenSelectionMagnifierImage: View {
     @Bindable var session: SelectionSession
     @Bindable var controller: StreamCaptureObserver
+    @Bindable var magnificationViewModel: MagnificationViewModel
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
@@ -44,6 +45,12 @@ struct ScreenSelectionMagnifierImage: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .overlay {
                         overlayLayer(proxy: proxy, frameImage: frameImage)
+                    }
+                    .overlay {
+                        MagnifierGestureCaptureView(
+                            onMagnify: handlePinchMagnification,
+                            onScroll: handleScrollMagnification
+                        )
                     }
                 } else {
                     Color.black.opacity(0.2)
@@ -151,7 +158,6 @@ struct ScreenSelectionMagnifierImage: View {
                 primaryCrosshairOffset: $primaryCrosshairOffset,
                 secondaryCrosshairOffset: $secondaryCrosshairOffset
             )
-            .allowsHitTesting(rulerSettingsViewModel.showMagnifierCrosshair)
 
             VStack {
                 Spacer()
@@ -172,6 +178,22 @@ struct ScreenSelectionMagnifierImage: View {
                 }
             }
         }
+    }
+
+    private func handlePinchMagnification(delta: CGFloat) {
+        let adjustment = Double(delta)
+        guard adjustment != 0 else { return }
+        applyMagnification(session.magnification + adjustment)
+    }
+
+    private func handleScrollMagnification(deltaY: CGFloat) {
+        guard deltaY != 0 else { return }
+        let scale = 0.01
+        applyMagnification(session.magnification - Double(deltaY) * scale)
+    }
+
+    private func applyMagnification(_ value: Double) {
+        session.magnification = magnificationViewModel.normalizedMagnification(value)
     }
 
     private func resetCrosshairOffsets() {
