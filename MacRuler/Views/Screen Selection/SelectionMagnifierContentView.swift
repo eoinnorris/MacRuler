@@ -89,6 +89,10 @@ private struct ScreenSelectionMagnifierImage: View {
                                     sampleReadout: sampleReadout,
                                     primaryReadouts: readoutComposition.primaryReadouts,
                                     secondaryReadouts: readoutComposition.secondaryReadouts
+                                    auxiliaryReadouts: activeReadoutLabels(),
+                                    unitType: rulerSettingsViewModel.unitType,
+                                    measurementScale: effectiveMeasurementScale(),
+                                    sourceScreenScale: Constants.screenScale
                                 )
                                 .padding(10)
                             }
@@ -208,5 +212,51 @@ private struct ScreenSelectionMagnifierImage: View {
             },
             showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
         )
+
+    private func effectiveMeasurementScale(displayScale: Double = Constants.screenScale) -> Double {
+        rulerSettingsViewModel.effectiveMeasurementScale(
+            displayScale: displayScale,
+            sourceCaptureScale: Constants.screenScale
+        )
+    }
+
+    private func activeReadoutLabels() -> [String] {
+        var labels: [String] = []
+        let unitType = rulerSettingsViewModel.unitType
+
+        if rulerSettingsViewModel.showMagnifierCrosshair && rulerSettingsViewModel.showMagnifierSecondaryCrosshair {
+            labels.append(contentsOf: CrosshairReadoutFormatter.makeDeltaLabels(
+                primaryCrosshairOffset: primaryCrosshairOffset,
+                secondaryCrosshairOffset: secondaryCrosshairOffset,
+                unitType: unitType,
+                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: Constants.screenScale),
+                magnification: session.magnification,
+                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
+            ))
+        }
+
+        if session.showHorizontalRuler {
+            let horizontalComponents = ReadoutDisplayHelper.makeComponents(
+                distancePoints: horizontalOverlayViewModel.dividerX ?? 0,
+                unitType: unitType,
+                measurementScale: effectiveMeasurementScale(displayScale: horizontalOverlayViewModel.backingScale),
+                magnification: session.magnification,
+                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
+            )
+            labels.append("H:\(horizontalComponents.text)")
+        }
+
+        if session.showVerticalRuler {
+            let verticalComponents = ReadoutDisplayHelper.makeComponents(
+                distancePoints: verticalOverlayViewModel.dividerY ?? 0,
+                unitType: unitType,
+                measurementScale: effectiveMeasurementScale(displayScale: verticalOverlayViewModel.backingScale),
+                magnification: session.magnification,
+                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
+            )
+            labels.append("V:\(verticalComponents.text)")
+        }
+
+        return labels
     }
 }

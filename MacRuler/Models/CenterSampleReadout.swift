@@ -26,6 +26,24 @@ struct CenterSampleReadout {
         "(\(pixelX), \(pixelY))"
     }
 
+    func convertedCoordinateLabel(
+        unitType: UnitTypes,
+        measurementScale: Double,
+        sourceScreenScale: Double
+    ) -> String? {
+        guard unitType != .pixels else {
+            return nil
+        }
+
+        let safeSourceScale = max(sourceScreenScale, 0.1)
+        let xPoints = CGFloat(pixelX) / safeSourceScale
+        let yPoints = CGFloat(pixelY) / safeSourceScale
+
+        let convertedX = unitType.formattedDistance(points: xPoints, screenScale: measurementScale)
+        let convertedY = unitType.formattedDistance(points: yPoints, screenScale: measurementScale)
+        return "(\(convertedX), \(convertedY))"
+    }
+
     static func make(
         frameImage: CGImage,
         viewportSize: CGSize,

@@ -150,9 +150,18 @@ enum RulerBackgroundSize: String, CaseIterable {
     }
 
     func effectiveMeasurementScale(displayScale: Double) -> Double {
+        effectiveMeasurementScale(
+            displayScale: displayScale,
+            sourceCaptureScale: displayScale
+        )
+    }
+
+    func effectiveMeasurementScale(displayScale: Double, sourceCaptureScale: Double) -> Double {
         switch measurementScaleMode {
-        case .autoDisplay, .sourceCapture:
+        case .autoDisplay:
             max(displayScale, 0.1)
+        case .sourceCapture:
+            max(sourceCaptureScale, 0.1)
         case .manual:
             manualMeasurementScale
         }
