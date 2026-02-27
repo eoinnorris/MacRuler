@@ -1,50 +1,45 @@
 //
-//  SelectionWindowToolbar.swift
+//  ScreenSelectionMagnifierToolbar.swift
 //  MacRuler
 //
-//  Created by OpenAI on 2026-02-06.
+//  Created by OpenAI on 2026-02-27.
 //
 
 import SwiftUI
 
-struct SelectionWindowToolbar: View {
+struct ScreenSelectionMagnifierToolbar: ToolbarContent {
     @Bindable var session: SelectionSession
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel = .shared
     let snapshotAction: () -> Void
     let canTakeSnapshot: Bool
 
-    var body: some View {
-        HStack(spacing: 10) {
+    var body: some ToolbarContent {
+        ToolbarItemGroup(placement: .automatic) {
             magnificationControls
-
-            Divider()
-                .frame(height: 18)
 
             Button(action: snapshotAction) {
                 Label("Snapshot", systemImage: "camera")
-                    .labelStyle(.titleAndIcon)
             }
             .help("Save snapshot")
             .disabled(!canTakeSnapshot)
 
             Toggle(isOn: $session.showSelection) {
                 Label("Show selection", systemImage: "rectangle.dashed.and.paperclip")
-                    .labelStyle(.titleAndIcon)
             }
             .toggleStyle(.button)
             .help("Show selection for 2 seconds")
 
             Toggle(isOn: $rulerSettingsViewModel.showMagnifierPixelGrid) {
-                Label("Pixel grid", systemImage: rulerSettingsViewModel.showMagnifierPixelGrid ? "square.grid.3x3.fill" : "square.grid.3x3")
-                    .labelStyle(.titleAndIcon)
+                Label(
+                    "Pixel grid",
+                    systemImage: rulerSettingsViewModel.showMagnifierPixelGrid
+                        ? "square.grid.3x3.fill"
+                        : "square.grid.3x3"
+                )
             }
             .toggleStyle(.button)
             .help("Show pixel grid")
-
         }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .tint(.brandPrimary)
     }
 
     private var magnificationControls: some View {
@@ -56,7 +51,7 @@ struct SelectionWindowToolbar: View {
                 in: MagnificationViewModel.minimumMagnification...MagnificationViewModel.maximumMagnification,
                 step: MagnificationViewModel.magnificationStep
             )
-                .frame(width: 140)
+            .frame(width: 140)
             Text(MagnificationViewModel.formatLabel(session.magnification))
                 .monospacedDigit()
                 .font(.system(.caption, design: .rounded))
