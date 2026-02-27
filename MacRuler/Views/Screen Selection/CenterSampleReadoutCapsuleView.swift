@@ -9,15 +9,19 @@ import SwiftUI
 
 struct CenterSampleReadoutCapsule: View {
     let sampleReadout: CenterSampleReadout
-    let auxiliaryReadouts: [String]
+    let primaryReadouts: [String]
+    let secondaryReadouts: [String]
 
     var body: some View {
         VStack(alignment: .trailing) {
-            ForEach(auxiliaryReadouts, id: \.self) { readout in
+            ForEach(primaryReadouts, id: \.self) { readout in
                 Text(readout)
             }
             Text("Center: \(sampleReadout.coordinateLabel)")
             Text("\(sampleReadout.rgbLabel) · \(sampleReadout.hexValue)")
+            ForEach(secondaryReadouts, id: \.self) { readout in
+                Text(readout)
+            }
         }
         .font(.caption)
         .foregroundStyle(.white)

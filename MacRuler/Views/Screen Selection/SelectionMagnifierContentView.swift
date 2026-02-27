@@ -84,9 +84,11 @@ private struct ScreenSelectionMagnifierImage: View {
                         .allowsHitTesting(rulerSettingsViewModel.showMagnifierCrosshair)
                         .overlay(alignment: .bottomTrailing) {
                             if let sampleReadout {
+                                let readoutComposition = activeReadoutLabels()
                                 CenterSampleReadoutCapsule(
                                     sampleReadout: sampleReadout,
-                                    auxiliaryReadouts: activeReadoutLabels()
+                                    primaryReadouts: readoutComposition.primaryReadouts,
+                                    secondaryReadouts: readoutComposition.secondaryReadouts
                                 )
                                 .padding(10)
                             }
@@ -188,39 +190,23 @@ private struct ScreenSelectionMagnifierImage: View {
         secondaryCrosshairOffset = CGSize(width: 24, height: 24)
     }
 
-    private func activeReadoutLabels() -> [String] {
-        var labels: [String] = []
-        let unitType = rulerSettingsViewModel.unitType
-
-        if rulerSettingsViewModel.showMagnifierCrosshair && rulerSettingsViewModel.showMagnifierSecondaryCrosshair {
-            let magnification = max(session.magnification, 0.1)
-            let deltaX = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width) / magnification
-            let deltaY = abs(secondaryCrosshairOffset.height - primaryCrosshairOffset.height) / magnification
-            labels.append("Δ: \(deltaX.formatted(.number.precision(.fractionLength(1)))) pt × \(deltaY.formatted(.number.precision(.fractionLength(1)))) pt")
-        }
-
-        if session.showHorizontalRuler {
-            let horizontalComponents = ReadoutDisplayHelper.makeComponents(
-                distancePoints: horizontalOverlayViewModel.dividerX ?? 0,
-                unitType: unitType,
-                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: horizontalOverlayViewModel.backingScale),
-                magnification: session.magnification,
-                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
-            )
-            labels.append("H:\(horizontalComponents.text)")
-        }
-
-        if session.showVerticalRuler {
-            let verticalComponents = ReadoutDisplayHelper.makeComponents(
-                distancePoints: verticalOverlayViewModel.dividerY ?? 0,
-                unitType: unitType,
-                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: verticalOverlayViewModel.backingScale),
-                magnification: session.magnification,
-                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
-            )
-            labels.append("V:\(verticalComponents.text)")
-        }
-
-        return labels
+    private func activeReadoutLabels() -> MagnifierReadoutComposition {
+        MagnifierReadoutComposition.compose(
+            mode: session.magnifierReadoutMode,
+            unitType: rulerSettingsViewModel.unitType,
+            magnification: session.magnification,
+            showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
+            showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
+            primaryCrosshairOffset: primaryCrosshairOffset,
+            secondaryCrosshairOffset: secondaryCrosshairOffset,
+            horizontalDistancePoints: session.showHorizontalRuler ? horizontalOverlayViewModel.dividerX : nil,
+            horizontalDisplayScale: horizontalOverlayViewModel.backingScale,
+            verticalDistancePoints: session.showVerticalRuler ? verticalOverlayViewModel.dividerY : nil,
+            verticalDisplayScale: verticalOverlayViewModel.backingScale,
+            measurementScaleProvider: { displayScale in
+                rulerSettingsViewModel.effectiveMeasurementScale(displayScale: displayScale)
+            },
+            showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
+        )
     }
 }
