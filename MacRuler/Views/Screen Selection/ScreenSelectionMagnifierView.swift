@@ -9,31 +9,6 @@ import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
 
-struct SelectionMagnifierRootView: View {
-    let session: SelectionSession?
-    let appDelegate: AppDelegate?
-    @Bindable var horizontalOverlayViewModel: OverlayViewModel
-    @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
-    
-    @Bindable var magnificationViewModel: MagnificationViewModel
-
-    var body: some View {
-        Group {
-            if let session {
-                ScreenSelectionMagnifierView(
-                    session: session,
-                    appDelegate: appDelegate,
-                    magnificationViewModel: magnificationViewModel,
-                    horizontalOverlayViewModel: horizontalOverlayViewModel,
-                    verticalOverlayViewModel:verticalOverlayViewModel
-                )
-            } else {
-                SelectionHintView(appDelegate: appDelegate)
-            }
-        }
-    }
-}
-
 struct ScreenSelectionMagnifierView: View {
     @Bindable var session: SelectionSession
     let appDelegate: AppDelegate?
@@ -41,7 +16,7 @@ struct ScreenSelectionMagnifierView: View {
     @State private var controller = StreamCaptureObserver()
     @State private var selectionPreviewWindow: NSWindow?
     @State private var selectionPreviewTask: Task<Void, Never>?
-    
+
     var horizontalOverlayViewModel: OverlayViewModel
     var verticalOverlayViewModel: OverlayVerticalViewModel
 
@@ -201,7 +176,7 @@ struct ScreenSelectionMagnifierView: View {
         selectionPreviewWindow?.orderOut(nil)
         selectionPreviewWindow = nil
     }
-    
+
     private func selectionRectInScreenCoordinates() -> CGRect {
         return session.selectionRectGlobal
 //        guard let screen = session.screen else { return session.selectionRectGlobal }

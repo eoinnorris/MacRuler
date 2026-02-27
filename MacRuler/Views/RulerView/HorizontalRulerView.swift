@@ -7,7 +7,6 @@
 
 
 import SwiftUI
-import AppKit
 
 
 struct HorizontalRulerView: View {
@@ -46,7 +45,7 @@ struct HorizontalRulerView: View {
                     backingScale: $overlayViewModel.backingScale,
                     windowFrame: $overlayViewModel.windowFrame
                 ).frame(width: 0, height: 0)
-                
+
                 VStack {
                     Spacer()
                     HStack(spacing: 0) {
@@ -91,21 +90,5 @@ struct HorizontalRulerView: View {
             : Color.clear
         )
         .padding(6)
-    }
-}
-
-
-private struct SettingsButton: View {
-    var body: some View {
-        Button {
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        } label: {
-            Image(systemName: "gearshape")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.black.opacity(0.85))
-                .padding(6)
-                .background(.white.opacity(0.35), in: Circle())
-        }
-        .buttonStyle(.plain)
     }
 }
