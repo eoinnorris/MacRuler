@@ -22,21 +22,21 @@ struct SelectionWindowToolbar: View {
 
             Button(action: snapshotAction) {
                 Label("Snapshot", systemImage: "camera")
-                    .labelStyle(.iconOnly)
+                    .labelStyle(.titleAndIcon)
             }
             .help("Save snapshot")
             .disabled(!canTakeSnapshot)
 
             Toggle(isOn: $session.showSelection) {
                 Label("Show selection", systemImage: "rectangle.dashed.and.paperclip")
-                    .labelStyle(.iconOnly)
+                    .labelStyle(.titleAndIcon)
             }
             .toggleStyle(.button)
             .help("Show selection for 2 seconds")
 
             Toggle(isOn: $rulerSettingsViewModel.showMagnifierPixelGrid) {
                 Label("Pixel grid", systemImage: rulerSettingsViewModel.showMagnifierPixelGrid ? "square.grid.3x3.fill" : "square.grid.3x3")
-                    .labelStyle(.iconOnly)
+                    .labelStyle(.titleAndIcon)
             }
             .toggleStyle(.button)
             .help("Show pixel grid")
