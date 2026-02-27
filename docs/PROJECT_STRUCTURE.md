@@ -24,6 +24,20 @@ Within `MacRuler/`, folders map to responsibilities:
 
 ---
 
+## SwiftUI view file organization policy
+
+Default rule: keep one non-trivial SwiftUI `View` type per file.
+
+Exception (all must be true to keep a nested/container-local view in the same file):
+
+1. The nested view is small (roughly 30–40 lines or less).
+2. It is used by exactly one container view.
+3. It is likely to remain container-internal (not expected to become reusable).
+
+If any one of these is unclear, extract it into its own file.
+
+---
+
 ## Struct and class roles by type
 
 ### SwiftUI `View` structs
@@ -109,17 +123,26 @@ These classes integrate with macOS windowing and capture APIs.
 - `MacRuler/Views/RulerView/VerticalRulerView.swift` — vertical counterpart for ruler rendering.
 - `MacRuler/Views/RulerView/OverlayHorizontalRulerView.swift` — horizontal overlay ruler container for selection mode.
 - `MacRuler/Views/RulerView/OverlayVerticalRulerView.swift` — vertical overlay ruler container for selection mode.
+- `MacRuler/Views/RulerView/SettingsButton.swift` — settings gear button view used in ruler surfaces.
 - `MacRuler/Views/RulerView/RulerBackGround.swift` — reusable ruler background surface.
 - `MacRuler/Views/RulerView/RulerLocked.swift` — lock-state indicator view.
 - `MacRuler/Views/Readouts/HorizontalPixelReadout.swift` — horizontal distance readout UI.
 - `MacRuler/Views/Readouts/VerticalPixelReadout.swift` — vertical distance readout UI.
 - `MacRuler/Views/Screen Selection/ScreenSelectionOverlayView.swift` — full selection overlay shell.
+- `MacRuler/Views/Screen Selection/SelectionDancingAntsRectangle.swift` — animated “marching ants” selection border view.
+- `MacRuler/Views/Screen Selection/SelectionMagnifierRootView.swift` — root switch between magnifier content and selection hint state.
 - `MacRuler/Views/Screen Selection/ScreenSelectionMagnifierView.swift` — magnifier host views for selection mode.
 - `MacRuler/Views/Screen Selection/SelectionMagnifierContentView.swift` — magnifier inner content and composition.
+- `MacRuler/Views/Screen Selection/ScreenSelectionMagnifierImage.swift` — magnified image viewport, controls, and overlay composition.
+- `MacRuler/Views/Screen Selection/CenterSampleReadoutCapsuleOverlay.swift` — center-sample readout overlay shell for magnifier.
 - `MacRuler/Views/Screen Selection/PixelGridOverlayView.swift` — pixel grid layer and frame tracking helpers.
 - `MacRuler/Views/Screen Selection/CenterSampleReadoutCapsuleView.swift` — capsule-styled center sample readout.
 - `MacRuler/Views/WindowView/SelectionHintView.swift` — instructional hint view for selection interactions.
 - `MacRuler/Settings/SettingsView.swift` — app settings panel UI.
+- `MacRuler/Settings/UnitsSettingsView.swift` — settings section for ruler unit selection.
+- `MacRuler/Settings/MeasurementScaleSettingsView.swift` — settings section for scale source/manual scale controls.
+- `MacRuler/Settings/RulerSettingsView.swift` — settings section for ruler size controls.
+- `MacRuler/Settings/AdvancedSettingsView.swift` — settings section for snap/tolerance/grid-step controls.
 - `MacRuler/Toolbar/SelectionWindowToolbar.swift` — toolbar controls for the selection window.
 
 ### Screen capture and macOS integration
