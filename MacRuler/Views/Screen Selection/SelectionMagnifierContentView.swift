@@ -10,7 +10,6 @@ import SwiftUI
 struct SelectionMagnifierContentView: View {
     @Bindable var session: SelectionSession
     @Bindable var controller: StreamCaptureObserver
-    @Bindable var magnificationViewModel: MagnificationViewModel
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel = .shared
@@ -19,7 +18,6 @@ struct SelectionMagnifierContentView: View {
         ScreenSelectionMagnifierImage(
             session: session,
             controller: controller,
-            magnificationViewModel: magnificationViewModel,
             horizontalOverlayViewModel: horizontalOverlayViewModel,
             verticalOverlayViewModel: verticalOverlayViewModel,
             rulerSettingsViewModel: rulerSettingsViewModel

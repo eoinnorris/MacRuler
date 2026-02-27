@@ -27,41 +27,6 @@ struct PixelGridOverlayView: View {
         showPixelGrid && magnification >= 4 && pixelStep >= 1
     }
 
-    @ViewBuilder
-    private var crosshairHandleOverlay: some View {
-        GeometryReader { proxy in
-            let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
-
-            if showCrosshair {
-                crosshairHandle(
-                    opacity: 0.9,
-                    center: clampedPoint(
-                        for: CGPoint(
-                            x: center.x + primaryCrosshairOffset.width,
-                            y: center.y + primaryCrosshairOffset.height
-                        ),
-                        in: proxy.size
-                    ),
-                    dragGesture: primaryCrosshairDragGesture(in: proxy.size)
-                )
-
-                if showSecondaryCrosshair {
-                    crosshairHandle(
-                        opacity: 0.7,
-                        center: clampedPoint(
-                            for: CGPoint(
-                                x: center.x + secondaryCrosshairOffset.width,
-                                y: center.y + secondaryCrosshairOffset.height
-                            ),
-                            in: proxy.size
-                        ),
-                        dragGesture: secondaryCrosshairDragGesture(in: proxy.size)
-                    )
-                }
-            }
-        }
-    }
-
     var body: some View {
         Canvas { context, size in
             if shouldShowGrid {
@@ -108,30 +73,45 @@ struct PixelGridOverlayView: View {
                 }
             }
         }
-        .allowsHitTesting(false)
         .frame(width: viewportSize.width, height: viewportSize.height)
         .overlay {
-            crosshairHandleOverlay
+            GeometryReader { proxy in
+                let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+
+                if showCrosshair {
+                    Circle()
+                        .fill(.white.opacity(0.9))
+                        .frame(width: 12, height: 12)
+                        .position(clampedPoint(
+                            for: CGPoint(
+                                x: center.x + primaryCrosshairOffset.width,
+                                y: center.y + primaryCrosshairOffset.height
+                            ),
+                            in: proxy.size
+                        ))
+                        .gesture(primaryCrosshairDragGesture(in: proxy.size))
+
+                    if showSecondaryCrosshair {
+                        Circle()
+                            .fill(.white.opacity(0.7))
+                            .frame(width: 12, height: 12)
+                            .position(clampedPoint(
+                                for: CGPoint(
+                                    x: center.x + secondaryCrosshairOffset.width,
+                                    y: center.y + secondaryCrosshairOffset.height
+                                ),
+                                in: proxy.size
+                            ))
+                            .gesture(secondaryCrosshairDragGesture(in: proxy.size))
+                    }
+                }
+            }
         }
         .onChange(of: magnification) { oldValue, newValue in
             guard newValue > oldValue else { return }
 //            recenterCrosshairsAroundPrimary()
         }
         .accessibilityHidden(true)
-    }
-
-    private func crosshairHandle<G: Gesture>(
-        opacity: Double,
-        center: CGPoint,
-        dragGesture: G
-    ) -> some View {
-        Circle()
-            .fill(.white.opacity(opacity))
-            .frame(width: 20, height: 20)
-            .contentShape(Circle())
-            .position(center)
-            .gesture(dragGesture)
-            .allowsHitTesting(true)
     }
 
     private func recenterCrosshairsAroundPrimary() {
