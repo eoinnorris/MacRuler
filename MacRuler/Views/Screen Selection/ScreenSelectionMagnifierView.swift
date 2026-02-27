@@ -21,19 +21,19 @@ struct ScreenSelectionMagnifierView: View {
     var verticalOverlayViewModel: OverlayVerticalViewModel
 
     var body: some View {
-        VStack(spacing: 10) {
-            SelectionWindowToolbar(
+        SelectionMagnifierContentView(session: session,
+                                      controller: controller,
+                                      horizontalOverlayViewModel:horizontalOverlayViewModel,
+                                      verticalOverlayViewModel:verticalOverlayViewModel)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(12)
+        .toolbar {
+            ScreenSelectionMagnifierToolbar(
                 session: session,
                 snapshotAction: takeSnapshot,
                 canTakeSnapshot: controller.frameImage != nil
             )
-            SelectionMagnifierContentView(session: session,
-                                          controller: controller,
-                                          horizontalOverlayViewModel:horizontalOverlayViewModel,
-                                          verticalOverlayViewModel:verticalOverlayViewModel)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(12)
         .onChange(of: session.showSelection) { _, shouldShow in
             if shouldShow {
                 presentSelectionWindowTemporarily()
