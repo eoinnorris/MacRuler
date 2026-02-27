@@ -63,40 +63,7 @@ private struct ScreenSelectionMagnifierImage: View {
                     .onFrameChange { contentFrame = $0 }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .overlay {
-                        let sampleReadout = CenterSampleReadout.make(
-                            frameImage: frameImage,
-                            viewportSize: proxy.size,
-                            contentFrame: contentFrame,
-                            magnification: session.magnification,
-                            screenScale: Constants.screenScale
-                        )
-                        PixelGridOverlayView(
-                            viewportSize: proxy.size,
-                            contentOrigin: contentFrame.origin,
-                            magnification: session.magnification,
-                            screenScale: Constants.screenScale,
-                            showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
-                            showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
-                            showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid,
-                            primaryCrosshairOffset: $primaryCrosshairOffset,
-                            secondaryCrosshairOffset: $secondaryCrosshairOffset
-                        )
-                        .allowsHitTesting(rulerSettingsViewModel.showMagnifierCrosshair)
-                        .overlay(alignment: .bottomTrailing) {
-                            if let sampleReadout {
-                                let readoutComposition = activeReadoutLabels()
-                                CenterSampleReadoutCapsule(
-                                    sampleReadout: sampleReadout,
-                                    primaryReadouts: readoutComposition.primaryReadouts,
-                                    secondaryReadouts: readoutComposition.secondaryReadouts
-                                    auxiliaryReadouts: activeReadoutLabels(),
-                                    unitType: rulerSettingsViewModel.unitType,
-                                    measurementScale: effectiveMeasurementScale(),
-                                    sourceScreenScale: Constants.screenScale
-                                )
-                                .padding(10)
-                            }
-                        }
+                        overlayLayer(proxy: proxy, frameImage: frameImage)
                     }
                 } else {
                     Color.black.opacity(0.2)
@@ -189,12 +156,50 @@ private struct ScreenSelectionMagnifierImage: View {
         }
     }
 
-    private func resetCrosshairOffsets() {
+    
+    @ViewBuilder
+    private func overlayLayer(proxy: GeometryProxy, frameImage: CGImage) -> some View {
+        ZStack {
+            PixelGridOverlayView(
+                viewportSize: proxy.size,
+                contentOrigin: contentFrame.origin,
+                magnification: session.magnification,
+                screenScale: Constants.screenScale,
+                showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
+                showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
+                showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid,
+                primaryCrosshairOffset: $primaryCrosshairOffset,
+                secondaryCrosshairOffset: $secondaryCrosshairOffset
+            )
+            .allowsHitTesting(rulerSettingsViewModel.showMagnifierCrosshair)
+
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    CenterSampleReadoutCapsuleOverlay(
+                        frameImage: frameImage,
+                        viewportSize: proxy.size,
+                        contentFrame: contentFrame,
+                        magnification: session.magnification,
+                        readoutComposition: readoutComposition(),
+                        auxiliaryReadouts: auxiliaryReadoutLabels(),
+                        unitType: rulerSettingsViewModel.unitType,
+                        measurementScale: effectiveMeasurementScale(),
+                        sourceScreenScale: Constants.screenScale
+                    )
+                    .padding(10)
+                }
+            }
+        }
+    }
+
+private func resetCrosshairOffsets() {
         primaryCrosshairOffset = .zero
         secondaryCrosshairOffset = CGSize(width: 24, height: 24)
     }
 
-    private func activeReadoutLabels() -> MagnifierReadoutComposition {
+    private func readoutComposition() -> MagnifierReadoutComposition {
         MagnifierReadoutComposition.compose(
             mode: session.magnifierReadoutMode,
             unitType: rulerSettingsViewModel.unitType,
@@ -212,6 +217,7 @@ private struct ScreenSelectionMagnifierImage: View {
             },
             showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
         )
+    }
 
     private func effectiveMeasurementScale(displayScale: Double = Constants.screenScale) -> Double {
         rulerSettingsViewModel.effectiveMeasurementScale(
@@ -220,7 +226,7 @@ private struct ScreenSelectionMagnifierImage: View {
         )
     }
 
-    private func activeReadoutLabels() -> [String] {
+    private func auxiliaryReadoutLabels() -> [String] {
         var labels: [String] = []
         let unitType = rulerSettingsViewModel.unitType
 
@@ -258,5 +264,43 @@ private struct ScreenSelectionMagnifierImage: View {
         }
 
         return labels
+    }
+}
+
+
+private struct CenterSampleReadoutCapsuleOverlay: View {
+    let frameImage: CGImage
+    let viewportSize: CGSize
+    let contentFrame: CGRect
+    let magnification: CGFloat
+    let readoutComposition: MagnifierReadoutComposition
+    let auxiliaryReadouts: [String]
+
+    let unitType: UnitTypes
+    let measurementScale: Double
+    let sourceScreenScale: Double
+
+    var body: some View {
+        let sampleReadout = CenterSampleReadout.make(
+            frameImage: frameImage,
+            viewportSize: viewportSize,
+            contentFrame: contentFrame,
+            magnification: magnification,
+            screenScale: sourceScreenScale
+        )
+
+        if let sampleReadout {
+            CenterSampleReadoutCapsule(
+                sampleReadout: sampleReadout,
+                primaryReadouts: readoutComposition.primaryReadouts,
+                secondaryReadouts: readoutComposition.secondaryReadouts,
+                auxiliaryReadouts: auxiliaryReadouts,
+                unitType: unitType,
+                measurementScale: measurementScale,
+                sourceScreenScale: sourceScreenScale
+            )
+        } else {
+            EmptyView()
+        }
     }
 }
