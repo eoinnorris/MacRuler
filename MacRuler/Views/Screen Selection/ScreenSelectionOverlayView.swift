@@ -79,6 +79,8 @@ struct ScreenSelectionOverlayView: View {
     @State private var viewRectOnScreen: CGRect = .zero
     @State private var screen: NSScreen?
 
+    private let backgroundGestureLogPrefix = "[ScreenSelectionOverlayView.backgroundGesture]"
+
     var body: some View {
         GeometryReader { geometry in
             let drawingRect = selectionRectFromPoints(draftStart, draftCurrent, in: geometry.size)
@@ -122,25 +124,36 @@ struct ScreenSelectionOverlayView: View {
                 guard selectionRect == nil else { return }
                 if draftStart == nil {
                     draftStart = value.startLocation
+                    print("\(backgroundGestureLogPrefix) Started drafting selection at \(value.startLocation)")
                 }
                 draftCurrent = value.location
+                if let liveRect = selectionRectFromPoints(draftStart, draftCurrent, in: size) {
+                    print("\(backgroundGestureLogPrefix) Updated draft to rect: \(liveRect)")
+                }
             }
             .onEnded { value in
                 if let finalizedRect = selectionRect {
                     // Click outside commits the current selection.
                     if finalizedRect.contains(value.location) == false {
+                        print("\(backgroundGestureLogPrefix) Click outside existing selection at \(value.location); submitting rect: \(finalizedRect)")
                         submitSelection(finalizedRect)
+                    } else {
+                        print("\(backgroundGestureLogPrefix) Click ended inside existing selection at \(value.location); ignoring")
                     }
                     return
                 }
 
                 guard let draftRect = selectionRectFromPoints(draftStart, draftCurrent, in: size) else {
+                    print("\(backgroundGestureLogPrefix) No valid draft rect; cancelling selection")
                     resetDraft()
                     onCancel()
                     return
                 }
 
                 selectionRect = clampRectToBounds(draftRect, in: size)
+                if let selectionRect {
+                    print("\(backgroundGestureLogPrefix) Finalized selection rect: \(selectionRect)")
+                }
                 resetDraft()
                 interactionState = .idle
             }
