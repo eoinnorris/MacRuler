@@ -44,5 +44,17 @@ struct AdvancedSettingsView: View {
                 }
             }
         }
+
+
+        Section("Magnifier Readout") {
+            Toggle("Show center pixel coordinates", isOn: $rulerSettingsViewModel.showMagnifierReadoutCenterPixel)
+            Toggle(
+                "Show converted center coordinates",
+                isOn: $rulerSettingsViewModel.showMagnifierReadoutConvertedCoordinates
+            )
+            Toggle("Show center color values", isOn: $rulerSettingsViewModel.showMagnifierReadoutColor)
+            Toggle("Show ruler readouts (H/V)", isOn: $rulerSettingsViewModel.showMagnifierReadoutSecondaryReadouts)
+        }
+
     }
 }

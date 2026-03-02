@@ -27,4 +27,8 @@ enum PersistenceKeys {
     static let magnifierPixelGridEnabled = "magnifier.pixelGrid.enabled"
     static let magnifierCrosshairEnabled = "magnifier.crosshair.enabled"
     static let magnifierSecondaryCrosshairEnabled = "magnifier.secondaryCrosshair.enabled"
+    static let magnifierReadoutCenterPixelEnabled = "magnifier.readout.centerPixel.enabled"
+    static let magnifierReadoutConvertedCoordinatesEnabled = "magnifier.readout.convertedCoordinates.enabled"
+    static let magnifierReadoutColorEnabled = "magnifier.readout.color.enabled"
+    static let magnifierReadoutSecondaryReadoutsEnabled = "magnifier.readout.secondary.enabled"
 }

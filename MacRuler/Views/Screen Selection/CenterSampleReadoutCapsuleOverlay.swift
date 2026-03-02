@@ -12,11 +12,13 @@ struct CenterSampleReadoutCapsuleOverlay: View {
     let contentFrame: CGRect
     let magnification: CGFloat
     let readoutComposition: MagnifierReadoutComposition
-    let auxiliaryReadouts: [String]
-
     let unitType: UnitTypes
     let measurementScale: Double
     let sourceScreenScale: Double
+    let showCenterPixelCoordinates: Bool
+    let showConvertedCenterCoordinates: Bool
+    let showColorValues: Bool
+    let showSecondaryReadouts: Bool
 
     var body: some View {
         let sampleReadout = CenterSampleReadout.make(
@@ -27,15 +29,24 @@ struct CenterSampleReadoutCapsuleOverlay: View {
             screenScale: sourceScreenScale
         )
 
-        if let sampleReadout {
+        let hasReadoutContent = !readoutComposition.primaryReadouts.isEmpty
+            || (showSecondaryReadouts && !readoutComposition.secondaryReadouts.isEmpty)
+            || showCenterPixelCoordinates
+            || showConvertedCenterCoordinates
+            || showColorValues
+
+        if let sampleReadout, hasReadoutContent {
             CenterSampleReadoutCapsule(
                 sampleReadout: sampleReadout,
                 primaryReadouts: readoutComposition.primaryReadouts,
                 secondaryReadouts: readoutComposition.secondaryReadouts,
-                auxiliaryReadouts: auxiliaryReadouts,
                 unitType: unitType,
                 measurementScale: measurementScale,
-                sourceScreenScale: sourceScreenScale
+                sourceScreenScale: sourceScreenScale,
+                showCenterPixelCoordinates: showCenterPixelCoordinates,
+                showConvertedCenterCoordinates: showConvertedCenterCoordinates,
+                showColorValues: showColorValues,
+                showSecondaryReadouts: showSecondaryReadouts
             )
         } else {
             EmptyView()

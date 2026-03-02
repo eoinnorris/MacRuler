@@ -163,10 +163,13 @@ struct ScreenSelectionMagnifierImage: View {
                         contentFrame: contentFrame,
                         magnification: session.magnification,
                         readoutComposition: readoutComposition(),
-                        auxiliaryReadouts: auxiliaryReadoutLabels(),
                         unitType: rulerSettingsViewModel.unitType,
                         measurementScale: effectiveMeasurementScale(),
-                        sourceScreenScale: Constants.screenScale
+                        sourceScreenScale: Constants.screenScale,
+                        showCenterPixelCoordinates: rulerSettingsViewModel.showMagnifierReadoutCenterPixel,
+                        showConvertedCenterCoordinates: rulerSettingsViewModel.showMagnifierReadoutConvertedCoordinates,
+                        showColorValues: rulerSettingsViewModel.showMagnifierReadoutColor,
+                        showSecondaryReadouts: rulerSettingsViewModel.showMagnifierReadoutSecondaryReadouts
                     )
                     .padding(10)
                 }
@@ -177,6 +180,13 @@ struct ScreenSelectionMagnifierImage: View {
     private func resetCrosshairOffsets() {
         primaryCrosshairOffset = .zero
         secondaryCrosshairOffset = CGSize(width: 24, height: 24)
+    }
+
+    private func effectiveMeasurementScale(displayScale: Double = Constants.screenScale) -> Double {
+        rulerSettingsViewModel.effectiveMeasurementScale(
+            displayScale: displayScale,
+            sourceCaptureScale: Constants.screenScale
+        )
     }
 
     private func readoutComposition() -> MagnifierReadoutComposition {
@@ -199,50 +209,4 @@ struct ScreenSelectionMagnifierImage: View {
         )
     }
 
-    private func effectiveMeasurementScale(displayScale: Double = Constants.screenScale) -> Double {
-        rulerSettingsViewModel.effectiveMeasurementScale(
-            displayScale: displayScale,
-            sourceCaptureScale: Constants.screenScale
-        )
-    }
-
-    private func auxiliaryReadoutLabels() -> [String] {
-        var labels: [String] = []
-        let unitType = rulerSettingsViewModel.unitType
-
-        if rulerSettingsViewModel.showMagnifierCrosshair && rulerSettingsViewModel.showMagnifierSecondaryCrosshair {
-            labels.append(contentsOf: CrosshairReadoutFormatter.makeDeltaLabels(
-                primaryCrosshairOffset: primaryCrosshairOffset,
-                secondaryCrosshairOffset: secondaryCrosshairOffset,
-                unitType: unitType,
-                measurementScale: rulerSettingsViewModel.effectiveMeasurementScale(displayScale: Constants.screenScale),
-                magnification: session.magnification,
-                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
-            ))
-        }
-
-        if session.showHorizontalRuler {
-            let horizontalComponents = ReadoutDisplayHelper.makeComponents(
-                distancePoints: horizontalOverlayViewModel.dividerX ?? 0,
-                unitType: unitType,
-                measurementScale: effectiveMeasurementScale(displayScale: horizontalOverlayViewModel.backingScale),
-                magnification: session.magnification,
-                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
-            )
-            labels.append("H:\(horizontalComponents.text)")
-        }
-
-        if session.showVerticalRuler {
-            let verticalComponents = ReadoutDisplayHelper.makeComponents(
-                distancePoints: verticalOverlayViewModel.dividerY ?? 0,
-                unitType: unitType,
-                measurementScale: effectiveMeasurementScale(displayScale: verticalOverlayViewModel.backingScale),
-                magnification: session.magnification,
-                showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
-            )
-            labels.append("V:\(verticalComponents.text)")
-        }
-
-        return labels
-    }
 }
