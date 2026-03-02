@@ -194,6 +194,7 @@ struct ScreenSelectionMagnifierImage: View {
             mode: session.magnifierReadoutMode,
             unitType: rulerSettingsViewModel.unitType,
             magnification: session.magnification,
+            sourceDisplayScale: Constants.screenScale,
             showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
             showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
             primaryCrosshairOffset: primaryCrosshairOffset,

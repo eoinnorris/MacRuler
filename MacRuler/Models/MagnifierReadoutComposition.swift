@@ -9,6 +9,7 @@ struct MagnifierReadoutComposition {
         mode: MagnifierReadoutMode,
         unitType: UnitTypes,
         magnification: Double,
+        sourceDisplayScale: Double,
         showCrosshair: Bool,
         showSecondaryCrosshair: Bool,
         primaryCrosshairOffset: CGSize,
@@ -27,8 +28,12 @@ struct MagnifierReadoutComposition {
             let safeMagnification = max(magnification, 0.1)
             let deltaX = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width) / safeMagnification
             let deltaY = abs(secondaryCrosshairOffset.height - primaryCrosshairOffset.height) / safeMagnification
+            let measurementScale = measurementScaleProvider(sourceDisplayScale)
+            let unitSymbol = unitType.unitSymbol
+            let deltaXLabel = unitType.formattedDistance(points: deltaX, screenScale: measurementScale)
+            let deltaYLabel = unitType.formattedDistance(points: deltaY, screenScale: measurementScale)
             primaryReadouts.append(
-                "Δ: \(deltaX.formatted(.number.precision(.fractionLength(1)))) pt × \(deltaY.formatted(.number.precision(.fractionLength(1)))) pt"
+                "Δ: \(deltaXLabel) \(unitSymbol) × \(deltaYLabel) \(unitSymbol)"
             )
         }
 
