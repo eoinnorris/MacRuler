@@ -18,6 +18,8 @@ struct SettingsView: View {
                 MeasurementScaleSettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
                 Divider()
                 RulerSettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
+                Divider()
+                AdvancedSettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
             }
         }
         .padding(20)

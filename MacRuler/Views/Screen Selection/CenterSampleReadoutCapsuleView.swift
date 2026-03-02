@@ -11,27 +11,41 @@ struct CenterSampleReadoutCapsule: View {
     let sampleReadout: CenterSampleReadout
     let primaryReadouts: [String]
     let secondaryReadouts: [String]
-    let auxiliaryReadouts: [String]
     let unitType: UnitTypes
     let measurementScale: Double
     let sourceScreenScale: Double
+    let showCenterPixelCoordinates: Bool
+    let showConvertedCenterCoordinates: Bool
+    let showColorValues: Bool
+    let showSecondaryReadouts: Bool
 
     var body: some View {
         VStack(alignment: .trailing) {
             ForEach(primaryReadouts, id: \.self) { readout in
                 Text(readout)
             }
-            Text("Center px: \(sampleReadout.coordinateLabel)")
-            if let convertedCoordinates = sampleReadout.convertedCoordinateLabel(
+
+            if showCenterPixelCoordinates {
+                Text("Center px: \(sampleReadout.coordinateLabel)")
+            }
+
+            if showConvertedCenterCoordinates,
+               let convertedCoordinates = sampleReadout.convertedCoordinateLabel(
                 unitType: unitType,
                 measurementScale: measurementScale,
                 sourceScreenScale: sourceScreenScale
-            ) {
+               ) {
                 Text("Center \(unitType.unitSymbol): \(convertedCoordinates)")
             }
-            Text("\(sampleReadout.rgbLabel) · \(sampleReadout.hexValue)")
-            ForEach(secondaryReadouts, id: \.self) { readout in
-                Text(readout)
+
+            if showColorValues {
+                Text("\(sampleReadout.rgbLabel) · \(sampleReadout.hexValue)")
+            }
+
+            if showSecondaryReadouts {
+                ForEach(secondaryReadouts, id: \.self) { readout in
+                    Text(readout)
+                }
             }
         }
         .font(.caption)

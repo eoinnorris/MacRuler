@@ -141,6 +141,36 @@ enum RulerBackgroundSize: String, CaseIterable {
         }
     }
 
+    var showMagnifierReadoutCenterPixel: Bool {
+        didSet {
+            defaults.set(showMagnifierReadoutCenterPixel, forKey: PersistenceKeys.magnifierReadoutCenterPixelEnabled)
+        }
+    }
+
+    var showMagnifierReadoutConvertedCoordinates: Bool {
+        didSet {
+            defaults.set(
+                showMagnifierReadoutConvertedCoordinates,
+                forKey: PersistenceKeys.magnifierReadoutConvertedCoordinatesEnabled
+            )
+        }
+    }
+
+    var showMagnifierReadoutColor: Bool {
+        didSet {
+            defaults.set(showMagnifierReadoutColor, forKey: PersistenceKeys.magnifierReadoutColorEnabled)
+        }
+    }
+
+    var showMagnifierReadoutSecondaryReadouts: Bool {
+        didSet {
+            defaults.set(
+                showMagnifierReadoutSecondaryReadouts,
+                forKey: PersistenceKeys.magnifierReadoutSecondaryReadoutsEnabled
+            )
+        }
+    }
+
     var horizontalBackgroundThickness: CGFloat {
         Constants.rulerBackgroundLargeThickness * horizontalRulerBackgroundSize.scaleFactor
     }
@@ -249,5 +279,17 @@ enum RulerBackgroundSize: String, CaseIterable {
 
             self.showMagnifierSecondaryCrosshair =
                 defaults.object(forKey: PersistenceKeys.magnifierSecondaryCrosshairEnabled) as? Bool ?? false
+
+            self.showMagnifierReadoutCenterPixel =
+                defaults.object(forKey: PersistenceKeys.magnifierReadoutCenterPixelEnabled) as? Bool ?? false
+
+            self.showMagnifierReadoutConvertedCoordinates =
+                defaults.object(forKey: PersistenceKeys.magnifierReadoutConvertedCoordinatesEnabled) as? Bool ?? false
+
+            self.showMagnifierReadoutColor =
+                defaults.object(forKey: PersistenceKeys.magnifierReadoutColorEnabled) as? Bool ?? false
+
+            self.showMagnifierReadoutSecondaryReadouts =
+                defaults.object(forKey: PersistenceKeys.magnifierReadoutSecondaryReadoutsEnabled) as? Bool ?? false
         }
 }
