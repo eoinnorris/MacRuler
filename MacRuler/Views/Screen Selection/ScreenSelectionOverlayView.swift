@@ -10,7 +10,6 @@ import AppKit
 
 private enum SelectionInteractionState {
     case idle
-    case dragging(initialRect: CGRect)
     case resizing(handle: SelectionResizeHandle, initialRect: CGRect)
 }
 
@@ -94,7 +93,7 @@ struct ScreenSelectionOverlayView: View {
                         .allowsHitTesting(false)
 
                     if selectionRect != nil {
-                        selectionBodyHitArea(rect: currentSelectionRect, in: geometry.size)
+                        selectionBodyHitArea(rect: currentSelectionRect)
                         resizeHandles(rect: currentSelectionRect, in: geometry.size)
                     }
                 }
@@ -160,29 +159,12 @@ struct ScreenSelectionOverlayView: View {
     }
 
     @ViewBuilder
-    private func selectionBodyHitArea(rect: CGRect, in size: CGSize) -> some View {
+    private func selectionBodyHitArea(rect: CGRect) -> some View {
         Rectangle()
             .fill(Color.clear)
             .frame(width: rect.width, height: rect.height)
             .position(x: rect.midX, y: rect.midY)
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        guard let currentRect = selectionRect else { return }
-                        if case .dragging(let initialRect) = interactionState {
-                            let updatedRect = dragRect(initialRect: initialRect, translation: value.translation, in: size)
-                            selectionRect = updatedRect
-                        } else {
-                            interactionState = .dragging(initialRect: currentRect)
-                            let updatedRect = dragRect(initialRect: currentRect, translation: value.translation, in: size)
-                            selectionRect = updatedRect
-                        }
-                    }
-                    .onEnded { _ in
-                        interactionState = .idle
-                    }
-            )
     }
 
     @ViewBuilder
@@ -233,18 +215,6 @@ struct ScreenSelectionOverlayView: View {
         let rect = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
         guard rect.width > 2, rect.height > 2 else { return nil }
         return clampRectToBounds(rect, in: size)
-    }
-
-    private func dragRect(initialRect: CGRect, translation: CGSize, in size: CGSize) -> CGRect {
-        let bounds = CGRect(origin: .zero, size: size)
-
-        // Clamp translated origin so the full rect remains inside the visible overlay bounds.
-        let maxX = bounds.maxX - initialRect.width
-        let maxY = bounds.maxY - initialRect.height
-        let originX = min(max(initialRect.minX + translation.width, bounds.minX), maxX)
-        let originY = min(max(initialRect.minY + translation.height, bounds.minY), maxY)
-
-        return CGRect(origin: CGPoint(x: originX, y: originY), size: initialRect.size)
     }
 
     private func resizeRect(initialRect: CGRect, handle: SelectionResizeHandle, translation: CGSize, in size: CGSize) -> CGRect {
