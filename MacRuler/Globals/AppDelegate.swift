@@ -744,11 +744,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     
     @MainActor
     func beginScreenSelection() {
-        guard let screen = NSScreen.main else { return }
+        let restoredPlacement = restoreScreenSelectionPlacement()
+        guard let screen = restoredPlacement?.screen ?? NSScreen.main else { return }
         finishScreenSelection()
 
         let backdrop = makeSelectionBackdropWindow(for: screen)
-        let selectionWindow = makeScreenSelectionWindow(for: screen)
+        let selectionWindow = makeScreenSelectionWindow(
+            for: screen,
+            restoredFrame: restoredPlacement?.frame
+        )
 
         selectionBackdropController = NSWindowController(window: backdrop)
         selectionWindowController = NSWindowController(window: selectionWindow)
@@ -761,6 +765,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @MainActor
     private func finishScreenSelection() {
+        persistScreenSelectionPlacement()
         selectionWindowController?.window?.orderOut(nil)
         selectionBackdropController?.window?.orderOut(nil)
         selectionWindowController = nil
@@ -818,15 +823,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func makeScreenSelectionWindow(for screen: NSScreen) -> NSWindow {
+        makeScreenSelectionWindow(for: screen, restoredFrame: nil)
+    }
+
+    private func makeScreenSelectionWindow(for screen: NSScreen, restoredFrame: CGRect?) -> NSWindow {
         let visible = screen.visibleFrame
-        let initialWidth = max(220, visible.width * 0.35)
-        let initialHeight = max(160, visible.height * 0.28)
-        let initialFrame = CGRect(
-            x: visible.midX - (initialWidth / 2),
-            y: visible.midY - (initialHeight / 2),
-            width: initialWidth,
-            height: initialHeight
-        ).integral
+        let initialFrame = restoredFrame ?? defaultScreenSelectionFrame(for: visible)
 
         let selectionWindow = ScreenSelectionWindow(
             contentRect: initialFrame,
@@ -848,6 +850,87 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         selectionWindow.contentView = NSHostingView(rootView: ScreenSelectionWindowChromeView())
 
         return selectionWindow
+    }
+
+    private func defaultScreenSelectionFrame(for visibleFrame: CGRect) -> CGRect {
+        let initialWidth = max(220, visibleFrame.width * 0.35)
+        let initialHeight = max(160, visibleFrame.height * 0.28)
+        return CGRect(
+            x: visibleFrame.midX - (initialWidth / 2),
+            y: visibleFrame.midY - (initialHeight / 2),
+            width: initialWidth,
+            height: initialHeight
+        ).integral
+    }
+
+    private func restoreScreenSelectionPlacement() -> (screen: NSScreen, frame: CGRect)? {
+        guard
+            let storedDisplayID = UserDefaults.standard.object(forKey: PersistenceKeys.screenSelectionWindowDisplayID) as? NSNumber,
+            let frameDictionary = UserDefaults.standard.dictionary(forKey: PersistenceKeys.screenSelectionWindowFrame),
+            let screen = screen(matchingDisplayID: storedDisplayID.uint32Value),
+            let restoredFrame = rect(from: frameDictionary)
+        else {
+            return nil
+        }
+
+        let adjusted = adjustedSelectionFrame(restoredFrame, in: screen.visibleFrame)
+        return (screen, adjusted)
+    }
+
+    @MainActor
+    private func persistScreenSelectionPlacement() {
+        guard
+            let window = selectionWindowController?.window,
+            let screen = window.screen,
+            let displayID = screenDisplayID(screen)
+        else {
+            return
+        }
+
+        UserDefaults.standard.set(displayID, forKey: PersistenceKeys.screenSelectionWindowDisplayID)
+        UserDefaults.standard.set(dictionary(from: window.frame), forKey: PersistenceKeys.screenSelectionWindowFrame)
+    }
+
+    private func adjustedSelectionFrame(_ frame: CGRect, in visibleFrame: CGRect) -> CGRect {
+        var adjusted = frame
+        adjusted.size.width = min(max(adjusted.width, 120), visibleFrame.width)
+        adjusted.size.height = min(max(adjusted.height, 100), visibleFrame.height)
+
+        adjusted.origin.x = min(max(adjusted.minX, visibleFrame.minX), visibleFrame.maxX - adjusted.width)
+        adjusted.origin.y = min(max(adjusted.minY, visibleFrame.minY), visibleFrame.maxY - adjusted.height)
+        return adjusted.integral
+    }
+
+    private func screen(matchingDisplayID displayID: UInt32) -> NSScreen? {
+        NSScreen.screens.first { screenDisplayID($0) == displayID }
+    }
+
+    private func screenDisplayID(_ screen: NSScreen) -> UInt32? {
+        (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value
+    }
+
+    private func dictionary(from rect: CGRect) -> [String: Double] {
+        [
+            "x": Double(rect.origin.x),
+            "y": Double(rect.origin.y),
+            "width": Double(rect.width),
+            "height": Double(rect.height)
+        ]
+    }
+
+    private func rect(from dictionary: [String: Any]) -> CGRect? {
+        guard
+            let x = (dictionary["x"] as? NSNumber)?.doubleValue,
+            let y = (dictionary["y"] as? NSNumber)?.doubleValue,
+            let width = (dictionary["width"] as? NSNumber)?.doubleValue,
+            let height = (dictionary["height"] as? NSNumber)?.doubleValue,
+            width > 0,
+            height > 0
+        else {
+            return nil
+        }
+
+        return CGRect(x: x, y: y, width: width, height: height)
     }
 
     @MainActor
