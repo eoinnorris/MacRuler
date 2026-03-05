@@ -16,14 +16,8 @@ extension Notification.Name {
 
 private final class SelectionOverlayWindow: NSPanel {
     var onEscape: (() -> Void)?
-    var onMouseDown: ((CGPoint) -> Void)?
 
     override var canBecomeKey: Bool { true }
-
-    override func mouseDown(with event: NSEvent) {
-        let point = convertPoint(toScreen: event.locationInWindow)
-        onMouseDown?(point)
-    }
 
     override func keyDown(with event: NSEvent) {
         if event.keyCode == 53 {
@@ -84,6 +78,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @MainActor private var currentSelectionSession: SelectionSession?
     private var selectionBackdropController: NSWindowController?
     private var selectionWindowController: NSWindowController?
+    private var selectionClickMonitor: Any?
+    private var selectionEscapeMonitor: Any?
     private var statusItem: NSStatusItem?
     private var statusMenu: NSMenu?
     private var horizontalMenuItem: NSMenuItem?
@@ -760,6 +756,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         selectionBackdropController?.showWindow(nil)
         selectionWindowController?.showWindow(nil)
         selectionWindowController?.window?.makeKeyAndOrderFront(nil)
+        installSelectionEventMonitors()
     }
 
     @MainActor
@@ -768,6 +765,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         selectionBackdropController?.window?.orderOut(nil)
         selectionWindowController = nil
         selectionBackdropController = nil
+        if let selectionClickMonitor {
+            NSEvent.removeMonitor(selectionClickMonitor)
+            self.selectionClickMonitor = nil
+        }
+        if let selectionEscapeMonitor {
+            NSEvent.removeMonitor(selectionEscapeMonitor)
+            self.selectionEscapeMonitor = nil
+        }
     }
 
     @MainActor
@@ -793,24 +798,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         overlay.level = .floating
         overlay.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         overlay.isOpaque = false
-        overlay.backgroundColor = .clear
-        overlay.ignoresMouseEvents = false
+        overlay.backgroundColor = NSColor.black.withAlphaComponent(0.2)
+        overlay.ignoresMouseEvents = true
         overlay.hidesOnDeactivate = false
         overlay.hasShadow = false
         overlay.isMovableByWindowBackground = false
         overlay.onEscape = { [weak self] in
             self?.finishScreenSelection()
-        }
-
-        overlay.onMouseDown = { [weak self, weak overlay] clickLocation in
-            guard let self,
-                  let overlay,
-                  let selectionWindow = self.selectionWindowController?.window,
-                  let targetScreen = overlay.screen
-            else { return }
-
-            guard selectionWindow.frame.contains(clickLocation) == false else { return }
-            self.commitScreenSelection(selectionWindow.frame, on: targetScreen)
         }
 
         overlay.contentView = NSView(frame: CGRect(origin: .zero, size: overlay.frame.size))
@@ -849,5 +843,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         selectionWindow.contentView = NSHostingView(rootView: ScreenSelectionWindowChromeView())
 
         return selectionWindow
+    }
+
+    @MainActor
+    private func installSelectionEventMonitors() {
+        selectionClickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] event in
+            guard let self else { return event }
+            guard let selectionWindow = self.selectionWindowController?.window,
+                  let targetScreen = selectionWindow.screen
+            else { return event }
+
+            let clickLocation = NSEvent.mouseLocation
+            let selectionFrame = selectionWindow.frame
+            guard selectionFrame.contains(clickLocation) == false else { return event }
+            guard self.distance(from: clickLocation, to: selectionFrame) >= 20 else { return event }
+
+            self.commitScreenSelection(selectionFrame, on: targetScreen)
+            return nil
+        }
+
+        selectionEscapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.keyCode == 53 else { return event }
+            self?.finishScreenSelection()
+            return nil
+        }
+    }
+
+    private func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {
+        let deltaX = max(rect.minX - point.x, 0, point.x - rect.maxX)
+        let deltaY = max(rect.minY - point.y, 0, point.y - rect.maxY)
+        return hypot(deltaX, deltaY)
     }
 }
