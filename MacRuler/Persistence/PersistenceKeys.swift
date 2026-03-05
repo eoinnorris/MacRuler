@@ -31,4 +31,6 @@ enum PersistenceKeys {
     static let magnifierReadoutConvertedCoordinatesEnabled = "magnifier.readout.convertedCoordinates.enabled"
     static let magnifierReadoutColorEnabled = "magnifier.readout.color.enabled"
     static let magnifierReadoutSecondaryReadoutsEnabled = "magnifier.readout.secondary.enabled"
+    static let screenSelectionWindowFrame = "screenSelection.window.frame"
+    static let screenSelectionWindowDisplayID = "screenSelection.window.displayID"
 }
