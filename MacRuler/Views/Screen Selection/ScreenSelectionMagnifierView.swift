@@ -13,7 +13,7 @@ struct ScreenSelectionMagnifierView: View {
     @Bindable var session: SelectionSession
     let appDelegate: AppDelegate?
     @Bindable var magnificationViewModel: MagnificationViewModel
-    @State private var controller = StreamCaptureObserver()
+    @Bindable var controller: StreamCaptureObserver
     @State private var selectionPreviewWindow: NSWindow?
     @State private var selectionPreviewTask: Task<Void, Never>?
 

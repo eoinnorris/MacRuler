@@ -42,6 +42,25 @@ private final class ScreenSelectionWindow: NSPanel {
     }
 }
 
+
+private final class SelectionWindowDelegate: NSObject, NSWindowDelegate {
+    let onFrameChange: (CGRect, NSScreen?) -> Void
+
+    init(onFrameChange: @escaping (CGRect, NSScreen?) -> Void) {
+        self.onFrameChange = onFrameChange
+    }
+
+    func windowDidMove(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        onFrameChange(window.frame, window.screen)
+    }
+
+    func windowDidResize(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        onFrameChange(window.frame, window.screen)
+    }
+}
+
 private struct ScreenSelectionWindowChromeView: View {
     var body: some View {
         GeometryReader { geometry in
@@ -80,12 +99,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var selectionWindowController: NSWindowController?
     private var selectionClickMonitor: Any?
     private var selectionEscapeMonitor: Any?
+    private var selectionWindowDelegate: SelectionWindowDelegate?
     private var statusItem: NSStatusItem?
     private var statusMenu: NSMenu?
     private var horizontalMenuItem: NSMenuItem?
     private var verticalMenuItem: NSMenuItem?
     private let horizontalResizeDelegate = HorizontalRulerWindowDelegate(fixedHeight: Constants.horizontalHeight)
     private let captureController = CaptureController()
+    @MainActor private let selectionCaptureObserver = StreamCaptureObserver()
     private let dependencies = AppDependencies.live
     private lazy var rulerSettingsViewModel = dependencies.rulerSettings
     private var rulerAttachmentObservationTask: Task<Void, Never>?
@@ -658,6 +679,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 rootView: SelectionMagnifierRootView(
                     session: currentSelectionSession,
                     appDelegate: self,
+                    selectionCaptureObserver: selectionCaptureObserver,
                     horizontalOverlayViewModel: dependencies.overlay,
                     verticalOverlayViewModel: dependencies.overlayVertical,
                     magnificationViewModel: dependencies.magnification
@@ -693,6 +715,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 rootView: SelectionMagnifierRootView(
                     session: nil,
                     appDelegate: self,
+                    selectionCaptureObserver: selectionCaptureObserver,
                     horizontalOverlayViewModel: dependencies.overlay,
                     verticalOverlayViewModel: dependencies.overlayVertical,
                     magnificationViewModel: dependencies.magnification
@@ -723,6 +746,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             rootView: SelectionMagnifierRootView(
                 session: session,
                 appDelegate: self,
+                selectionCaptureObserver: selectionCaptureObserver,
                 horizontalOverlayViewModel: dependencies.overlay,
                 verticalOverlayViewModel: dependencies.overlayVertical,
                 magnificationViewModel: dependencies.magnification
@@ -744,6 +768,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     
     @MainActor
     func beginScreenSelection() {
+        selectionCaptureObserver.restartCapture()
+
         let restoredPlacement = restoreScreenSelectionPlacement()
         guard let screen = restoredPlacement?.screen ?? NSScreen.main else { return }
         finishScreenSelection()
@@ -757,10 +783,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         selectionBackdropController = NSWindowController(window: backdrop)
         selectionWindowController = NSWindowController(window: selectionWindow)
 
+        updateSelectionSessionFromSelectionWindowFrame(selectionWindow.frame, on: selectionWindow.screen ?? screen)
+
         selectionBackdropController?.showWindow(nil)
         selectionWindowController?.showWindow(nil)
         selectionWindowController?.window?.makeKeyAndOrderFront(nil)
         installSelectionEventMonitors()
+    }
+
+
+    @MainActor
+    private func updateSelectionSessionFromSelectionWindowFrame(_ frame: CGRect, on screen: NSScreen) {
+        if let currentSelectionSession {
+            currentSelectionSession.selectionRectScreen = frame
+            currentSelectionSession.selectionRectGlobal = Constants.globalRectToSCRect(frame, containerHeight: screen.frame.height)
+            currentSelectionSession.screen = screen
+            return
+        }
+
+        let session = SelectionSession(
+            selectionRectScreen: frame,
+            selectionRectGlobal: Constants.globalRectToSCRect(frame, containerHeight: screen.frame.height),
+            screen: screen
+        )
+        showSelectionMagnifierWindow(for: session)
     }
 
     @MainActor
@@ -830,6 +876,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let visible = screen.visibleFrame
         let initialFrame = restoredFrame ?? defaultScreenSelectionFrame(for: visible)
 
+        let delegate = SelectionWindowDelegate { [weak self] frame, frameScreen in
+            guard let self else { return }
+            Task { @MainActor in
+                self.updateSelectionSessionFromSelectionWindowFrame(frame, on: frameScreen ?? screen)
+            }
+        }
+        selectionWindowDelegate = delegate
+
         let selectionWindow = ScreenSelectionWindow(
             contentRect: initialFrame,
             styleMask: [.borderless, .resizable, .nonactivatingPanel],
@@ -848,6 +902,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self?.finishScreenSelection()
         }
         selectionWindow.contentView = NSHostingView(rootView: ScreenSelectionWindowChromeView())
+        selectionWindow.delegate = delegate
 
         return selectionWindow
     }

@@ -121,9 +121,6 @@ struct ScreenSelectionMagnifierImage: View {
             controller.updateCaptureRect(centeredOn: session.selectionRectGlobal,
                                          screenBound: session.screen?.frame ?? .zero)
         }
-        .onDisappear {
-            controller.stop()
-        }
         .onChange(of: session.selectionRectGlobal) { _, newValue in
             controller.updateCaptureRect(centeredOn: newValue,
                                          screenBound: session.screen?.frame ?? .zero)
