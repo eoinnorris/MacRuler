@@ -788,6 +788,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         finishScreenSelection()
     }
 
+    final class DraggableContentView: NSView {
+        override var mouseDownCanMoveWindow: Bool { true }
+    }
+    
     private func makeSelectionBackdropWindow(for screen: NSScreen) -> NSWindow {
         let overlay = SelectionOverlayWindow(
             contentRect: screen.frame,
@@ -799,7 +803,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         overlay.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         overlay.isOpaque = false
         overlay.backgroundColor = NSColor.black.withAlphaComponent(0.2)
-        overlay.ignoresMouseEvents = true
+        overlay.ignoresMouseEvents = false
         overlay.hidesOnDeactivate = false
         overlay.hasShadow = false
         overlay.isMovableByWindowBackground = false
@@ -807,7 +811,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self?.finishScreenSelection()
         }
 
-        overlay.contentView = NSView(frame: CGRect(origin: .zero, size: overlay.frame.size))
+        overlay.isMovableByWindowBackground = true  // optional, but nice
+        overlay.contentView = DraggableContentView(frame: CGRect(origin: .zero, size: overlay.frame.size))
 
         return overlay
     }
@@ -832,7 +837,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         selectionWindow.level = .floating
         selectionWindow.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         selectionWindow.isOpaque = false
-        selectionWindow.backgroundColor = .clear
+        selectionWindow.backgroundColor = NSColor.red.withAlphaComponent(0.1)
         selectionWindow.hasShadow = false
         selectionWindow.hidesOnDeactivate = false
         selectionWindow.isMovableByWindowBackground = true

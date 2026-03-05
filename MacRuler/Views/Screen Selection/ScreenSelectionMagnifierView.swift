@@ -132,6 +132,10 @@ struct ScreenSelectionMagnifierView: View {
         try? data.write(to: url)
     }
 
+    final class DraggableHostingView<Content: View>: NSHostingView<Content> {
+        override var mouseDownCanMoveWindow: Bool { true }
+    }
+    
     @MainActor
     private func presentSelectionWindowTemporarily() {
         selectionPreviewTask?.cancel()
@@ -153,9 +157,9 @@ struct ScreenSelectionMagnifierView: View {
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.ignoresMouseEvents = true
+        window.ignoresMouseEvents = false
         window.hasShadow = false
-        window.contentView = NSHostingView(
+        window.contentView = DraggableHostingView(
             rootView: TemporarySelectionWindowContent()
         )
 
