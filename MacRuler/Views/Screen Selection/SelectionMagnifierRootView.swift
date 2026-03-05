@@ -20,8 +20,8 @@ struct SelectionMagnifierRootView: View {
                 ScreenSelectionMagnifierView(
                     session: session,
                     appDelegate: appDelegate,
-                    controller: selectionCaptureObserver,
                     magnificationViewModel: magnificationViewModel,
+                    controller: selectionCaptureObserver,
                     horizontalOverlayViewModel: horizontalOverlayViewModel,
                     verticalOverlayViewModel:verticalOverlayViewModel
                 )

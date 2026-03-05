@@ -95,7 +95,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var selectionMagnifierController: NSWindowController?
     private var selectionMagnifierWindowDelegate: MagnifierWindowDelegate?
     @MainActor private var currentSelectionSession: SelectionSession?
-    private var selectionBackdropController: NSWindowController?
     private var selectionWindowController: NSWindowController?
     private var selectionClickMonitor: Any?
     private var selectionEscapeMonitor: Any?
@@ -774,18 +773,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard let screen = restoredPlacement?.screen ?? NSScreen.main else { return }
         finishScreenSelection()
 
-        let backdrop = makeSelectionBackdropWindow(for: screen)
         let selectionWindow = makeScreenSelectionWindow(
             for: screen,
             restoredFrame: restoredPlacement?.frame
         )
 
-        selectionBackdropController = NSWindowController(window: backdrop)
         selectionWindowController = NSWindowController(window: selectionWindow)
 
         updateSelectionSessionFromSelectionWindowFrame(selectionWindow.frame, on: selectionWindow.screen ?? screen)
 
-        selectionBackdropController?.showWindow(nil)
         selectionWindowController?.showWindow(nil)
         selectionWindowController?.window?.makeKeyAndOrderFront(nil)
         installSelectionEventMonitors()
@@ -813,9 +809,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func finishScreenSelection() {
         persistScreenSelectionPlacement()
         selectionWindowController?.window?.orderOut(nil)
-        selectionBackdropController?.window?.orderOut(nil)
         selectionWindowController = nil
-        selectionBackdropController = nil
         if let selectionClickMonitor {
             NSEvent.removeMonitor(selectionClickMonitor)
             self.selectionClickMonitor = nil
