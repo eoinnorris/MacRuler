@@ -796,14 +796,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func updateSelectionSessionFromSelectionWindowFrame(_ frame: CGRect, on screen: NSScreen) {
         if let currentSelectionSession {
             currentSelectionSession.selectionRectScreen = frame
-            currentSelectionSession.selectionRectGlobal = Constants.globalRectToSCRect(frame, containerHeight: screen.frame.height)
+            currentSelectionSession.selectionRectGlobal = frame
             currentSelectionSession.screen = screen
             return
         }
 
         let session = SelectionSession(
             selectionRectScreen: frame,
-            selectionRectGlobal: Constants.globalRectToSCRect(frame, containerHeight: screen.frame.height),
+            selectionRectGlobal: frame,
             screen: screen
         )
         showSelectionMagnifierWindow(for: session)
