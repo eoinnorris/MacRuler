@@ -8,6 +8,7 @@ import SwiftUI
 struct SelectionMagnifierRootView: View {
     let session: SelectionSession?
     let appDelegate: AppDelegate?
+    @Bindable var selectionCaptureObserver: StreamCaptureObserver
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
 
@@ -19,6 +20,7 @@ struct SelectionMagnifierRootView: View {
                 ScreenSelectionMagnifierView(
                     session: session,
                     appDelegate: appDelegate,
+                    controller: selectionCaptureObserver,
                     magnificationViewModel: magnificationViewModel,
                     horizontalOverlayViewModel: horizontalOverlayViewModel,
                     verticalOverlayViewModel:verticalOverlayViewModel
