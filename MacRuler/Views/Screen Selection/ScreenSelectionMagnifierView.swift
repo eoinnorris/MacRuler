@@ -36,7 +36,7 @@ struct ScreenSelectionMagnifierView: View {
         }
         .onChange(of: session.showSelection) { _, shouldShow in
             if shouldShow {
-                presentSelectionWindowTemporarily()
+                appDelegate?.beginScreenSelection()
             } else {
                 selectionPreviewTask?.cancel()
                 dismissSelectionWindow()
@@ -136,44 +136,44 @@ struct ScreenSelectionMagnifierView: View {
         override var mouseDownCanMoveWindow: Bool { true }
     }
     
-    @MainActor
-    private func presentSelectionWindowTemporarily() {
-        selectionPreviewTask?.cancel()
-        dismissSelectionWindow()
-
-        let rect = selectionRectInScreenCoordinates()
-        guard rect.width > 2, rect.height > 2 else {
-            session.showSelection = false
-            return
-        }
-
-        let window = NSPanel(
-            contentRect: rect,
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        window.level = .floating
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.ignoresMouseEvents = false
-        window.hasShadow = false
-        window.contentView = DraggableHostingView(
-            rootView: TemporarySelectionWindowContent()
-        )
-
-        selectionPreviewWindow = window
-        window.makeKeyAndOrderFront(nil)
-
-        selectionPreviewTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(2))
-            dismissSelectionWindow()
-            if session.showSelection {
-                session.showSelection = false
-            }
-        }
-    }
+//    @MainActor
+//    private func presentSelectionWindowTemporarily() {
+//        selectionPreviewTask?.cancel()
+//        dismissSelectionWindow()
+//
+//        let rect = selectionRectInScreenCoordinates()
+//        guard rect.width > 2, rect.height > 2 else {
+//            session.showSelection = false
+//            return
+//        }
+//
+//        let window = NSPanel(
+//            contentRect: rect,
+//            styleMask: [.borderless, .nonactivatingPanel],
+//            backing: .buffered,
+//            defer: false
+//        )
+//        window.level = .floating
+//        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+//        window.isOpaque = false
+//        window.backgroundColor = .clear
+//        window.ignoresMouseEvents = false
+//        window.hasShadow = false
+//        window.contentView = DraggableHostingView(
+//            rootView: TemporarySelectionWindowContent()
+//        )
+//
+//        selectionPreviewWindow = window
+//        window.makeKeyAndOrderFront(nil)
+//
+//        selectionPreviewTask = Task { @MainActor in
+//            try? await Task.sleep(for: .seconds(2))
+//            dismissSelectionWindow()
+//            if session.showSelection {
+//                session.showSelection = false
+//            }
+//        }
+//    }
 
     @MainActor
     private func dismissSelectionWindow() {
