@@ -16,6 +16,26 @@ extension Notification.Name {
 
 private final class SelectionOverlayWindow: NSPanel {
     var onEscape: (() -> Void)?
+    var onMouseDown: ((CGPoint) -> Void)?
+
+    override var canBecomeKey: Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        let point = convertPoint(toScreen: event.locationInWindow)
+        onMouseDown?(point)
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 {
+            onEscape?()
+            return
+        }
+        super.keyDown(with: event)
+    }
+}
+
+private final class ScreenSelectionWindow: NSPanel {
+    var onEscape: (() -> Void)?
 
     override var canBecomeKey: Bool { true }
 
@@ -25,6 +45,22 @@ private final class SelectionOverlayWindow: NSPanel {
             return
         }
         super.keyDown(with: event)
+    }
+}
+
+private struct ScreenSelectionWindowChromeView: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let insetRect = CGRect(origin: .zero, size: geometry.size).insetBy(dx: 0.5, dy: 0.5)
+
+            ZStack {
+                RoundedRectangle(cornerRadius: 2)
+                    .stroke(Color.white.opacity(0.22), lineWidth: 1)
+                SelectionDancingAntsRectangle(rect: insetRect)
+            }
+            .allowsHitTesting(false)
+        }
+        .background(Color.clear)
     }
 }
 
@@ -46,7 +82,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var selectionMagnifierController: NSWindowController?
     private var selectionMagnifierWindowDelegate: MagnifierWindowDelegate?
     @MainActor private var currentSelectionSession: SelectionSession?
-    private var selectionOverlayController: NSWindowController?
+    private var selectionBackdropController: NSWindowController?
+    private var selectionWindowController: NSWindowController?
     private var statusItem: NSStatusItem?
     private var statusMenu: NSMenu?
     private var horizontalMenuItem: NSMenuItem?
@@ -712,19 +749,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @MainActor
     func beginScreenSelection() {
         guard let screen = NSScreen.main else { return }
-        let overlay = makeSelectionOverlayWindow(for: screen)
-        selectionOverlayController = NSWindowController(window: overlay)
-        selectionOverlayController?.showWindow(nil)
-        selectionOverlayController?.window?.makeKeyAndOrderFront(nil)
+        finishScreenSelection()
+
+        let backdrop = makeSelectionBackdropWindow(for: screen)
+        let selectionWindow = makeScreenSelectionWindow(for: screen)
+
+        selectionBackdropController = NSWindowController(window: backdrop)
+        selectionWindowController = NSWindowController(window: selectionWindow)
+
+        selectionBackdropController?.showWindow(nil)
+        selectionWindowController?.showWindow(nil)
+        selectionWindowController?.window?.makeKeyAndOrderFront(nil)
     }
 
     @MainActor
     private func finishScreenSelection() {
-        selectionOverlayController?.window?.orderOut(nil)
-        selectionOverlayController = nil
+        selectionWindowController?.window?.orderOut(nil)
+        selectionBackdropController?.window?.orderOut(nil)
+        selectionWindowController = nil
+        selectionBackdropController = nil
     }
 
-    private func makeSelectionOverlayWindow(for screen: NSScreen) -> NSWindow {
+    @MainActor
+    private func commitScreenSelection(_ selectionRect: CGRect, on screen: NSScreen) {
+        let globalFrame = Constants.globalRectToSCRect(selectionRect, containerHeight: screen.frame.height)
+
+        let session = SelectionSession(
+            selectionRectScreen: selectionRect,
+            selectionRectGlobal: globalFrame,
+            screen: screen
+        )
+        showSelectionMagnifierWindow(for: session)
+        finishScreenSelection()
+    }
+
+    private func makeSelectionBackdropWindow(for screen: NSScreen) -> NSWindow {
         let overlay = SelectionOverlayWindow(
             contentRect: screen.frame,
             styleMask: [.borderless, .nonactivatingPanel],
@@ -738,29 +797,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         overlay.ignoresMouseEvents = false
         overlay.hidesOnDeactivate = false
         overlay.hasShadow = false
+        overlay.isMovableByWindowBackground = false
         overlay.onEscape = { [weak self] in
             self?.finishScreenSelection()
         }
-        overlay.contentView = NSHostingView(
-            rootView: ScreenSelectionOverlayView(
-                onSelection: { [weak self] selectionRect, screen in
-                    guard let self else { return }
-                    guard let screen else { return }
-                    let globalFrame = Constants.globalRectToSCRect(selectionRect, containerHeight: screen.frame.height)
-                    
-                    let session = SelectionSession(
-                        selectionRectScreen: selectionRect,
-                        selectionRectGlobal: globalFrame,
-                        screen: screen
-                    )
-                    self.showSelectionMagnifierWindow(for: session)
-                    self.finishScreenSelection()
-                },
-                onCancel: { [weak self] in
-                    self?.finishScreenSelection()
-                }
-            )
-        )
+
+        overlay.onMouseDown = { [weak self, weak overlay] clickLocation in
+            guard let self,
+                  let overlay,
+                  let selectionWindow = self.selectionWindowController?.window,
+                  let targetScreen = overlay.screen
+            else { return }
+
+            guard selectionWindow.frame.contains(clickLocation) == false else { return }
+            self.commitScreenSelection(selectionWindow.frame, on: targetScreen)
+        }
+
+        overlay.contentView = NSView(frame: CGRect(origin: .zero, size: overlay.frame.size))
+
         return overlay
+    }
+
+    private func makeScreenSelectionWindow(for screen: NSScreen) -> NSWindow {
+        let visible = screen.visibleFrame
+        let initialWidth = max(220, visible.width * 0.35)
+        let initialHeight = max(160, visible.height * 0.28)
+        let initialFrame = CGRect(
+            x: visible.midX - (initialWidth / 2),
+            y: visible.midY - (initialHeight / 2),
+            width: initialWidth,
+            height: initialHeight
+        ).integral
+
+        let selectionWindow = ScreenSelectionWindow(
+            contentRect: initialFrame,
+            styleMask: [.borderless, .resizable, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        selectionWindow.level = .floating
+        selectionWindow.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        selectionWindow.isOpaque = false
+        selectionWindow.backgroundColor = .clear
+        selectionWindow.hasShadow = false
+        selectionWindow.hidesOnDeactivate = false
+        selectionWindow.isMovableByWindowBackground = true
+        selectionWindow.minSize = NSSize(width: 120, height: 100)
+        selectionWindow.onEscape = { [weak self] in
+            self?.finishScreenSelection()
+        }
+        selectionWindow.contentView = NSHostingView(rootView: ScreenSelectionWindowChromeView())
+
+        return selectionWindow
     }
 }
