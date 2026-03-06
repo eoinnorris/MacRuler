@@ -784,7 +784,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         selectionWindowController?.showWindow(nil)
         selectionWindowController?.window?.makeKeyAndOrderFront(nil)
-        installSelectionEventMonitors()
+//        installSelectionEventMonitors()
     }
 
 
@@ -835,31 +835,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     final class DraggableContentView: NSView {
         override var mouseDownCanMoveWindow: Bool { true }
-    }
-    
-    private func makeSelectionBackdropWindow(for screen: NSScreen) -> NSWindow {
-        let overlay = SelectionOverlayWindow(
-            contentRect: screen.frame,
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        overlay.level = .floating
-        overlay.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        overlay.isOpaque = false
-        overlay.backgroundColor = NSColor.black.withAlphaComponent(0.2)
-        overlay.ignoresMouseEvents = false
-        overlay.hidesOnDeactivate = false
-        overlay.hasShadow = false
-        overlay.isMovableByWindowBackground = false
-        overlay.onEscape = { [weak self] in
-            self?.finishScreenSelection()
-        }
-
-        overlay.isMovableByWindowBackground = true  // optional, but nice
-        overlay.contentView = DraggableContentView(frame: CGRect(origin: .zero, size: overlay.frame.size))
-
-        return overlay
     }
 
     private func makeScreenSelectionWindow(for screen: NSScreen) -> NSWindow {
