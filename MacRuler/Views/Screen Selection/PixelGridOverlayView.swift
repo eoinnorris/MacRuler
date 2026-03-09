@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreGraphics
 
 struct PixelGridOverlayView: View {
     let viewportSize: CGSize
@@ -20,8 +21,12 @@ struct PixelGridOverlayView: View {
     @State private var isDraggingCrosshair = false
 
 
+    private var pixelScaleModel: MagnifierPixelScaleModel {
+        MagnifierPixelScaleModel(magnification: magnification, sourceScreenScale: screenScale)
+    }
+
     private var pixelStep: CGFloat {
-        CGFloat(max(magnification, 0.1) / max(screenScale, 0.1))
+        pixelScaleModel.viewPointsPerSourcePixel
     }
 
     private var shouldShowGrid: Bool {
@@ -29,13 +34,17 @@ struct PixelGridOverlayView: View {
     }
 
     private var dragDistanceWidthLabelText: String {
-        let widthInPixels = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width) / pixelStep
+        let widthInPixels = pixelScaleModel.sourcePixelDistance(
+            forViewDistance: abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width)
+        )
         let roundedWidth = Int(widthInPixels.rounded())
         return "􀄾 \(roundedWidth)"
     }
 
     private var dragDistanceHeightLabelText: String {
-        let heightInPixels = abs(secondaryCrosshairOffset.height - primaryCrosshairOffset.height) / pixelStep
+        let heightInPixels = pixelScaleModel.sourcePixelDistance(
+            forViewDistance: abs(secondaryCrosshairOffset.height - primaryCrosshairOffset.height)
+        )
         let roundedHeight = Int(heightInPixels.rounded())
         return "􀑹 \(roundedHeight)"
     }
