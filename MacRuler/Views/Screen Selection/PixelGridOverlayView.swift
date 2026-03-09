@@ -28,10 +28,16 @@ struct PixelGridOverlayView: View {
         showPixelGrid && magnification >= 4 && pixelStep >= 1
     }
 
-    private var dragDistanceLabelText: String {
+    private var dragDistanceWidthLabelText: String {
         let widthInPixels = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width) / pixelStep
         let roundedWidth = Int(widthInPixels.rounded())
         return "<\(roundedWidth)>"
+    }
+
+    private var dragDistanceHeightLabelText: String {
+        let heightInPixels = abs(secondaryCrosshairOffset.height - primaryCrosshairOffset.height) / pixelStep
+        let roundedHeight = Int(heightInPixels.rounded())
+        return "<\(roundedHeight)>"
     }
 
     private var shouldShowDragDistanceLabel: Bool {
@@ -39,8 +45,7 @@ struct PixelGridOverlayView: View {
             return false
         }
 
-        let horizontalDistance = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width)
-        return horizontalDistance >= 80
+        return true
     }
 
     var body: some View {
@@ -122,7 +127,7 @@ struct PixelGridOverlayView: View {
                     }
 
                     if shouldShowDragDistanceLabel {
-                        dragDistanceLabel(in: proxy.size)
+                        dragDistanceLabels(in: proxy.size)
                     }
                 }
             }
@@ -199,7 +204,7 @@ struct PixelGridOverlayView: View {
     }
 
     @ViewBuilder
-    private func dragDistanceLabel(in size: CGSize) -> some View {
+    private func dragDistanceLabels(in size: CGSize) -> some View {
         let center = CGPoint(x: size.width / 2, y: size.height / 2)
         let primaryPoint = clampedPoint(
             for: CGPoint(
@@ -219,14 +224,35 @@ struct PixelGridOverlayView: View {
             x: (primaryPoint.x + secondaryPoint.x) / 2,
             y: (primaryPoint.y + secondaryPoint.y) / 2
         )
+        let rightmostX = max(primaryPoint.x, secondaryPoint.x)
+        let topmostY = min(primaryPoint.y, secondaryPoint.y)
 
-        Text(dragDistanceLabelText)
+        let widthLabelPoint = CGPoint(
+            x: min(rightmostX + 36, size.width - 36),
+            y: midpoint.y
+        )
+
+        let heightLabelPoint = CGPoint(
+            x: midpoint.x,
+            y: max(topmostY - 18, 16)
+        )
+
+        ZStack {
+            dragDistanceLabel(text: dragDistanceWidthLabelText)
+                .position(widthLabelPoint)
+
+            dragDistanceLabel(text: dragDistanceHeightLabelText)
+                .position(heightLabelPoint)
+        }
+    }
+
+    private func dragDistanceLabel(text: String) -> some View {
+        Text(text)
             .font(.caption.monospacedDigit())
-            .foregroundStyle(.white)
+            .foregroundStyle(.brandPrimary)
             .padding(.horizontal, 6)
             .padding(.vertical, 3)
-            .background(.black.opacity(0.65), in: Capsule())
-            .position(midpoint)
+            .background(.black.opacity(0.55), in: Capsule())
     }
 }
 
