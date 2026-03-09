@@ -17,6 +17,7 @@ struct PixelGridOverlayView: View {
     let showPixelGrid: Bool
     @Binding var primaryCrosshairOffset: CGSize
     @Binding var secondaryCrosshairOffset: CGSize
+    @State private var isDraggingCrosshair = false
 
 
     private var pixelStep: CGFloat {
@@ -25,6 +26,21 @@ struct PixelGridOverlayView: View {
 
     private var shouldShowGrid: Bool {
         showPixelGrid && magnification >= 4 && pixelStep >= 1
+    }
+
+    private var dragDistanceLabelText: String {
+        let widthInPixels = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width) / pixelStep
+        let roundedWidth = Int(widthInPixels.rounded())
+        return "< \(roundedWidth) px >"
+    }
+
+    private var shouldShowDragDistanceLabel: Bool {
+        guard isDraggingCrosshair, showCrosshair, showSecondaryCrosshair else {
+            return false
+        }
+
+        let horizontalDistance = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width)
+        return horizontalDistance >= 80
     }
 
     var body: some View {
@@ -104,6 +120,10 @@ struct PixelGridOverlayView: View {
                             ))
                             .gesture(secondaryCrosshairDragGesture(in: proxy.size))
                     }
+
+                    if shouldShowDragDistanceLabel {
+                        dragDistanceLabel(in: proxy.size)
+                    }
                 }
             }
         }
@@ -156,18 +176,57 @@ struct PixelGridOverlayView: View {
         )
     }
 
-    private func primaryCrosshairDragGesture(in size: CGSize) -> some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                primaryCrosshairOffset = crosshairOffset(for: value.location, in: size)
-            }
-    }
-
     private func secondaryCrosshairDragGesture(in size: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
+                isDraggingCrosshair = true
                 secondaryCrosshairOffset = crosshairOffset(for: value.location, in: size)
             }
+            .onEnded { _ in
+                isDraggingCrosshair = false
+            }
+    }
+
+    private func primaryCrosshairDragGesture(in size: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                isDraggingCrosshair = true
+                primaryCrosshairOffset = crosshairOffset(for: value.location, in: size)
+            }
+            .onEnded { _ in
+                isDraggingCrosshair = false
+            }
+    }
+
+    @ViewBuilder
+    private func dragDistanceLabel(in size: CGSize) -> some View {
+        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+        let primaryPoint = clampedPoint(
+            for: CGPoint(
+                x: center.x + primaryCrosshairOffset.width,
+                y: center.y + primaryCrosshairOffset.height
+            ),
+            in: size
+        )
+        let secondaryPoint = clampedPoint(
+            for: CGPoint(
+                x: center.x + secondaryCrosshairOffset.width,
+                y: center.y + secondaryCrosshairOffset.height
+            ),
+            in: size
+        )
+        let midpoint = CGPoint(
+            x: (primaryPoint.x + secondaryPoint.x) / 2,
+            y: (primaryPoint.y + secondaryPoint.y) / 2
+        )
+
+        Text(dragDistanceLabelText)
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(.white)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(.black.opacity(0.65), in: Capsule())
+            .position(midpoint)
     }
 }
 
