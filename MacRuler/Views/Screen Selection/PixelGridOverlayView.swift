@@ -31,13 +31,13 @@ struct PixelGridOverlayView: View {
     private var dragDistanceWidthLabelText: String {
         let widthInPixels = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width) / pixelStep
         let roundedWidth = Int(widthInPixels.rounded())
-        return "<\(roundedWidth)>"
+        return "􀄾 \(roundedWidth)"
     }
 
     private var dragDistanceHeightLabelText: String {
         let heightInPixels = abs(secondaryCrosshairOffset.height - primaryCrosshairOffset.height) / pixelStep
         let roundedHeight = Int(heightInPixels.rounded())
-        return "<\(roundedHeight)>"
+        return "􀑹 \(roundedHeight)"
     }
 
     private var shouldShowDragDistanceLabel: Bool {
@@ -238,17 +238,17 @@ struct PixelGridOverlayView: View {
         )
 
         ZStack {
-            dragDistanceLabel(text: dragDistanceWidthLabelText)
+            dragDistanceLabel(text: dragDistanceHeightLabelText)
                 .position(widthLabelPoint)
 
-            dragDistanceLabel(text: dragDistanceHeightLabelText)
+            dragDistanceLabel(text: dragDistanceWidthLabelText)
                 .position(heightLabelPoint)
         }
     }
 
     private func dragDistanceLabel(text: String) -> some View {
         Text(text)
-            .font(.caption.monospacedDigit())
+            .font(.body.monospacedDigit())
             .foregroundStyle(.brandPrimary)
             .padding(.horizontal, 6)
             .padding(.vertical, 3)
