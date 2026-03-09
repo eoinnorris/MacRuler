@@ -14,7 +14,11 @@ struct MagnifierPixelScaleModel {
     }
 
     func sourcePixelDistance(forViewDistance viewDistance: CGFloat) -> CGFloat {
-        viewDistance * sourceScreenScale / magnification
+        sourcePointDistance(forViewDistance: viewDistance) * sourceScreenScale
+    }
+
+    func sourcePointDistance(forViewDistance viewDistance: CGFloat) -> CGFloat {
+        viewDistance / magnification
     }
 
     func sourcePixelIndex(forViewCoordinate viewCoordinate: CGFloat) -> Int {

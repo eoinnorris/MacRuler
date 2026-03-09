@@ -12,6 +12,11 @@ final class MagnifierPixelScaleModelTests: XCTestCase {
         XCTAssertEqual(model.sourcePixelDistance(forViewDistance: 15.0), 5.0)
     }
 
+    func testSourcePointDistanceUsesMagnificationOnly() {
+        let model = MagnifierPixelScaleModel(magnification: 6.0, sourceScreenScale: 2.0)
+        XCTAssertEqual(model.sourcePointDistance(forViewDistance: 15.0), 2.5)
+    }
+
     func testSourcePixelIndexRoundsDown() {
         let model = MagnifierPixelScaleModel(magnification: 5.0, sourceScreenScale: 2.0)
         XCTAssertEqual(model.sourcePixelIndex(forViewCoordinate: 9.9), 3)

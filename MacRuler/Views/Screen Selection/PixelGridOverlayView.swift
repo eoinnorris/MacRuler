@@ -34,18 +34,18 @@ struct PixelGridOverlayView: View {
     }
 
     private var dragDistanceWidthLabelText: String {
-        let widthInPixels = pixelScaleModel.sourcePixelDistance(
+        let widthInPoints = pixelScaleModel.sourcePointDistance(
             forViewDistance: abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width)
         )
-        let roundedWidth = Int(widthInPixels.rounded())
+        let roundedWidth = Int(widthInPoints.rounded())
         return "􀄾 \(roundedWidth)"
     }
 
     private var dragDistanceHeightLabelText: String {
-        let heightInPixels = pixelScaleModel.sourcePixelDistance(
+        let heightInPoints = pixelScaleModel.sourcePointDistance(
             forViewDistance: abs(secondaryCrosshairOffset.height - primaryCrosshairOffset.height)
         )
-        let roundedHeight = Int(heightInPixels.rounded())
+        let roundedHeight = Int(heightInPoints.rounded())
         return "􀑹 \(roundedHeight)"
     }
 
