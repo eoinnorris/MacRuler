@@ -51,17 +51,18 @@ struct CenterSampleReadout {
         magnification: Double,
         screenScale: Double
     ) -> CenterSampleReadout? {
+        let scaleModel = MagnifierPixelScaleModel(
+            magnification: magnification,
+            sourceScreenScale: screenScale
+        )
         let viewCenter = CGPoint(x: viewportSize.width / 2, y: viewportSize.height / 2)
         let imageCenterPoint = CGPoint(
             x: viewCenter.x - contentFrame.minX,
             y: viewCenter.y - contentFrame.minY
         )
 
-        let safeMagnification = max(magnification, 0.1)
-        let safeScale = max(screenScale, 0.1)
-
-        let pixelX = Int((imageCenterPoint.x * safeScale / safeMagnification).rounded(.down))
-        let pixelY = Int((imageCenterPoint.y * safeScale / safeMagnification).rounded(.down))
+        let pixelX = scaleModel.sourcePixelIndex(forViewCoordinate: imageCenterPoint.x)
+        let pixelY = scaleModel.sourcePixelIndex(forViewCoordinate: imageCenterPoint.y)
 
         let boundedX = min(max(pixelX, 0), frameImage.width - 1)
         let boundedY = min(max(pixelY, 0), frameImage.height - 1)
