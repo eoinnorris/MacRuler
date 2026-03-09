@@ -31,7 +31,7 @@ struct PixelGridOverlayView: View {
     private var dragDistanceLabelText: String {
         let widthInPixels = abs(secondaryCrosshairOffset.width - primaryCrosshairOffset.width) / pixelStep
         let roundedWidth = Int(widthInPixels.rounded())
-        return "< \(roundedWidth) px >"
+        return "<\(roundedWidth)>"
     }
 
     private var shouldShowDragDistanceLabel: Bool {

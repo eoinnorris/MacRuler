@@ -48,8 +48,8 @@ struct CenterSampleReadoutCapsule: View {
                 }
             }
         }
-        .font(.caption)
-        .foregroundStyle(.white)
+        .font(.body)
+        .foregroundStyle(.brandPrimary)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(.black.opacity(0.65))
