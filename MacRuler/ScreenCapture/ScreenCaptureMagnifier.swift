@@ -215,7 +215,7 @@ extension StreamCaptureObserver: SCStreamDelegate {
     }
 }
 
-struct RulerMagnifierView: View {
+private struct RulerMagnifierView: View {
     @Bindable var viewModel: MagnificationViewModel
     @State private var controller = StreamCaptureObserver()
 
