@@ -190,7 +190,7 @@ struct ScreenSelectionMagnifierImage: View {
                         magnification: session.magnification,
                         readoutComposition: readoutComposition(),
                         unitType: crosshairViewModel.unitType,
-                        measurementScale: crosshairViewModel.effectiveMeasurementScale(displayScale: Constants.screenScale),
+                        measurementScale: crosshairViewModel.effectiveMeasurementScale(displayScale: Constants.screenScale,sourceCaptureScale: Constants.screenScale),
                         sourceScreenScale: Constants.screenScale,
                         showCenterPixelCoordinates: crosshairViewModel.showCenterPixelCoordinates,
                         showConvertedCenterCoordinates: crosshairViewModel.showConvertedCenterCoordinates,
@@ -219,7 +219,7 @@ struct ScreenSelectionMagnifierImage: View {
             verticalDistancePoints: session.showVerticalRuler ? verticalOverlayViewModel.dividerY : nil,
             verticalDisplayScale: verticalOverlayViewModel.backingScale,
             measurementScaleProvider: { displayScale in
-                crosshairViewModel.effectiveMeasurementScale(displayScale: displayScale)
+                crosshairViewModel.effectiveMeasurementScale(displayScale: displayScale, sourceCaptureScale: Constants.screenScale)
             },
             showMeasurementScaleOverride: crosshairViewModel.shouldShowMeasurementScaleOverride
         )

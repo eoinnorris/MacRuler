@@ -95,7 +95,7 @@ final class MagnifierCrosshairViewModel {
         rulerSettingsViewModel.shouldShowMeasurementScaleOverride
     }
 
-    func effectiveMeasurementScale(displayScale: Double, sourceCaptureScale: Double = Constants.screenScale) -> Double {
+    func effectiveMeasurementScale(displayScale: Double, sourceCaptureScale: Double) -> Double {
         rulerSettingsViewModel.effectiveMeasurementScale(
             displayScale: displayScale,
             sourceCaptureScale: sourceCaptureScale
