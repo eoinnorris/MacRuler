@@ -145,6 +145,9 @@ struct ScreenSelectionMagnifierImage: View {
                 showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
                 showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
                 showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid,
+                crosshairLineWidth: CGFloat(rulerSettingsViewModel.magnifierCrosshairLineWidth),
+                crosshairColor: rulerSettingsViewModel.magnifierCrosshairColor.swiftUIColor,
+                crosshairDualStrokeEnabled: rulerSettingsViewModel.magnifierCrosshairDualStrokeEnabled,
                 primaryCrosshairOffset: $primaryCrosshairOffset,
                 secondaryCrosshairOffset: $secondaryCrosshairOffset
             )
