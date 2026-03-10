@@ -186,7 +186,8 @@ struct ScreenSelectionMagnifierImage: View {
                 primaryCrosshairOffset: $crosshairViewModel.primaryOffset,
                 secondaryCrosshairOffset: $crosshairViewModel.secondaryOffset,
                 isPrimaryLocked: $crosshairViewModel.isPrimaryLocked,
-                isSecondaryLocked: $crosshairViewModel.isSecondaryLocked
+                isSecondaryLocked: $crosshairViewModel.isSecondaryLocked,
+                selectedCrosshair: $crosshairViewModel.selectedCrosshair
             )
             .allowsHitTesting(crosshairViewModel.showCrosshair)
 
