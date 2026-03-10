@@ -20,6 +20,7 @@ struct ScreenSelectionMagnifierView: View {
 
     var horizontalOverlayViewModel: OverlayViewModel
     var verticalOverlayViewModel: OverlayVerticalViewModel
+    @Bindable var magnifierCrosshairViewModel: MagnifierCrosshairViewModel
 
     var body: some View {
         SelectionMagnifierContentView(session: session,
@@ -27,6 +28,7 @@ struct ScreenSelectionMagnifierView: View {
                                       horizontalOverlayViewModel:horizontalOverlayViewModel,
                                       verticalOverlayViewModel:verticalOverlayViewModel,
                                       crosshairViewModel: crosshairViewModel)
+                                      magnifierCrosshairViewModel: magnifierCrosshairViewModel)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(12)
         .toolbar {

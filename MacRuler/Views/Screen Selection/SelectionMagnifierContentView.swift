@@ -13,7 +13,7 @@ struct SelectionMagnifierContentView: View {
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel = .shared
-    @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
+    @Bindable var magnifierCrosshairViewModel: MagnifierCrosshairViewModel
 
     var body: some View {
         ScreenSelectionMagnifierImage(
@@ -22,7 +22,7 @@ struct SelectionMagnifierContentView: View {
             horizontalOverlayViewModel: horizontalOverlayViewModel,
             verticalOverlayViewModel: verticalOverlayViewModel,
             rulerSettingsViewModel: rulerSettingsViewModel,
-            crosshairViewModel: crosshairViewModel
+            magnifierCrosshairViewModel: magnifierCrosshairViewModel
         )
     }
 }

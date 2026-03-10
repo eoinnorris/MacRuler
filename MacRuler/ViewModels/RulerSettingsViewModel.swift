@@ -26,6 +26,67 @@ enum MeasurementScaleMode: String, CaseIterable, Identifiable {
     }
 }
 
+
+
+enum MagnifierCrosshairPreset: String, CaseIterable, Identifiable {
+    case classic
+    case highContrast
+    case minimal
+
+    var id: Self { self }
+
+    var displayName: String {
+        switch self {
+        case .classic:
+            "Classic"
+        case .highContrast:
+            "High Contrast"
+        case .minimal:
+            "Minimal"
+        }
+    }
+}
+
+enum MagnifierCrosshairColor: String, CaseIterable, Identifiable {
+    case white
+    case yellow
+    case cyan
+    case green
+    case red
+
+    var id: Self { self }
+
+    var displayName: String {
+        switch self {
+        case .white:
+            "White"
+        case .yellow:
+            "Yellow"
+        case .cyan:
+            "Cyan"
+        case .green:
+            "Green"
+        case .red:
+            "Red"
+        }
+    }
+
+    var swiftUIColor: Color {
+        switch self {
+        case .white:
+            .white
+        case .yellow:
+            .yellow
+        case .cyan:
+            .cyan
+        case .green:
+            .green
+        case .red:
+            .red
+        }
+    }
+}
+
 enum RulerBackgroundSize: String, CaseIterable {
     case large
     case small
@@ -141,6 +202,40 @@ enum RulerBackgroundSize: String, CaseIterable {
         }
     }
 
+
+
+    var magnifierCrosshairLineWidth: Double {
+        didSet {
+            let clampedLineWidth = min(max(magnifierCrosshairLineWidth, 0.5), 5)
+            if clampedLineWidth != magnifierCrosshairLineWidth {
+                magnifierCrosshairLineWidth = clampedLineWidth
+                return
+            }
+            defaults.set(magnifierCrosshairLineWidth, forKey: PersistenceKeys.magnifierCrosshairLineWidth)
+        }
+    }
+
+    var magnifierCrosshairColor: MagnifierCrosshairColor {
+        didSet {
+            defaults.set(magnifierCrosshairColor.rawValue, forKey: PersistenceKeys.magnifierCrosshairColor)
+        }
+    }
+
+    var magnifierCrosshairDualStrokeEnabled: Bool {
+        didSet {
+            defaults.set(
+                magnifierCrosshairDualStrokeEnabled,
+                forKey: PersistenceKeys.magnifierCrosshairDualStrokeEnabled
+            )
+        }
+    }
+
+    var magnifierCrosshairPreset: MagnifierCrosshairPreset {
+        didSet {
+            defaults.set(magnifierCrosshairPreset.rawValue, forKey: PersistenceKeys.magnifierCrosshairPreset)
+        }
+    }
+
     var showMagnifierReadoutCenterPixel: Bool {
         didSet {
             defaults.set(showMagnifierReadoutCenterPixel, forKey: PersistenceKeys.magnifierReadoutCenterPixelEnabled)
@@ -199,6 +294,25 @@ enum RulerBackgroundSize: String, CaseIterable {
 
     var shouldShowMeasurementScaleOverride: Bool {
         showMeasurementScaleOverrideBadge && measurementScaleMode == .manual
+    }
+
+    func applyMagnifierCrosshairPreset(_ preset: MagnifierCrosshairPreset) {
+        magnifierCrosshairPreset = preset
+
+        switch preset {
+        case .classic:
+            magnifierCrosshairLineWidth = 1
+            magnifierCrosshairColor = .white
+            magnifierCrosshairDualStrokeEnabled = true
+        case .highContrast:
+            magnifierCrosshairLineWidth = 2
+            magnifierCrosshairColor = .yellow
+            magnifierCrosshairDualStrokeEnabled = true
+        case .minimal:
+            magnifierCrosshairLineWidth = 0.5
+            magnifierCrosshairColor = .cyan
+            magnifierCrosshairDualStrokeEnabled = false
+        }
     }
 
     private static func clampMeasurementScale(_ value: Double) -> Double {
@@ -279,6 +393,34 @@ enum RulerBackgroundSize: String, CaseIterable {
 
             self.showMagnifierSecondaryCrosshair =
                 defaults.object(forKey: PersistenceKeys.magnifierSecondaryCrosshairEnabled) as? Bool ?? false
+
+
+
+            if defaults.object(forKey: PersistenceKeys.magnifierCrosshairLineWidth) != nil {
+                self.magnifierCrosshairLineWidth = min(
+                    max(defaults.double(forKey: PersistenceKeys.magnifierCrosshairLineWidth), 0.5),
+                    5
+                )
+            } else {
+                self.magnifierCrosshairLineWidth = 1
+            }
+
+            if let raw = defaults.string(forKey: PersistenceKeys.magnifierCrosshairColor),
+               let crosshairColor = MagnifierCrosshairColor(rawValue: raw) {
+                self.magnifierCrosshairColor = crosshairColor
+            } else {
+                self.magnifierCrosshairColor = .white
+            }
+
+            self.magnifierCrosshairDualStrokeEnabled =
+                defaults.object(forKey: PersistenceKeys.magnifierCrosshairDualStrokeEnabled) as? Bool ?? true
+
+            if let raw = defaults.string(forKey: PersistenceKeys.magnifierCrosshairPreset),
+               let preset = MagnifierCrosshairPreset(rawValue: raw) {
+                self.magnifierCrosshairPreset = preset
+            } else {
+                self.magnifierCrosshairPreset = .classic
+            }
 
             self.showMagnifierReadoutCenterPixel =
                 defaults.object(forKey: PersistenceKeys.magnifierReadoutCenterPixelEnabled) as? Bool ?? false

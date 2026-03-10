@@ -11,6 +11,7 @@ final class AppDependencies {
     let overlayVertical: OverlayVerticalViewModel
     let debugSettings: DebugSettingsModel
     let magnification: MagnificationViewModel
+    let magnifierCrosshair: MagnifierCrosshairViewModel
 
     init(defaultsStore: DefaultsStoring = UserDefaults.standard) {
         self.defaultsStore = defaultsStore
@@ -25,5 +26,9 @@ final class AppDependencies {
         )
         self.debugSettings = DebugSettingsModel()
         self.magnification = MagnificationViewModel()
+        self.magnifierCrosshair = MagnifierCrosshairViewModel(
+            secondaryOffset: MagnifierCrosshairViewModel.defaultSecondaryOffset,
+            rulerSettings: rulerSettings
+        )
     }
 }

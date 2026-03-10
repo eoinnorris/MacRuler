@@ -16,6 +16,9 @@ struct PixelGridOverlayView: View {
     let showCrosshair: Bool
     let showSecondaryCrosshair: Bool
     let showPixelGrid: Bool
+    let crosshairLineWidth: CGFloat
+    let crosshairColor: Color
+    let crosshairDualStrokeEnabled: Bool
     @Binding var primaryCrosshairOffset: CGSize
     @Binding var secondaryCrosshairOffset: CGSize
     @Binding var isPrimaryLocked: Bool
@@ -193,7 +196,19 @@ struct PixelGridOverlayView: View {
         crosshairPath.addLine(to: CGPoint(x: center.x, y: size.height))
         crosshairPath.move(to: CGPoint(x: 0, y: center.y))
         crosshairPath.addLine(to: CGPoint(x: size.width, y: center.y))
-        context.stroke(crosshairPath, with: .color(.white.opacity(0.85)), lineWidth: 1)
+        if crosshairDualStrokeEnabled {
+            context.stroke(
+                crosshairPath,
+                with: .color(.black.opacity(0.95)),
+                lineWidth: crosshairLineWidth + 1.5
+            )
+        }
+
+        context.stroke(
+            crosshairPath,
+            with: .color(crosshairColor.opacity(0.95)),
+            lineWidth: crosshairLineWidth
+        )
     }
 
     private func alignedStart(originComponent: CGFloat, step: CGFloat) -> CGFloat {

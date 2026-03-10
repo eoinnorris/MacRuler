@@ -13,6 +13,7 @@ struct SelectionMagnifierRootView: View {
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
 
     @Bindable var magnificationViewModel: MagnificationViewModel
+    @Bindable var magnifierCrosshairViewModel: MagnifierCrosshairViewModel
 
     var body: some View {
         Group {
@@ -23,7 +24,8 @@ struct SelectionMagnifierRootView: View {
                     magnificationViewModel: magnificationViewModel,
                     controller: selectionCaptureObserver,
                     horizontalOverlayViewModel: horizontalOverlayViewModel,
-                    verticalOverlayViewModel:verticalOverlayViewModel
+                    verticalOverlayViewModel:verticalOverlayViewModel,
+                    magnifierCrosshairViewModel: magnifierCrosshairViewModel
                 )
             } else {
                 SelectionHintView(appDelegate: appDelegate)
