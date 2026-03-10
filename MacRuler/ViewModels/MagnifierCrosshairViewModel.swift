@@ -18,36 +18,48 @@ final class MagnifierCrosshairViewModel {
     var isSecondaryLocked = false
     var selectedCrosshair: CrosshairSelection = .primary
     private let defaults: DefaultsStoring
-    private let rulerSettingsViewModel: RulerSettingsViewModel
 
-    var showMagnifierCrosshair: Bool = true {
+    var showMagnifierCrosshair: Bool {
         didSet {
-            defaults.set(showMagnifierCrosshair, forKey: PersistenceKeys.magnifierCrosshairEnabled)
+            defaults.magnifierCrosshairEnabled = showMagnifierCrosshair
         }
     }
     
     init(primaryOffset: CGSize = .zero,
         secondaryOffset: CGSize,
-        rulerSettingsViewModel: RulerSettingsViewModel = .shared,
         defaults: DefaultsStoring = UserDefaults.standard)
     {
         self.defaults = defaults
-        self.rulerSettingsViewModel = rulerSettingsViewModel
         self.primaryOffset = primaryOffset
         self.secondaryOffset = secondaryOffset
+        self.showMagnifierCrosshair = defaults.magnifierCrosshairEnabled
+        self.showCrosshair = defaults.magnifierCrosshairEnabled
+        self.showSecondaryCrosshair = defaults.magnifierSecondaryCrosshairEnabled
+        self.showPixelGrid = defaults.magnifierPixelGridEnabled
+        self.crosshairLineWidth = defaults.magnifierCrosshairLineWidth
+        self.crosshairColor = defaults.magnifierCrosshairColor
+        self.crosshairDualStrokeEnabled = defaults.magnifierCrosshairDualStrokeEnabled
+        self.unitType = defaults.magnifierUnitType
+        self.showCenterPixelCoordinates = defaults.showCenterPixelCoordinates
+        self.showConvertedCenterCoordinates = defaults.showConvertedCenterCoordinates
+        self.showColorValues = defaults.showMagnifierReadoutColor
+        self.showSecondaryReadouts = defaults.showMagnifierSecondaryReadouts
+        self.measurementScaleMode = defaults.measurementScaleModeValue
+        self.manualMeasurementScale = defaults.manualMeasurementScaleValue
+        self.showMeasurementScaleOverrideBadge = defaults.measurementScaleOverrideBadgeEnabled
     }
 
     
-    var showCrosshair: Bool = true {
+    var showCrosshair: Bool {
         didSet {
             primaryOffset = .zero
-            defaults.set(showMagnifierCrosshair, forKey: PersistenceKeys.magnifierCrosshairEnabled)
+            showMagnifierCrosshair = showCrosshair
         }
     }
     
     var showSecondaryCrosshair: Bool = true {
         didSet {
-            defaults.set(showSecondaryCrosshair, forKey: PersistenceKeys.magnifierSecondaryCrosshairEnabled)
+            defaults.magnifierSecondaryCrosshairEnabled = showSecondaryCrosshair
             if !showSecondaryCrosshair {
                 resetSecondaryOffset()
             }
@@ -55,51 +67,100 @@ final class MagnifierCrosshairViewModel {
     }
 
     var showPixelGrid: Bool {
-        get { rulerSettingsViewModel.showMagnifierPixelGrid }
-        set { rulerSettingsViewModel.showMagnifierPixelGrid = newValue }
+        didSet {
+            defaults.magnifierPixelGridEnabled = showPixelGrid
+        }
     }
 
     var crosshairLineWidth: Double {
-        rulerSettingsViewModel.magnifierCrosshairLineWidth
+        didSet {
+            let clampedLineWidth = min(max(crosshairLineWidth, 0.5), 5)
+            if clampedLineWidth != crosshairLineWidth {
+                crosshairLineWidth = clampedLineWidth
+                return
+            }
+            defaults.magnifierCrosshairLineWidth = crosshairLineWidth
+        }
     }
 
     var crosshairColor: MagnifierCrosshairColor {
-        rulerSettingsViewModel.magnifierCrosshairColor
+        didSet {
+            defaults.magnifierCrosshairColor = crosshairColor
+        }
     }
 
     var crosshairDualStrokeEnabled: Bool {
-        rulerSettingsViewModel.magnifierCrosshairDualStrokeEnabled
+        didSet {
+            defaults.magnifierCrosshairDualStrokeEnabled = crosshairDualStrokeEnabled
+        }
     }
 
     var unitType: UnitTypes {
-        rulerSettingsViewModel.unitType
+        didSet {
+            defaults.magnifierUnitType = unitType
+        }
     }
 
     var showCenterPixelCoordinates: Bool {
-        rulerSettingsViewModel.showMagnifierReadoutCenterPixel
+        didSet {
+            defaults.showCenterPixelCoordinates = showCenterPixelCoordinates
+        }
     }
 
     var showConvertedCenterCoordinates: Bool {
-        rulerSettingsViewModel.showMagnifierReadoutConvertedCoordinates
+        didSet {
+            defaults.showConvertedCenterCoordinates = showConvertedCenterCoordinates
+        }
     }
 
     var showColorValues: Bool {
-        rulerSettingsViewModel.showMagnifierReadoutColor
+        didSet {
+            defaults.showMagnifierReadoutColor = showColorValues
+        }
     }
 
     var showSecondaryReadouts: Bool {
-        rulerSettingsViewModel.showMagnifierReadoutSecondaryReadouts
+        didSet {
+            defaults.showMagnifierSecondaryReadouts = showSecondaryReadouts
+        }
+    }
+
+    var measurementScaleMode: MeasurementScaleMode {
+        didSet {
+            defaults.measurementScaleModeValue = measurementScaleMode
+        }
+    }
+
+    var manualMeasurementScale: Double {
+        didSet {
+            let clampedScale = min(max(manualMeasurementScale, 0.5), 4.0)
+            if clampedScale != manualMeasurementScale {
+                manualMeasurementScale = clampedScale
+                return
+            }
+            defaults.manualMeasurementScaleValue = manualMeasurementScale
+        }
+    }
+
+    var showMeasurementScaleOverrideBadge: Bool {
+        didSet {
+            defaults.measurementScaleOverrideBadgeEnabled = showMeasurementScaleOverrideBadge
+        }
     }
 
     var shouldShowMeasurementScaleOverride: Bool {
-        rulerSettingsViewModel.shouldShowMeasurementScaleOverride
+        showMeasurementScaleOverrideBadge && measurementScaleMode == .manual
     }
 
     func effectiveMeasurementScale(displayScale: Double, sourceCaptureScale: Double) -> Double {
-        rulerSettingsViewModel.effectiveMeasurementScale(
-            displayScale: displayScale,
-            sourceCaptureScale: sourceCaptureScale
-        )
+        switch measurementScaleMode {
+        case .autoDisplay:
+            max(displayScale, 0.1)
+        case .sourceCapture:
+            max(sourceCaptureScale, 0.1)
+        case .manual:
+            manualMeasurementScale
+        }
     }
 
     func toggleCrosshairVisibility() {

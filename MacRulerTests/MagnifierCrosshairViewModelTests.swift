@@ -134,4 +134,80 @@ final class MagnifierCrosshairViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.primaryOffset, CGSize(width: 3, height: 2))
     }
 
+
+    @MainActor
+    func testInitLoadsDefaultsWithoutRulerSettingsDependency() {
+        let defaults = InMemoryDefaultsStore()
+        defaults.set(false, forKey: PersistenceKeys.magnifierCrosshairEnabled)
+        defaults.set(true, forKey: PersistenceKeys.magnifierSecondaryCrosshairEnabled)
+        defaults.set(false, forKey: PersistenceKeys.magnifierPixelGridEnabled)
+        defaults.set(9.0, forKey: PersistenceKeys.magnifierCrosshairLineWidth)
+        defaults.set(MagnifierCrosshairColor.cyan.rawValue, forKey: PersistenceKeys.magnifierCrosshairColor)
+        defaults.set(false, forKey: PersistenceKeys.magnifierCrosshairDualStrokeEnabled)
+        defaults.set(UnitTypes.mm.rawValue, forKey: PersistenceKeys.unitType)
+        defaults.set(true, forKey: PersistenceKeys.magnifierReadoutCenterPixelEnabled)
+        defaults.set(true, forKey: PersistenceKeys.magnifierReadoutConvertedCoordinatesEnabled)
+        defaults.set(true, forKey: PersistenceKeys.magnifierReadoutColorEnabled)
+        defaults.set(true, forKey: PersistenceKeys.magnifierReadoutSecondaryReadoutsEnabled)
+        defaults.set(MeasurementScaleMode.manual.rawValue, forKey: PersistenceKeys.measurementScaleMode)
+        defaults.set(5.0, forKey: PersistenceKeys.measurementScaleManualValue)
+        defaults.set(true, forKey: PersistenceKeys.measurementScaleBadgeEnabled)
+
+        let viewModel = MagnifierCrosshairViewModel(
+            primaryOffset: .zero,
+            secondaryOffset: MagnifierCrosshairViewModel.defaultSecondaryOffset,
+            defaults: defaults
+        )
+
+        XCTAssertFalse(viewModel.showCrosshair)
+        XCTAssertTrue(viewModel.showSecondaryCrosshair)
+        XCTAssertFalse(viewModel.showPixelGrid)
+        XCTAssertEqual(viewModel.crosshairLineWidth, 5.0)
+        XCTAssertEqual(viewModel.crosshairColor, .cyan)
+        XCTAssertFalse(viewModel.crosshairDualStrokeEnabled)
+        XCTAssertEqual(viewModel.unitType, .mm)
+        XCTAssertTrue(viewModel.showCenterPixelCoordinates)
+        XCTAssertTrue(viewModel.showConvertedCenterCoordinates)
+        XCTAssertTrue(viewModel.showColorValues)
+        XCTAssertTrue(viewModel.showSecondaryReadouts)
+        XCTAssertEqual(viewModel.measurementScaleMode, .manual)
+        XCTAssertEqual(viewModel.manualMeasurementScale, 4.0)
+        XCTAssertTrue(viewModel.shouldShowMeasurementScaleOverride)
+    }
+
+    @MainActor
+    func testDidSetPersistsLocalMagnifierSettings() {
+        let defaults = InMemoryDefaultsStore()
+        let viewModel = MagnifierCrosshairViewModel(
+            secondaryOffset: MagnifierCrosshairViewModel.defaultSecondaryOffset,
+            defaults: defaults
+        )
+
+        viewModel.showPixelGrid = false
+        viewModel.crosshairLineWidth = 0.1
+        viewModel.crosshairColor = .red
+        viewModel.crosshairDualStrokeEnabled = false
+        viewModel.unitType = .inches
+        viewModel.showCenterPixelCoordinates = true
+        viewModel.showConvertedCenterCoordinates = true
+        viewModel.showColorValues = true
+        viewModel.showSecondaryReadouts = true
+        viewModel.measurementScaleMode = .manual
+        viewModel.manualMeasurementScale = 10
+        viewModel.showMeasurementScaleOverrideBadge = true
+
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierPixelGridEnabled) as? Bool, false)
+        XCTAssertEqual(defaults.double(forKey: PersistenceKeys.magnifierCrosshairLineWidth), 0.5)
+        XCTAssertEqual(defaults.string(forKey: PersistenceKeys.magnifierCrosshairColor), MagnifierCrosshairColor.red.rawValue)
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierCrosshairDualStrokeEnabled) as? Bool, false)
+        XCTAssertEqual(defaults.string(forKey: PersistenceKeys.unitType), UnitTypes.inches.rawValue)
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierReadoutCenterPixelEnabled) as? Bool, true)
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierReadoutConvertedCoordinatesEnabled) as? Bool, true)
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierReadoutColorEnabled) as? Bool, true)
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierReadoutSecondaryReadoutsEnabled) as? Bool, true)
+        XCTAssertEqual(defaults.string(forKey: PersistenceKeys.measurementScaleMode), MeasurementScaleMode.manual.rawValue)
+        XCTAssertEqual(defaults.double(forKey: PersistenceKeys.measurementScaleManualValue), 4.0)
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.measurementScaleBadgeEnabled) as? Bool, true)
+    }
+
 }
