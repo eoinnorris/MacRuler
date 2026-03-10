@@ -19,12 +19,14 @@ struct ScreenSelectionMagnifierView: View {
 
     var horizontalOverlayViewModel: OverlayViewModel
     var verticalOverlayViewModel: OverlayVerticalViewModel
+    @Bindable var magnifierCrosshairViewModel: MagnifierCrosshairViewModel
 
     var body: some View {
         SelectionMagnifierContentView(session: session,
                                       controller: controller,
                                       horizontalOverlayViewModel:horizontalOverlayViewModel,
-                                      verticalOverlayViewModel:verticalOverlayViewModel)
+                                      verticalOverlayViewModel:verticalOverlayViewModel,
+                                      magnifierCrosshairViewModel: magnifierCrosshairViewModel)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(12)
         .toolbar {

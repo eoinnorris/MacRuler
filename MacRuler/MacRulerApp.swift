@@ -16,6 +16,7 @@ struct MacOSRulerApp: App {
     @State private var rulerSettingsViewModel: RulerSettingsViewModel
     @State private var overlayViewModel: OverlayViewModel
     @State private var overlayVerticalViewModel: OverlayVerticalViewModel
+    @State private var magnifierCrosshairViewModel: MagnifierCrosshairViewModel
     @State private var debugSettings: DebugSettingsModel
 
     init() {
@@ -23,6 +24,7 @@ struct MacOSRulerApp: App {
         _rulerSettingsViewModel = State(initialValue: dependencies.rulerSettings)
         _overlayViewModel = State(initialValue: dependencies.overlay)
         _overlayVerticalViewModel = State(initialValue: dependencies.overlayVertical)
+        _magnifierCrosshairViewModel = State(initialValue: dependencies.magnifierCrosshair)
         _debugSettings = State(initialValue: dependencies.debugSettings)
     }
     
@@ -32,61 +34,66 @@ struct MacOSRulerApp: App {
             SettingsView(rulerSettingsViewModel: $rulerSettingsViewModel)
         }
         .commands {
-            CommandMenu("HRuler") {
-                Button("Move Left") {
-                    DividerKeyNotification.post(direction: .left, isDouble: false)
-                }
-                .keyboardShortcut(.leftArrow, modifiers: [.command])
-                Button("Move Right") {
-                    DividerKeyNotification.post(direction: .right, isDouble: false)
-                }
-                .keyboardShortcut(.rightArrow, modifiers: [.command])
-                Divider()
-                Button("Make Smaller") {
-                    rulerSettingsViewModel.horizontalRulerBackgroundSize = .small
-                }
-                Button("Make Larger") {
-                    rulerSettingsViewModel.horizontalRulerBackgroundSize = .large
-                }
-                Divider()
-                Picker("Points", selection: $overlayViewModel.selectedPoints) {
-                    ForEach(DividerStep.allCases) { step in
-                        Text(step.displayName).tag(step)
-                    }
-                }
-                Divider()
-                Picker("Ruler Units", selection: $rulerSettingsViewModel.unitType) {
-                    ForEach(UnitTypes.allCases) { unit in
-                        Text(unit.displayName).tag(unit)
-                    }
-                }
-                Divider()
-                Toggle("Attach to vertical ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
-                Toggle("Lock horizontal ruler window", isOn: $rulerSettingsViewModel.horizontalRulerLocked)
-                    .keyboardShortcut("l", modifiers: [.command])
-            }
-            CommandMenu("VRuler") {
-                Button("Move Up") {
-                    DividerKeyNotification.post(direction: .up, isDouble: false)
-                }
-                .keyboardShortcut(.upArrow, modifiers: [.command])
-                Button("Move Down") {
-                    DividerKeyNotification.post(direction: .down, isDouble: false)
-                }
-                .keyboardShortcut(.downArrow, modifiers: [.command])
-                Divider()
-                Button("Make Smaller") {
-                    rulerSettingsViewModel.verticalRulerBackgroundSize = .small
-                }
-                Button("Make Larger") {
-                    rulerSettingsViewModel.verticalRulerBackgroundSize = .large
-                }
-                Divider()
-                Toggle("Attach to horizontal ruler", isOn: $rulerSettingsViewModel.attachBothRulers)
-                Toggle("Lock vertical ruler window", isOn: $rulerSettingsViewModel.verticalRulerLocked)
-                    .keyboardShortcut("v", modifiers: [.command])
-            }
             CommandMenu("Screen picker") {
+                Button("Toggle crosshair visibility") {
+                    magnifierCrosshairViewModel.toggleCrosshairVisibility()
+                }
+                .keyboardShortcut("c", modifiers: [.command])
+
+                Button("Toggle secondary crosshair visibility") {
+                    magnifierCrosshairViewModel.toggleSecondaryCrosshairVisibility()
+                }
+                .keyboardShortcut("c", modifiers: [.command, .shift])
+
+                Button("Reset crosshair positions") {
+                    magnifierCrosshairViewModel.resetAllOffsets()
+                }
+                .keyboardShortcut("0", modifiers: [.command])
+
+                Divider()
+
+                Button("Nudge secondary crosshair left by 1 px") {
+                    magnifierCrosshairViewModel.nudgeSecondaryCrosshair(x: -1, y: 0)
+                }
+                .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
+
+                Button("Nudge secondary crosshair right by 1 px") {
+                    magnifierCrosshairViewModel.nudgeSecondaryCrosshair(x: 1, y: 0)
+                }
+                .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
+
+                Button("Nudge secondary crosshair up by 1 px") {
+                    magnifierCrosshairViewModel.nudgeSecondaryCrosshair(x: 0, y: -1)
+                }
+                .keyboardShortcut(.upArrow, modifiers: [.command, .option])
+
+                Button("Nudge secondary crosshair down by 1 px") {
+                    magnifierCrosshairViewModel.nudgeSecondaryCrosshair(x: 0, y: 1)
+                }
+                .keyboardShortcut(.downArrow, modifiers: [.command, .option])
+
+                Button("Nudge secondary crosshair left by 10 px") {
+                    magnifierCrosshairViewModel.nudgeSecondaryCrosshair(x: -10, y: 0)
+                }
+                .keyboardShortcut(.leftArrow, modifiers: [.command, .option, .shift])
+
+                Button("Nudge secondary crosshair right by 10 px") {
+                    magnifierCrosshairViewModel.nudgeSecondaryCrosshair(x: 10, y: 0)
+                }
+                .keyboardShortcut(.rightArrow, modifiers: [.command, .option, .shift])
+
+                Button("Nudge secondary crosshair up by 10 px") {
+                    magnifierCrosshairViewModel.nudgeSecondaryCrosshair(x: 0, y: -10)
+                }
+                .keyboardShortcut(.upArrow, modifiers: [.command, .option, .shift])
+
+                Button("Nudge secondary crosshair down by 10 px") {
+                    magnifierCrosshairViewModel.nudgeSecondaryCrosshair(x: 0, y: 10)
+                }
+                .keyboardShortcut(.downArrow, modifiers: [.command, .option, .shift])
+
+                Divider()
+
                 Button("Increase Magnification") {
                     appDelegate.increaseSelectionMagnification()
                 }
