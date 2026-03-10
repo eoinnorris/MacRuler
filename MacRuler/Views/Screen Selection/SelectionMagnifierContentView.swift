@@ -22,7 +22,7 @@ struct SelectionMagnifierContentView: View {
             horizontalOverlayViewModel: horizontalOverlayViewModel,
             verticalOverlayViewModel: verticalOverlayViewModel,
             rulerSettingsViewModel: rulerSettingsViewModel,
-            magnifierCrosshairViewModel: magnifierCrosshairViewModel
+            crosshairViewModel: magnifierCrosshairViewModel
         )
     }
 }

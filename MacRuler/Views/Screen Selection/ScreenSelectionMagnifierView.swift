@@ -27,8 +27,7 @@ struct ScreenSelectionMagnifierView: View {
                                       controller: controller,
                                       horizontalOverlayViewModel:horizontalOverlayViewModel,
                                       verticalOverlayViewModel:verticalOverlayViewModel,
-                                      crosshairViewModel: crosshairViewModel)
-                                      magnifierCrosshairViewModel: magnifierCrosshairViewModel)
+                                      magnifierCrosshairViewModel: crosshairViewModel)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(12)
         .toolbar {

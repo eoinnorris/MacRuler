@@ -27,8 +27,6 @@ final class AppDependencies {
         self.debugSettings = DebugSettingsModel()
         self.magnification = MagnificationViewModel()
         self.magnifierCrosshair = MagnifierCrosshairViewModel(
-            secondaryOffset: MagnifierCrosshairViewModel.defaultSecondaryOffset,
-            rulerSettings: rulerSettings
-        )
+            secondaryOffset: MagnifierCrosshairViewModel.defaultSecondaryOffset)
     }
 }

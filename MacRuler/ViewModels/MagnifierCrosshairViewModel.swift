@@ -1,5 +1,6 @@
 import CoreGraphics
 import Observation
+import Foundation
 
 @Observable
 @MainActor
@@ -10,33 +11,35 @@ final class MagnifierCrosshairViewModel {
     var secondaryOffset: CGSize
     var isPrimaryLocked = false
     var isSecondaryLocked = false
-    private let rulerSettings: RulerSettingsViewModel
+    private let defaults: DefaultsStoring
 
-    init(
-        primaryOffset: CGSize = .zero,
-        secondaryOffset: CGSize,
-        rulerSettings: RulerSettingsViewModel
-    ) {
-        self.primaryOffset = primaryOffset
-        self.secondaryOffset = secondaryOffset
-        self.rulerSettings = rulerSettings
-    }
-
-    var showCrosshair: Bool {
-        get { rulerSettings.showMagnifierCrosshair }
-        set {
-            rulerSettings.showMagnifierCrosshair = newValue
-            if !newValue {
-                primaryOffset = .zero
-            }
+    var showMagnifierCrosshair: Bool = true {
+        didSet {
+            defaults.set(showMagnifierCrosshair, forKey: PersistenceKeys.magnifierCrosshairEnabled)
         }
     }
+    
+    init(primaryOffset: CGSize = .zero,
+        secondaryOffset: CGSize,
+        defaults: DefaultsStoring = UserDefaults.standard)
+    {
+        self.defaults = defaults
+        self.primaryOffset = primaryOffset
+        self.secondaryOffset = secondaryOffset
+    }
 
-    var showSecondaryCrosshair: Bool {
-        get { rulerSettings.showMagnifierSecondaryCrosshair }
-        set {
-            rulerSettings.showMagnifierSecondaryCrosshair = newValue
-            if !newValue {
+    
+    var showCrosshair: Bool = true {
+        didSet {
+            primaryOffset = .zero
+            defaults.set(showMagnifierCrosshair, forKey: PersistenceKeys.magnifierCrosshairEnabled)
+        }
+    }
+    
+    var showSecondaryCrosshair: Bool = true {
+        didSet {
+            defaults.set(showSecondaryCrosshair, forKey: PersistenceKeys.magnifierSecondaryCrosshairEnabled)
+            if !showSecondaryCrosshair {
                 resetSecondaryOffset()
             }
         }
