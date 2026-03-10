@@ -16,7 +16,6 @@ struct ScreenSelectionMagnifierView: View {
     @Bindable var controller: StreamCaptureObserver
     @State private var selectionPreviewWindow: NSWindow?
     @State private var selectionPreviewTask: Task<Void, Never>?
-    @State private var crosshairViewModel = MagnifierCrosshairViewModel(secondaryOffset: MagnifierCrosshairViewModel.defaultSecondaryOffset)
 
     var horizontalOverlayViewModel: OverlayViewModel
     var verticalOverlayViewModel: OverlayVerticalViewModel
@@ -27,13 +26,13 @@ struct ScreenSelectionMagnifierView: View {
                                       controller: controller,
                                       horizontalOverlayViewModel:horizontalOverlayViewModel,
                                       verticalOverlayViewModel:verticalOverlayViewModel,
-                                      magnifierCrosshairViewModel: crosshairViewModel)
+                                      magnifierCrosshairViewModel: magnifierCrosshairViewModel)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(12)
         .toolbar {
             ScreenSelectionMagnifierToolbar(
                 session: session,
-                crosshairViewModel: crosshairViewModel,
+                crosshairViewModel: magnifierCrosshairViewModel,
                 snapshotAction: takeSnapshot,
                 canTakeSnapshot: controller.frameImage != nil
             )
