@@ -108,4 +108,30 @@ final class MagnifierCrosshairViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.isSecondaryLocked)
     }
 
+
+    @MainActor
+    func testNudgeSelectedCrosshairMovesPrimaryAndSecondaryBySelectionAndLockState() {
+        let viewModel = MagnifierCrosshairViewModel(
+            primaryOffset: .zero,
+            secondaryOffset: CGSize(width: 24, height: 24)
+        )
+
+        viewModel.selectedCrosshair = .primary
+        viewModel.nudgeSelectedCrosshair(x: 1, y: -1, showSecondaryCrosshair: true)
+        XCTAssertEqual(viewModel.primaryOffset, CGSize(width: 1, height: -1))
+        XCTAssertEqual(viewModel.secondaryOffset, CGSize(width: 24, height: 24))
+
+        viewModel.selectedCrosshair = .secondary
+        viewModel.nudgeSelectedCrosshair(x: 10, y: 0, showSecondaryCrosshair: true)
+        XCTAssertEqual(viewModel.secondaryOffset, CGSize(width: 34, height: 24))
+
+        viewModel.isSecondaryLocked = true
+        viewModel.nudgeSelectedCrosshair(x: 1, y: 1, showSecondaryCrosshair: true)
+        XCTAssertEqual(viewModel.secondaryOffset, CGSize(width: 34, height: 24))
+
+        viewModel.selectedCrosshair = .secondary
+        viewModel.nudgeSelectedCrosshair(x: 2, y: 3, showSecondaryCrosshair: false)
+        XCTAssertEqual(viewModel.primaryOffset, CGSize(width: 3, height: 2))
+    }
+
 }

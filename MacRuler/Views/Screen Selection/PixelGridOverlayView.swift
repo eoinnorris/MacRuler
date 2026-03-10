@@ -9,6 +9,8 @@ import SwiftUI
 import CoreGraphics
 
 struct PixelGridOverlayView: View {
+    typealias CrosshairSelection = MagnifierCrosshairViewModel.CrosshairSelection
+
     let viewportSize: CGSize
     let contentOrigin: CGPoint
     let magnification: Double
@@ -23,6 +25,7 @@ struct PixelGridOverlayView: View {
     @Binding var secondaryCrosshairOffset: CGSize
     @Binding var isPrimaryLocked: Bool
     @Binding var isSecondaryLocked: Bool
+    @Binding var selectedCrosshair: CrosshairSelection
     @State private var isDraggingCrosshair = false
 
 
@@ -238,6 +241,7 @@ struct PixelGridOverlayView: View {
             .onChanged { value in
                 guard !isSecondaryLocked else { return }
                 isDraggingCrosshair = true
+                selectedCrosshair = .secondary
                 secondaryCrosshairOffset = crosshairOffset(for: value.location, in: size)
             }
             .onEnded { _ in
@@ -251,6 +255,7 @@ struct PixelGridOverlayView: View {
             .onChanged { value in
                 guard !isPrimaryLocked else { return }
                 isDraggingCrosshair = true
+                selectedCrosshair = .primary
                 primaryCrosshairOffset = crosshairOffset(for: value.location, in: size)
             }
             .onEnded { _ in

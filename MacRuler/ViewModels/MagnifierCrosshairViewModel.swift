@@ -5,12 +5,18 @@ import Foundation
 @Observable
 @MainActor
 final class MagnifierCrosshairViewModel {
+    enum CrosshairSelection {
+        case primary
+        case secondary
+    }
+
     static let defaultSecondaryOffset = CGSize(width: 24, height: 24)
 
     var primaryOffset: CGSize
     var secondaryOffset: CGSize
     var isPrimaryLocked = false
     var isSecondaryLocked = false
+    var selectedCrosshair: CrosshairSelection = .primary
     private let defaults: DefaultsStoring
 
     var showMagnifierCrosshair: Bool = true {
@@ -58,6 +64,30 @@ final class MagnifierCrosshairViewModel {
             width: secondaryOffset.width + x,
             height: secondaryOffset.height + y
         )
+    }
+
+    func nudgeSelectedCrosshair(x: CGFloat, y: CGFloat, showSecondaryCrosshair: Bool) {
+        let selectedTarget: CrosshairSelection = {
+            if selectedCrosshair == .secondary, showSecondaryCrosshair {
+                return .secondary
+            }
+            return .primary
+        }()
+
+        switch selectedTarget {
+        case .primary:
+            guard !isPrimaryLocked else { return }
+            primaryOffset = CGSize(
+                width: primaryOffset.width + x,
+                height: primaryOffset.height + y
+            )
+        case .secondary:
+            guard !isSecondaryLocked else { return }
+            secondaryOffset = CGSize(
+                width: secondaryOffset.width + x,
+                height: secondaryOffset.height + y
+            )
+        }
     }
 
     func resetPrimary() {
