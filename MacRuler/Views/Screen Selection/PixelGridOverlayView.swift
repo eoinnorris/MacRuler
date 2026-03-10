@@ -21,6 +21,8 @@ struct PixelGridOverlayView: View {
     let crosshairDualStrokeEnabled: Bool
     @Binding var primaryCrosshairOffset: CGSize
     @Binding var secondaryCrosshairOffset: CGSize
+    @Binding var isPrimaryLocked: Bool
+    @Binding var isSecondaryLocked: Bool
     @State private var isDraggingCrosshair = false
 
 
@@ -123,6 +125,19 @@ struct PixelGridOverlayView: View {
                             in: proxy.size
                         ))
                         .gesture(primaryCrosshairDragGesture(in: proxy.size))
+                        .contextMenu {
+                            Button(isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
+                                isPrimaryLocked.toggle()
+                            }
+                            Divider()
+                            Button("Reset Selected") {
+                                primaryCrosshairOffset = .zero
+                            }
+                            Button("Reset All") {
+                                primaryCrosshairOffset = .zero
+                                secondaryCrosshairOffset = MagnifierCrosshairViewModel.defaultSecondaryOffset
+                            }
+                        }
 
                     if showSecondaryCrosshair {
                         Circle()
@@ -136,6 +151,19 @@ struct PixelGridOverlayView: View {
                                 in: proxy.size
                             ))
                             .gesture(secondaryCrosshairDragGesture(in: proxy.size))
+                            .contextMenu {
+                                Button(isSecondaryLocked ? "Unlock Secondary" : "Lock Secondary") {
+                                    isSecondaryLocked.toggle()
+                                }
+                                Divider()
+                                Button("Reset Selected") {
+                                    secondaryCrosshairOffset = MagnifierCrosshairViewModel.defaultSecondaryOffset
+                                }
+                                Button("Reset All") {
+                                    primaryCrosshairOffset = .zero
+                                    secondaryCrosshairOffset = MagnifierCrosshairViewModel.defaultSecondaryOffset
+                                }
+                            }
                     }
 
                     if shouldShowDragDistanceLabel {
@@ -208,10 +236,12 @@ struct PixelGridOverlayView: View {
     private func secondaryCrosshairDragGesture(in size: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
+                guard !isSecondaryLocked else { return }
                 isDraggingCrosshair = true
                 secondaryCrosshairOffset = crosshairOffset(for: value.location, in: size)
             }
             .onEnded { _ in
+                guard !isSecondaryLocked else { return }
                 isDraggingCrosshair = false
             }
     }
@@ -219,10 +249,12 @@ struct PixelGridOverlayView: View {
     private func primaryCrosshairDragGesture(in size: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
+                guard !isPrimaryLocked else { return }
                 isDraggingCrosshair = true
                 primaryCrosshairOffset = crosshairOffset(for: value.location, in: size)
             }
             .onEnded { _ in
+                guard !isPrimaryLocked else { return }
                 isDraggingCrosshair = false
             }
     }

@@ -8,6 +8,8 @@ final class MagnifierCrosshairViewModel {
 
     var primaryOffset: CGSize
     var secondaryOffset: CGSize
+    var isPrimaryLocked = false
+    var isSecondaryLocked = false
     private let rulerSettings: RulerSettingsViewModel
 
     init(
@@ -55,13 +57,25 @@ final class MagnifierCrosshairViewModel {
         )
     }
 
-    func resetAllOffsets() {
+    func resetPrimary() {
+        primaryOffset = .zero
+    }
+
+    func resetSecondary() {
+        secondaryOffset = Self.defaultSecondaryOffset
+    }
+
+    func resetAll() {
         primaryOffset = .zero
         secondaryOffset = Self.defaultSecondaryOffset
     }
 
+    func resetAllOffsets() {
+        resetAll()
+    }
+
     func resetSecondaryOffset() {
-        secondaryOffset = Self.defaultSecondaryOffset
+        resetSecondary()
     }
 
     func deltaPoints(magnification: CGFloat) -> CGSize {
