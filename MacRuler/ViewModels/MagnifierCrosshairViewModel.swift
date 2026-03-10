@@ -8,13 +8,51 @@ final class MagnifierCrosshairViewModel {
 
     var primaryOffset: CGSize
     var secondaryOffset: CGSize
+    private let rulerSettings: RulerSettingsViewModel
 
     init(
         primaryOffset: CGSize = .zero,
-        secondaryOffset: CGSize
+        secondaryOffset: CGSize,
+        rulerSettings: RulerSettingsViewModel = .shared
     ) {
         self.primaryOffset = primaryOffset
         self.secondaryOffset = secondaryOffset
+        self.rulerSettings = rulerSettings
+    }
+
+    var showCrosshair: Bool {
+        get { rulerSettings.showMagnifierCrosshair }
+        set {
+            rulerSettings.showMagnifierCrosshair = newValue
+            if !newValue {
+                primaryOffset = .zero
+            }
+        }
+    }
+
+    var showSecondaryCrosshair: Bool {
+        get { rulerSettings.showMagnifierSecondaryCrosshair }
+        set {
+            rulerSettings.showMagnifierSecondaryCrosshair = newValue
+            if !newValue {
+                resetSecondaryOffset()
+            }
+        }
+    }
+
+    func toggleCrosshairVisibility() {
+        showCrosshair.toggle()
+    }
+
+    func toggleSecondaryCrosshairVisibility() {
+        showSecondaryCrosshair.toggle()
+    }
+
+    func nudgeSecondaryCrosshair(x: CGFloat, y: CGFloat) {
+        secondaryOffset = CGSize(
+            width: secondaryOffset.width + x,
+            height: secondaryOffset.height + y
+        )
     }
 
     func resetAllOffsets() {

@@ -681,7 +681,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     selectionCaptureObserver: selectionCaptureObserver,
                     horizontalOverlayViewModel: dependencies.overlay,
                     verticalOverlayViewModel: dependencies.overlayVertical,
-                    magnificationViewModel: dependencies.magnification
+                    magnificationViewModel: dependencies.magnification,
+                    magnifierCrosshairViewModel: dependencies.magnifierCrosshair
                 )
             )
             window.title = "Selection Magnification"
@@ -717,7 +718,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     selectionCaptureObserver: selectionCaptureObserver,
                     horizontalOverlayViewModel: dependencies.overlay,
                     verticalOverlayViewModel: dependencies.overlayVertical,
-                    magnificationViewModel: dependencies.magnification
+                    magnificationViewModel: dependencies.magnification,
+                    magnifierCrosshairViewModel: dependencies.magnifierCrosshair
                 )
             )
         }
@@ -748,7 +750,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 selectionCaptureObserver: selectionCaptureObserver,
                 horizontalOverlayViewModel: dependencies.overlay,
                 verticalOverlayViewModel: dependencies.overlayVertical,
-                magnificationViewModel: dependencies.magnification
+                magnificationViewModel: dependencies.magnification,
+                magnifierCrosshairViewModel: dependencies.magnifierCrosshair
             )
         )
 
