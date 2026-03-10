@@ -139,45 +139,6 @@ struct ScreenSelectionMagnifierView: View {
     final class DraggableHostingView<Content: View>: NSHostingView<Content> {
         override var mouseDownCanMoveWindow: Bool { true }
     }
-    
-//    @MainActor
-//    private func presentSelectionWindowTemporarily() {
-//        selectionPreviewTask?.cancel()
-//        dismissSelectionWindow()
-//
-//        let rect = selectionRectInScreenCoordinates()
-//        guard rect.width > 2, rect.height > 2 else {
-//            session.showSelection = false
-//            return
-//        }
-//
-//        let window = NSPanel(
-//            contentRect: rect,
-//            styleMask: [.borderless, .nonactivatingPanel],
-//            backing: .buffered,
-//            defer: false
-//        )
-//        window.level = .floating
-//        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-//        window.isOpaque = false
-//        window.backgroundColor = .clear
-//        window.ignoresMouseEvents = false
-//        window.hasShadow = false
-//        window.contentView = DraggableHostingView(
-//            rootView: TemporarySelectionWindowContent()
-//        )
-//
-//        selectionPreviewWindow = window
-//        window.makeKeyAndOrderFront(nil)
-//
-//        selectionPreviewTask = Task { @MainActor in
-//            try? await Task.sleep(for: .seconds(2))
-//            dismissSelectionWindow()
-//            if session.showSelection {
-//                session.showSelection = false
-//            }
-//        }
-//    }
 
     @MainActor
     private func dismissSelectionWindow() {
@@ -187,8 +148,6 @@ struct ScreenSelectionMagnifierView: View {
 
     private func selectionRectInScreenCoordinates() -> CGRect {
         return session.selectionRectGlobal
-//        guard let screen = session.screen else { return session.selectionRectGlobal }
-//        return Constants.scRectToGlobalRect(session.selectionRectGlobal, containerHeight: screen.frame.height)
     }
 
     private func selectionRectInGlobalCoordinates() -> CGRect {

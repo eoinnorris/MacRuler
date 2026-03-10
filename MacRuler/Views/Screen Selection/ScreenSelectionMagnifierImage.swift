@@ -172,23 +172,6 @@ struct ScreenSelectionMagnifierImage: View {
     @ViewBuilder
     private func overlayLayer(proxy: GeometryProxy, frameImage: CGImage) -> some View {
         ZStack {
-            
-//            PixelGridOverlayView(viewportSize: proxy.size,
-//                                 contentOrigin: contentFrame.origin,
-//                                 magnification: <#T##Double#>,
-//                                 screenScale: <#T##Double#>,
-//                                 showCrosshair: <#T##Bool#>,
-//                                 showSecondaryCrosshair: <#T##Bool#>,
-//                                 showPixelGrid: <#T##Bool#>,
-//                                 crosshairLineWidth: <#T##CGFloat#>,
-//                                 crosshairColor: <#T##Color#>,
-//                                 crosshairDualStrokeEnabled: <#T##Bool#>,
-//                                 primaryCrosshairOffset: <#T##CGSize#>,
-//                                 secondaryCrosshairOffset: <#T##CGSize#>,
-//                                 isPrimaryLocked: <#T##Bool#>,
-//                                 isSecondaryLocked: <#T##Bool#>,
-//                                 isDraggingCrosshair: <#T##arg#>)
-            
             PixelGridOverlayView(
                 viewportSize: proxy.size,
                 contentOrigin: contentFrame.origin,
