@@ -13,7 +13,7 @@ final class MagnifierCrosshairViewModel {
     init(
         primaryOffset: CGSize = .zero,
         secondaryOffset: CGSize,
-        rulerSettings: RulerSettingsViewModel = .shared
+        rulerSettings: RulerSettingsViewModel
     ) {
         self.primaryOffset = primaryOffset
         self.secondaryOffset = secondaryOffset
