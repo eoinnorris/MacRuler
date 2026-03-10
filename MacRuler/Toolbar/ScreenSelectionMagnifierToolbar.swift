@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ScreenSelectionMagnifierToolbar: ToolbarContent {
     @Bindable var session: SelectionSession
-    @Bindable var rulerSettingsViewModel: RulerSettingsViewModel = .shared
     @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
     let snapshotAction: () -> Void
     let canTakeSnapshot: Bool
@@ -30,10 +29,10 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
             .toggleStyle(.button)
             .help("Show selection for 2 seconds")
 
-            Toggle(isOn: $rulerSettingsViewModel.showMagnifierPixelGrid) {
+            Toggle(isOn: $crosshairViewModel.showPixelGrid) {
                 Label(
                     "Pixel grid",
-                    systemImage: rulerSettingsViewModel.showMagnifierPixelGrid
+                    systemImage: crosshairViewModel.showPixelGrid
                         ? "square.grid.3x3.fill"
                         : "square.grid.3x3"
                 )
@@ -46,17 +45,17 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
                 Button(crosshairViewModel.isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
                     crosshairViewModel.isPrimaryLocked.toggle()
                 }
-                .disabled(!rulerSettingsViewModel.showMagnifierCrosshair)
+                .disabled(!crosshairViewModel.showCrosshair)
 
                 Button(crosshairViewModel.isSecondaryLocked ? "Unlock Secondary" : "Lock Secondary") {
                     crosshairViewModel.isSecondaryLocked.toggle()
                 }
-                .disabled(!rulerSettingsViewModel.showMagnifierSecondaryCrosshair)
+                .disabled(!crosshairViewModel.showSecondaryCrosshair)
 
                 Divider()
 
                 Button("Reset selected") {
-                    if rulerSettingsViewModel.showMagnifierSecondaryCrosshair {
+                    if crosshairViewModel.showSecondaryCrosshair {
                         crosshairViewModel.resetSecondary()
                     } else {
                         crosshairViewModel.resetPrimary()

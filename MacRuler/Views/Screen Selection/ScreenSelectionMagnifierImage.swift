@@ -11,7 +11,6 @@ struct ScreenSelectionMagnifierImage: View {
     @Bindable var controller: StreamCaptureObserver
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
-    @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
     @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
     @State private var contentFrame: CGRect = .zero
 
@@ -100,17 +99,17 @@ struct ScreenSelectionMagnifierImage: View {
                         Button(crosshairViewModel.isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
                             crosshairViewModel.isPrimaryLocked.toggle()
                         }
-                        .disabled(!rulerSettingsViewModel.showMagnifierCrosshair)
+                        .disabled(!crosshairViewModel.showCrosshair)
                         
                         Button(crosshairViewModel.isSecondaryLocked ? "Unlock Secondary" : "Lock Secondary") {
                             crosshairViewModel.isSecondaryLocked.toggle()
                         }
-                        .disabled(!rulerSettingsViewModel.showMagnifierSecondaryCrosshair)
+                        .disabled(!crosshairViewModel.showSecondaryCrosshair)
                         
                         Divider()
                         
                         Button("Reset selected") {
-                            if rulerSettingsViewModel.showMagnifierSecondaryCrosshair {
+                            if crosshairViewModel.showSecondaryCrosshair {
                                 crosshairViewModel.resetSecondary()
                             } else {
                                 crosshairViewModel.resetPrimary()
@@ -125,8 +124,8 @@ struct ScreenSelectionMagnifierImage: View {
                         
                         Button("Crosshairs", systemImage: "scope") {
                             let shouldEnableCrosshairs = !areCrosshairsEnabled
-                            rulerSettingsViewModel.showMagnifierCrosshair = shouldEnableCrosshairs
-                            rulerSettingsViewModel.showMagnifierSecondaryCrosshair = shouldEnableCrosshairs
+                            crosshairViewModel.showCrosshair = shouldEnableCrosshairs
+                            crosshairViewModel.showSecondaryCrosshair = shouldEnableCrosshairs
                         }
                     } label: {
                         Label("Crosshairs", systemImage: "scope")
@@ -134,15 +133,10 @@ struct ScreenSelectionMagnifierImage: View {
                             .padding(6)
                             .background(areCrosshairsEnabled ? .gray.opacity(0.3) : .black.opacity(0.2), in: .circle)
                             .foregroundStyle(areCrosshairsEnabled ? .green : .primary)
-                        Button("Crosshairs", systemImage: "scope") {
-                            let shouldEnableCrosshairs = !areCrosshairsEnabled
-                            crosshairViewModel.showCrosshair = shouldEnableCrosshairs
-                            crosshairViewModel.showSecondaryCrosshair = shouldEnableCrosshairs
-                        }
-                        .menuStyle(.button)
-                        .buttonStyle(.plain)
-                        .help("Crosshair actions")
                     }
+                    .menuStyle(.button)
+                    .buttonStyle(.plain)
+                    .help("Crosshair actions")
                     .padding(10)
                 }
                 .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
@@ -159,12 +153,6 @@ struct ScreenSelectionMagnifierImage: View {
                 controller.updateCaptureRect(centeredOn: newValue,
                                              screenBound: session.screen?.frame ?? .zero)
             }
-            .onChange(of: rulerSettingsViewModel.showMagnifierCrosshair) { _, _ in
-                resetCrosshairOffsets()
-            }
-            .onChange(of: rulerSettingsViewModel.showMagnifierSecondaryCrosshair) { _, _ in
-                crosshairViewModel.resetSecondary()
-            }
         }
     }
 
@@ -179,10 +167,10 @@ struct ScreenSelectionMagnifierImage: View {
                 screenScale: Constants.screenScale,
                 showCrosshair: crosshairViewModel.showCrosshair,
                 showSecondaryCrosshair: crosshairViewModel.showSecondaryCrosshair,
-                showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid,
-                crosshairLineWidth: CGFloat(rulerSettingsViewModel.magnifierCrosshairLineWidth),
-                crosshairColor: rulerSettingsViewModel.magnifierCrosshairColor.swiftUIColor,
-                crosshairDualStrokeEnabled: rulerSettingsViewModel.magnifierCrosshairDualStrokeEnabled,
+                showPixelGrid: crosshairViewModel.showPixelGrid,
+                crosshairLineWidth: CGFloat(crosshairViewModel.crosshairLineWidth),
+                crosshairColor: crosshairViewModel.crosshairColor.swiftUIColor,
+                crosshairDualStrokeEnabled: crosshairViewModel.crosshairDualStrokeEnabled,
                 primaryCrosshairOffset: $crosshairViewModel.primaryOffset,
                 secondaryCrosshairOffset: $crosshairViewModel.secondaryOffset,
                 isPrimaryLocked: $crosshairViewModel.isPrimaryLocked,
@@ -201,13 +189,13 @@ struct ScreenSelectionMagnifierImage: View {
                         contentFrame: contentFrame,
                         magnification: session.magnification,
                         readoutComposition: readoutComposition(),
-                        unitType: rulerSettingsViewModel.unitType,
-                        measurementScale: effectiveMeasurementScale(),
+                        unitType: crosshairViewModel.unitType,
+                        measurementScale: crosshairViewModel.effectiveMeasurementScale(displayScale: Constants.screenScale),
                         sourceScreenScale: Constants.screenScale,
-                        showCenterPixelCoordinates: rulerSettingsViewModel.showMagnifierReadoutCenterPixel,
-                        showConvertedCenterCoordinates: rulerSettingsViewModel.showMagnifierReadoutConvertedCoordinates,
-                        showColorValues: rulerSettingsViewModel.showMagnifierReadoutColor,
-                        showSecondaryReadouts: rulerSettingsViewModel.showMagnifierReadoutSecondaryReadouts
+                        showCenterPixelCoordinates: crosshairViewModel.showCenterPixelCoordinates,
+                        showConvertedCenterCoordinates: crosshairViewModel.showConvertedCenterCoordinates,
+                        showColorValues: crosshairViewModel.showColorValues,
+                        showSecondaryReadouts: crosshairViewModel.showSecondaryReadouts
                     )
                     .padding(10)
                 }
@@ -215,25 +203,15 @@ struct ScreenSelectionMagnifierImage: View {
         }
     }
 
-    private func resetCrosshairOffsets() {
-        crosshairViewModel.resetAll()
-    }
-
-    private func effectiveMeasurementScale(displayScale: Double = Constants.screenScale) -> Double {
-        rulerSettingsViewModel.effectiveMeasurementScale(
-            displayScale: displayScale,
-            sourceCaptureScale: Constants.screenScale
-        )
-    }
 
     private func readoutComposition() -> MagnifierReadoutComposition {
         MagnifierReadoutComposition.compose(
             mode: session.magnifierReadoutMode,
-            unitType: rulerSettingsViewModel.unitType,
+            unitType: crosshairViewModel.unitType,
             magnification: session.magnification,
             sourceDisplayScale: Constants.screenScale,
-            showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
-            showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
+            showCrosshair: crosshairViewModel.showCrosshair,
+            showSecondaryCrosshair: crosshairViewModel.showSecondaryCrosshair,
             primaryCrosshairOffset: crosshairViewModel.primaryOffset,
             secondaryCrosshairOffset: crosshairViewModel.secondaryOffset,
             horizontalDistancePoints: session.showHorizontalRuler ? horizontalOverlayViewModel.dividerX : nil,
@@ -241,9 +219,9 @@ struct ScreenSelectionMagnifierImage: View {
             verticalDistancePoints: session.showVerticalRuler ? verticalOverlayViewModel.dividerY : nil,
             verticalDisplayScale: verticalOverlayViewModel.backingScale,
             measurementScaleProvider: { displayScale in
-                rulerSettingsViewModel.effectiveMeasurementScale(displayScale: displayScale)
+                crosshairViewModel.effectiveMeasurementScale(displayScale: displayScale)
             },
-            showMeasurementScaleOverride: rulerSettingsViewModel.shouldShowMeasurementScaleOverride
+            showMeasurementScaleOverride: crosshairViewModel.shouldShowMeasurementScaleOverride
         )
     }
 

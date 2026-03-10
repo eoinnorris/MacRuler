@@ -12,7 +12,6 @@ struct SelectionMagnifierContentView: View {
     @Bindable var controller: StreamCaptureObserver
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
-    @Bindable var rulerSettingsViewModel: RulerSettingsViewModel = .shared
     @Bindable var magnifierCrosshairViewModel: MagnifierCrosshairViewModel
 
     var body: some View {
@@ -21,7 +20,6 @@ struct SelectionMagnifierContentView: View {
             controller: controller,
             horizontalOverlayViewModel: horizontalOverlayViewModel,
             verticalOverlayViewModel: verticalOverlayViewModel,
-            rulerSettingsViewModel: rulerSettingsViewModel,
             crosshairViewModel: magnifierCrosshairViewModel
         )
     }
