@@ -38,17 +38,19 @@ struct SelectionMagnifierRootView: View {
         .onAppear {
             isFocused = true
         }
-        .onKeyPress(.leftArrow) { keyPress in
-            handleCrosshairNudge(x: -nudgeDistance(for: keyPress), y: 0)
-        }
-        .onKeyPress(.rightArrow) { keyPress in
-            handleCrosshairNudge(x: nudgeDistance(for: keyPress), y: 0)
-        }
-        .onKeyPress(.upArrow) { keyPress in
-            handleCrosshairNudge(x: 0, y: -nudgeDistance(for: keyPress))
-        }
-        .onKeyPress(.downArrow) { keyPress in
-            handleCrosshairNudge(x: 0, y: nudgeDistance(for: keyPress))
+        .onKeyPress { keyPress in
+            switch keyPress.key {
+            case .leftArrow:
+                 handleCrosshairNudge(x: -nudgeDistance(for: keyPress), y: 0)
+            case .rightArrow:
+                 handleCrosshairNudge(x: nudgeDistance(for: keyPress), y: 0)
+            case .upArrow:
+                 handleCrosshairNudge(x: 0, y: -nudgeDistance(for: keyPress))
+            case .downArrow:
+                 handleCrosshairNudge(x: 0, y: nudgeDistance(for: keyPress))
+            default:
+                 .handled
+            }
         }
     }
 
