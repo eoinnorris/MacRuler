@@ -10,6 +10,7 @@ import SwiftUI
 struct ScreenSelectionMagnifierToolbar: ToolbarContent {
     @Bindable var session: SelectionSession
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel = .shared
+    @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
     let snapshotAction: () -> Void
     let canTakeSnapshot: Bool
 
@@ -39,6 +40,34 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
             }
             .toggleStyle(.button)
             .help("Show pixel grid")
+
+
+            Menu("Crosshair") {
+                Button(crosshairViewModel.isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
+                    crosshairViewModel.isPrimaryLocked.toggle()
+                }
+                .disabled(!rulerSettingsViewModel.showMagnifierCrosshair)
+
+                Button(crosshairViewModel.isSecondaryLocked ? "Unlock Secondary" : "Lock Secondary") {
+                    crosshairViewModel.isSecondaryLocked.toggle()
+                }
+                .disabled(!rulerSettingsViewModel.showMagnifierSecondaryCrosshair)
+
+                Divider()
+
+                Button("Reset selected") {
+                    if rulerSettingsViewModel.showMagnifierSecondaryCrosshair {
+                        crosshairViewModel.resetSecondary()
+                    } else {
+                        crosshairViewModel.resetPrimary()
+                    }
+                }
+
+                Button("Reset all") {
+                    crosshairViewModel.resetAll()
+                }
+            }
+            .help("Crosshair lock and reset controls")
         }
     }
 

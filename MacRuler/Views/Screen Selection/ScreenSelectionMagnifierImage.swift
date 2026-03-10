@@ -12,9 +12,8 @@ struct ScreenSelectionMagnifierImage: View {
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var rulerSettingsViewModel: RulerSettingsViewModel
+    @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
     @State private var contentFrame: CGRect = .zero
-    @State private var primaryCrosshairOffset: CGSize = .zero
-    @State private var secondaryCrosshairOffset: CGSize = CGSize(width: 24, height: 24)
 
     private var areCrosshairsEnabled: Bool {
         rulerSettingsViewModel.showMagnifierCrosshair && rulerSettingsViewModel.showMagnifierSecondaryCrosshair
@@ -97,17 +96,48 @@ struct ScreenSelectionMagnifierImage: View {
                     .menuStyle(.button)
                     .buttonStyle(.plain)
 
-                    Button("Crosshairs", systemImage: "scope") {
-                        let shouldEnableCrosshairs = !areCrosshairsEnabled
-                        rulerSettingsViewModel.showMagnifierCrosshair = shouldEnableCrosshairs
-                        rulerSettingsViewModel.showMagnifierSecondaryCrosshair = shouldEnableCrosshairs
+                    Menu {
+                        Button(crosshairViewModel.isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
+                            crosshairViewModel.isPrimaryLocked.toggle()
+                        }
+                        .disabled(!rulerSettingsViewModel.showMagnifierCrosshair)
+
+                        Button(crosshairViewModel.isSecondaryLocked ? "Unlock Secondary" : "Lock Secondary") {
+                            crosshairViewModel.isSecondaryLocked.toggle()
+                        }
+                        .disabled(!rulerSettingsViewModel.showMagnifierSecondaryCrosshair)
+
+                        Divider()
+
+                        Button("Reset selected") {
+                            if rulerSettingsViewModel.showMagnifierSecondaryCrosshair {
+                                crosshairViewModel.resetSecondary()
+                            } else {
+                                crosshairViewModel.resetPrimary()
+                            }
+                        }
+
+                        Button("Reset all") {
+                            crosshairViewModel.resetAll()
+                        }
+
+                        Divider()
+
+                        Button("Crosshairs", systemImage: "scope") {
+                            let shouldEnableCrosshairs = !areCrosshairsEnabled
+                            rulerSettingsViewModel.showMagnifierCrosshair = shouldEnableCrosshairs
+                            rulerSettingsViewModel.showMagnifierSecondaryCrosshair = shouldEnableCrosshairs
+                        }
+                    } label: {
+                        Label("Crosshairs", systemImage: "scope")
+                            .labelStyle(.iconOnly)
+                            .padding(6)
+                            .background(areCrosshairsEnabled ? .gray.opacity(0.3) : .black.opacity(0.2), in: .circle)
+                            .foregroundStyle(areCrosshairsEnabled ? .green : .primary)
                     }
-                    .labelStyle(.iconOnly)
-                    .buttonStyle(.borderless)
-                    .padding(6)
-                    .background(areCrosshairsEnabled ? .gray.opacity(0.3) : .black.opacity(0.2), in: .circle)
-                    .foregroundStyle(areCrosshairsEnabled ? .green : .primary)
-                    .help("Toggle both crosshairs")
+                    .menuStyle(.button)
+                    .buttonStyle(.plain)
+                    .help("Crosshair actions")
                 }
                 .padding(10)
             }
@@ -129,7 +159,7 @@ struct ScreenSelectionMagnifierImage: View {
             resetCrosshairOffsets()
         }
         .onChange(of: rulerSettingsViewModel.showMagnifierSecondaryCrosshair) { _, _ in
-            secondaryCrosshairOffset = CGSize(width: 24, height: 24)
+            crosshairViewModel.resetSecondary()
         }
     }
 
@@ -145,8 +175,10 @@ struct ScreenSelectionMagnifierImage: View {
                 showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
                 showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
                 showPixelGrid: rulerSettingsViewModel.showMagnifierPixelGrid,
-                primaryCrosshairOffset: $primaryCrosshairOffset,
-                secondaryCrosshairOffset: $secondaryCrosshairOffset
+                primaryCrosshairOffset: $crosshairViewModel.primaryOffset,
+                secondaryCrosshairOffset: $crosshairViewModel.secondaryOffset,
+                isPrimaryLocked: $crosshairViewModel.isPrimaryLocked,
+                isSecondaryLocked: $crosshairViewModel.isSecondaryLocked
             )
             .allowsHitTesting(rulerSettingsViewModel.showMagnifierCrosshair)
 
@@ -175,8 +207,7 @@ struct ScreenSelectionMagnifierImage: View {
     }
 
     private func resetCrosshairOffsets() {
-        primaryCrosshairOffset = .zero
-        secondaryCrosshairOffset = CGSize(width: 24, height: 24)
+        crosshairViewModel.resetAll()
     }
 
     private func effectiveMeasurementScale(displayScale: Double = Constants.screenScale) -> Double {
@@ -194,8 +225,8 @@ struct ScreenSelectionMagnifierImage: View {
             sourceDisplayScale: Constants.screenScale,
             showCrosshair: rulerSettingsViewModel.showMagnifierCrosshair,
             showSecondaryCrosshair: rulerSettingsViewModel.showMagnifierSecondaryCrosshair,
-            primaryCrosshairOffset: primaryCrosshairOffset,
-            secondaryCrosshairOffset: secondaryCrosshairOffset,
+            primaryCrosshairOffset: crosshairViewModel.primaryOffset,
+            secondaryCrosshairOffset: crosshairViewModel.secondaryOffset,
             horizontalDistancePoints: session.showHorizontalRuler ? horizontalOverlayViewModel.dividerX : nil,
             horizontalDisplayScale: horizontalOverlayViewModel.backingScale,
             verticalDistancePoints: session.showVerticalRuler ? verticalOverlayViewModel.dividerY : nil,

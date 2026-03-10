@@ -28,13 +28,13 @@ final class MagnifierCrosshairViewModelTests: XCTestCase {
             secondaryOffset: CGSize(width: -12, height: 42)
         )
 
-        viewModel.resetSecondaryOffset()
+        viewModel.resetSecondary()
         XCTAssertEqual(viewModel.primaryOffset, CGSize(width: 20, height: -10))
         XCTAssertEqual(viewModel.secondaryOffset, MagnifierCrosshairViewModel.defaultSecondaryOffset)
 
         viewModel.primaryOffset = CGSize(width: 11, height: 9)
         viewModel.secondaryOffset = CGSize(width: -3, height: 8)
-        viewModel.resetAllOffsets()
+        viewModel.resetAll()
 
         XCTAssertEqual(viewModel.primaryOffset, .zero)
         XCTAssertEqual(viewModel.secondaryOffset, MagnifierCrosshairViewModel.defaultSecondaryOffset)
@@ -87,4 +87,25 @@ final class MagnifierCrosshairViewModelTests: XCTestCase {
             ["ΔX: 0.50 in • 1 x", "ΔY: 0.50 in • 1 x"]
         )
     }
+
+    @MainActor
+    func testLockStateDefaultsAndResetPrimary() {
+        let viewModel = MagnifierCrosshairViewModel(
+            primaryOffset: CGSize(width: 14, height: -6),
+            secondaryOffset: CGSize(width: 32, height: 12)
+        )
+
+        XCTAssertFalse(viewModel.isPrimaryLocked)
+        XCTAssertFalse(viewModel.isSecondaryLocked)
+
+        viewModel.isPrimaryLocked = true
+        viewModel.isSecondaryLocked = true
+        viewModel.resetPrimary()
+
+        XCTAssertEqual(viewModel.primaryOffset, .zero)
+        XCTAssertEqual(viewModel.secondaryOffset, CGSize(width: 32, height: 12))
+        XCTAssertTrue(viewModel.isPrimaryLocked)
+        XCTAssertTrue(viewModel.isSecondaryLocked)
+    }
+
 }
