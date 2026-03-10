@@ -32,20 +32,19 @@ struct SelectionHintView: View {
                 .padding(.top, 4)
             }
 
-            GroupBox("Rulers") {
-                VStack(spacing: 10) {
-                    largeButton(title: "Show Horizontal Ruler") {
-                        appDelegate?.setHorizontalRulerVisible(true)
-                    }
-
-                    largeButton(title: "Show Vertical Ruler") {
-                        appDelegate?.setVerticalRulerVisible(true)
-                    }
+            GroupBox("Crosshair Tools") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Show crosshairs from the magnifier controls to place the horizontal and vertical guides on screen.")
+                    Text("Drag the primary or secondary guide lines to position each reference exactly where you need it.")
+                    Text("Reset guides at any time, then compare the two positions to read the delta measurement.")
                 }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 4)
             }
 
-            Text("Choose a window or draw a screen area to begin magnifying.\nUse the ruler buttons any time to quickly reveal each ruler.")
+            Text("Choose a window or draw a screen area to begin magnifying.\nUse crosshair tools any time to place guides and compare spacing.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

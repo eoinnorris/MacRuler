@@ -46,6 +46,34 @@ struct AdvancedSettingsView: View {
         }
 
 
+        Section("Magnifier Crosshair") {
+            Picker("Preset", selection: $rulerSettingsViewModel.magnifierCrosshairPreset) {
+                ForEach(MagnifierCrosshairPreset.allCases) { preset in
+                    Text(preset.displayName).tag(preset)
+                }
+            }
+
+            Picker("Color", selection: $rulerSettingsViewModel.magnifierCrosshairColor) {
+                ForEach(MagnifierCrosshairColor.allCases) { color in
+                    Text(color.displayName).tag(color)
+                }
+            }
+
+            Stepper(
+                value: $rulerSettingsViewModel.magnifierCrosshairLineWidth,
+                in: 0.5...5,
+                step: 0.5
+            ) {
+                Text("Line width: \(rulerSettingsViewModel.magnifierCrosshairLineWidth, specifier: "%.1f")")
+            }
+
+            Toggle("Dual-stroke contrast", isOn: $rulerSettingsViewModel.magnifierCrosshairDualStrokeEnabled)
+        }
+        .onChange(of: rulerSettingsViewModel.magnifierCrosshairPreset) { _, preset in
+            rulerSettingsViewModel.applyMagnifierCrosshairPreset(preset)
+        }
+
+
         Section("Magnifier Readout") {
             Toggle("Show center pixel coordinates", isOn: $rulerSettingsViewModel.showMagnifierReadoutCenterPixel)
             Toggle(
