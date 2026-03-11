@@ -78,7 +78,7 @@ private struct ScreenSelectionWindowChromeView: View {
 }
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
+final class AppDelegate: NSObject, @preconcurrency NSApplicationDelegate, @preconcurrency NSMenuDelegate {
 
     enum RulerBackgroundLockReason: Hashable {
         case dividerHover

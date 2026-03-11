@@ -318,9 +318,9 @@ struct PixelGridOverlayView: View {
 }
 
 private struct MagnifierContentFramePreferenceKey: PreferenceKey {
-    static var defaultValue: CGRect = .zero
+    nonisolated static var defaultValue: CGRect = .zero
 
-    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+    nonisolated static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
         value = nextValue()
     }
 }
