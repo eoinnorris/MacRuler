@@ -29,6 +29,15 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
             .toggleStyle(.button)
             .help("Show selection for 2 seconds")
 
+
+            Button {
+                _ = crosshairViewModel.copyColor(sample: crosshairViewModel.lastPickedColorSample)
+            } label: {
+                Label("Copy Color", systemImage: "doc.on.doc")
+            }
+            .help("Copy picked color")
+            .disabled(crosshairViewModel.lastPickedColorSample == nil)
+
             Toggle(isOn: $crosshairViewModel.showPixelGrid) {
                 Label(
                     "Pixel grid",

@@ -18,9 +18,12 @@ struct CenterSampleReadoutCapsule: View {
     let showConvertedCenterCoordinates: Bool
     let showColorValues: Bool
     let showSecondaryReadouts: Bool
+    @Binding var selectedColorOutputFormat: MagnifierColorOutputFormat
+    @Binding var autoCopyColorOnPick: Bool
+    let pickColorAction: (CenterSampleReadout) -> Void
 
     var body: some View {
-        VStack(alignment: .trailing) {
+        VStack(alignment: .trailing, spacing: 6) {
             ForEach(primaryReadouts, id: \.self) { readout in
                 Text(readout)
             }
@@ -46,6 +49,27 @@ struct CenterSampleReadoutCapsule: View {
                 ForEach(secondaryReadouts, id: \.self) { readout in
                     Text(readout)
                 }
+            }
+
+            Divider().overlay(.white.opacity(0.35))
+
+            HStack(spacing: 8) {
+                Picker("Format", selection: $selectedColorOutputFormat) {
+                    ForEach(MagnifierColorOutputFormat.allCases) { format in
+                        Text(format.displayName).tag(format)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+
+                Toggle("Auto-copy", isOn: $autoCopyColorOnPick)
+                    .toggleStyle(.switch)
+                    .font(.caption)
+
+                Button("Pick Color") {
+                    pickColorAction(sampleReadout)
+                }
+                .buttonStyle(.borderedProminent)
             }
         }
         .font(.body)

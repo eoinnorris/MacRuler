@@ -101,4 +101,21 @@ extension DefaultsStoring {
         get { object(forKey: PersistenceKeys.measurementScaleBadgeEnabled) as? Bool ?? true }
         set { set(newValue, forKey: PersistenceKeys.measurementScaleBadgeEnabled) }
     }
+
+    var magnifierColorOutputFormat: MagnifierColorOutputFormat {
+        get {
+            guard let raw = string(forKey: PersistenceKeys.magnifierColorOutputFormat),
+                  let format = MagnifierColorOutputFormat(rawValue: raw)
+            else {
+                return .hex
+            }
+            return format
+        }
+        set { set(newValue.rawValue, forKey: PersistenceKeys.magnifierColorOutputFormat) }
+    }
+
+    var magnifierAutoCopyOnPickEnabled: Bool {
+        get { object(forKey: PersistenceKeys.magnifierAutoCopyOnPickEnabled) as? Bool ?? false }
+        set { set(newValue, forKey: PersistenceKeys.magnifierAutoCopyOnPickEnabled) }
+    }
 }
