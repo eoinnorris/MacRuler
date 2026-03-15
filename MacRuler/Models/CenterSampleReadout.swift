@@ -6,8 +6,9 @@
 //
 
 import CoreGraphics
+import Foundation
 
-struct CenterSampleReadout {
+struct CenterSampleReadout: Equatable {
     let pixelX: Int
     let pixelY: Int
     let red: Int
@@ -20,6 +21,62 @@ struct CenterSampleReadout {
 
     var rgbLabel: String {
         "RGB(\(red), \(green), \(blue))"
+    }
+
+    var normalizedRGB: (red: Double, green: Double, blue: Double) {
+        (
+            normalizedComponent(red),
+            normalizedComponent(green),
+            normalizedComponent(blue)
+        )
+    }
+
+    var normalizedRGBLabel: String {
+        let rgb = normalizedRGB
+        return String(
+            format: "RGB(%.3f, %.3f, %.3f)",
+            locale: Locale(identifier: "en_US_POSIX"),
+            rgb.red,
+            rgb.green,
+            rgb.blue
+        )
+    }
+
+    var hsl: (hue: Int, saturation: Int, lightness: Int) {
+        let normalized = normalizedRGB
+        let maximum = max(normalized.red, normalized.green, normalized.blue)
+        let minimum = min(normalized.red, normalized.green, normalized.blue)
+        let delta = maximum - minimum
+        let lightness = (maximum + minimum) / 2
+
+        guard delta > 0 else {
+            return (hue: 0, saturation: 0, lightness: percentage(lightness))
+        }
+
+        let saturation = delta / (1 - abs((2 * lightness) - 1))
+        let huePrime: Double
+
+        if maximum == normalized.red {
+            huePrime = ((normalized.green - normalized.blue) / delta)
+                .truncatingRemainder(dividingBy: 6)
+        } else if maximum == normalized.green {
+            huePrime = ((normalized.blue - normalized.red) / delta) + 2
+        } else {
+            huePrime = ((normalized.red - normalized.green) / delta) + 4
+        }
+
+        let hueDegrees = Int(round((huePrime * 60).truncatingRemainder(dividingBy: 360)))
+        let normalizedHue = (hueDegrees + 360) % 360
+        return (
+            hue: normalizedHue,
+            saturation: percentage(saturation),
+            lightness: percentage(lightness)
+        )
+    }
+
+    var hslLabel: String {
+        let hsl = hsl
+        return "HSL(\(hsl.hue), \(hsl.saturation)%, \(hsl.lightness)%)"
     }
 
     var coordinateLabel: String {
@@ -79,6 +136,14 @@ struct CenterSampleReadout {
             blue: sampledColor.blue
         )
     }
+}
+
+private func normalizedComponent(_ value: Int) -> Double {
+    Double(min(max(value, 0), 255)) / 255.0
+}
+
+private func percentage(_ value: Double) -> Int {
+    Int(round(min(max(value, 0), 1) * 100))
 }
 
 private func hexComponent(_ value: Int) -> String {

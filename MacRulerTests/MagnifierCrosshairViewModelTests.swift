@@ -152,6 +152,8 @@ final class MagnifierCrosshairViewModelTests: XCTestCase {
         defaults.set(MeasurementScaleMode.manual.rawValue, forKey: PersistenceKeys.measurementScaleMode)
         defaults.set(5.0, forKey: PersistenceKeys.measurementScaleManualValue)
         defaults.set(true, forKey: PersistenceKeys.measurementScaleBadgeEnabled)
+        defaults.set(MagnifierColorOutputFormat.hsl.rawValue, forKey: PersistenceKeys.magnifierColorOutputFormat)
+        defaults.set(true, forKey: PersistenceKeys.magnifierAutoCopyOnPickEnabled)
 
         let viewModel = MagnifierCrosshairViewModel(
             primaryOffset: .zero,
@@ -173,6 +175,8 @@ final class MagnifierCrosshairViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.measurementScaleMode, .manual)
         XCTAssertEqual(viewModel.manualMeasurementScale, 4.0)
         XCTAssertTrue(viewModel.shouldShowMeasurementScaleOverride)
+        XCTAssertEqual(viewModel.selectedColorOutputFormat, .hsl)
+        XCTAssertTrue(viewModel.autoCopyColorOnPick)
     }
 
     @MainActor
@@ -195,6 +199,8 @@ final class MagnifierCrosshairViewModelTests: XCTestCase {
         viewModel.measurementScaleMode = .manual
         viewModel.manualMeasurementScale = 10
         viewModel.showMeasurementScaleOverrideBadge = true
+        viewModel.selectedColorOutputFormat = .rgb
+        viewModel.autoCopyColorOnPick = true
 
         XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierPixelGridEnabled) as? Bool, false)
         XCTAssertEqual(defaults.double(forKey: PersistenceKeys.magnifierCrosshairLineWidth), 0.5)
@@ -208,6 +214,8 @@ final class MagnifierCrosshairViewModelTests: XCTestCase {
         XCTAssertEqual(defaults.string(forKey: PersistenceKeys.measurementScaleMode), MeasurementScaleMode.manual.rawValue)
         XCTAssertEqual(defaults.double(forKey: PersistenceKeys.measurementScaleManualValue), 4.0)
         XCTAssertEqual(defaults.object(forKey: PersistenceKeys.measurementScaleBadgeEnabled) as? Bool, true)
+        XCTAssertEqual(defaults.string(forKey: PersistenceKeys.magnifierColorOutputFormat), MagnifierColorOutputFormat.rgb.rawValue)
+        XCTAssertEqual(defaults.object(forKey: PersistenceKeys.magnifierAutoCopyOnPickEnabled) as? Bool, true)
     }
 
 }

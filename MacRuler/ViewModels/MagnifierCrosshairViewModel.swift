@@ -10,6 +10,26 @@ final class MagnifierCrosshairViewModel {
         case secondary
     }
 
+    enum MagnifierColorOutputFormat: String, CaseIterable, Identifiable {
+        case hex
+        case rgb
+        case hsl
+        case swiftUIColor
+        case nsColor
+
+        var id: String { rawValue }
+
+        var displayName: String {
+            switch self {
+            case .hex: "HEX"
+            case .rgb: "RGB"
+            case .hsl: "HSL"
+            case .swiftUIColor: "SwiftUI Color"
+            case .nsColor: "NSColor"
+            }
+        }
+    }
+
     static let defaultSecondaryOffset = CGSize(width: 24, height: 24)
 
     var primaryOffset: CGSize
@@ -19,15 +39,29 @@ final class MagnifierCrosshairViewModel {
     var selectedCrosshair: CrosshairSelection = .primary
     private let defaults: DefaultsStoring
 
+    var selectedColorOutputFormat: MagnifierColorOutputFormat {
+        didSet {
+            defaults.magnifierColorOutputFormat = selectedColorOutputFormat
+        }
+    }
+
+    var autoCopyColorOnPick: Bool {
+        didSet {
+            defaults.magnifierAutoCopyOnPickEnabled = autoCopyColorOnPick
+        }
+    }
+
+    var lastPickedColorSample: CenterSampleReadout?
+
     var showMagnifierCrosshair: Bool {
         didSet {
             defaults.magnifierCrosshairEnabled = showMagnifierCrosshair
         }
     }
-    
+
     init(primaryOffset: CGSize = .zero,
-        secondaryOffset: CGSize,
-        defaults: DefaultsStoring = UserDefaults.standard)
+         secondaryOffset: CGSize,
+         defaults: DefaultsStoring = UserDefaults.standard)
     {
         self.defaults = defaults
         self.primaryOffset = primaryOffset
@@ -47,16 +81,18 @@ final class MagnifierCrosshairViewModel {
         self.measurementScaleMode = defaults.measurementScaleModeValue
         self.manualMeasurementScale = defaults.manualMeasurementScaleValue
         self.showMeasurementScaleOverrideBadge = defaults.measurementScaleOverrideBadgeEnabled
+        self.selectedColorOutputFormat = defaults.magnifierColorOutputFormat
+        self.autoCopyColorOnPick = defaults.magnifierAutoCopyOnPickEnabled
     }
 
-    
+
     var showCrosshair: Bool {
         didSet {
             primaryOffset = .zero
             showMagnifierCrosshair = showCrosshair
         }
     }
-    
+
     var showSecondaryCrosshair: Bool = true {
         didSet {
             defaults.magnifierSecondaryCrosshairEnabled = showSecondaryCrosshair
@@ -161,6 +197,39 @@ final class MagnifierCrosshairViewModel {
         case .manual:
             manualMeasurementScale
         }
+    }
+
+    func formattedColor(for sample: CenterSampleReadout) -> String {
+        switch selectedColorOutputFormat {
+        case .hex:
+            sample.hexValue
+        case .rgb:
+            sample.rgbLabel
+        case .hsl:
+            sample.hslLabel
+        case .swiftUIColor:
+            "Color(red: \(sample.normalizedRGB.red.formatted(.number.precision(.fractionLength(3)))), green: \(sample.normalizedRGB.green.formatted(.number.precision(.fractionLength(3)))), blue: \(sample.normalizedRGB.blue.formatted(.number.precision(.fractionLength(3)))))"
+        case .nsColor:
+            "NSColor(calibratedRed: \(sample.normalizedRGB.red.formatted(.number.precision(.fractionLength(3)))), green: \(sample.normalizedRGB.green.formatted(.number.precision(.fractionLength(3)))), blue: \(sample.normalizedRGB.blue.formatted(.number.precision(.fractionLength(3)))), alpha: 1.000)"
+        }
+    }
+
+    @discardableResult
+    func pickColor(from sample: CenterSampleReadout) -> String {
+        lastPickedColorSample = sample
+        let output = formattedColor(for: sample)
+        if autoCopyColorOnPick {
+            ClipboardWriter.writeString(output)
+        }
+        return output
+    }
+
+    @discardableResult
+    func copyColor(sample: CenterSampleReadout?) -> String? {
+        guard let sample else { return nil }
+        let output = formattedColor(for: sample)
+        ClipboardWriter.writeString(output)
+        return output
     }
 
     func toggleCrosshairVisibility() {
@@ -289,3 +358,5 @@ final class MagnifierCrosshairViewModel {
         )
     }
 }
+
+typealias MagnifierColorOutputFormat = MagnifierCrosshairViewModel.MagnifierColorOutputFormat
