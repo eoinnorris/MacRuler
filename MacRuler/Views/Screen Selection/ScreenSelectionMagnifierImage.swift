@@ -62,88 +62,13 @@ struct ScreenSelectionMagnifierImage: View {
             )
             .overlay(alignment: .bottomLeading) {
                 HStack(spacing: 8) {
-                    Menu {
-                        if controller.isStreamLive {
-                            Button("Pause") {
-                                controller.pauseCapture()
-                            }
-                            Menu("Pause after…") {
-                                Button("1 second") {
-                                    controller.pauseCapture(after: 1)
-                                }
-                                Button("2 seconds") {
-                                    controller.pauseCapture(after: 2)
-                                }
-                                Button("5 seconds") {
-                                    controller.pauseCapture(after: 5)
-                                }
-                            }
-                        } else {
-                            Button("Go Live") {
-                                controller.restartCapture()
-                            }
-                        }
-                    } label: {
-                        Text(controller.isStreamLive ? "Live" : "Paused")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(controller.isStreamLive ? Color.green.opacity(0.9) : Color.orange.opacity(0.85))
-                            .clipShape(.capsule)
+                    SlidingDrawerView(position: .bottomLeft) {
+                        LeftOverlayView(controller: controller,
+                                        crosshairViewModel: crosshairViewModel)
                     }
-                    .menuStyle(.button)
-                    .buttonStyle(.plain)
-                    
-                    Menu {
-                        Button(crosshairViewModel.isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
-                            crosshairViewModel.isPrimaryLocked.toggle()
-                        }
-                        .disabled(!crosshairViewModel.showCrosshair)
-                        
-                        Button(crosshairViewModel.isSecondaryLocked ? "Unlock Secondary" : "Lock Secondary") {
-                            crosshairViewModel.isSecondaryLocked.toggle()
-                        }
-                        .disabled(!crosshairViewModel.showSecondaryCrosshair)
-                        
-                        Divider()
-                        
-                        Button("Reset selected") {
-                            if crosshairViewModel.showSecondaryCrosshair {
-                                crosshairViewModel.resetSecondary()
-                            } else {
-                                crosshairViewModel.resetPrimary()
-                            }
-                        }
-                        
-                        Button("Reset all") {
-                            crosshairViewModel.resetAll()
-                        }
-                        
-                        Divider()
-                        
-                        Button("Crosshairs", systemImage: "scope") {
-                            let shouldEnableCrosshairs = !areCrosshairsEnabled
-                            crosshairViewModel.showCrosshair = shouldEnableCrosshairs
-                            crosshairViewModel.showSecondaryCrosshair = shouldEnableCrosshairs
-                        }
-                    } label: {
-                        Label("Crosshairs", systemImage: "scope")
-                            .labelStyle(.iconOnly)
-                            .padding(6)
-                            .background(areCrosshairsEnabled ? .gray.opacity(0.3) : .black.opacity(0.2), in: .circle)
-                            .foregroundStyle(areCrosshairsEnabled ? .green : .primary)
-                    }
-                    .menuStyle(.button)
-                    .buttonStyle(.plain)
-                    .help("Crosshair actions")
-                    .padding(10)
                 }
-                .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(.ultraThinMaterial)
-                )
+                .padding(.leading, 4.0)
+               
             }
             .onAppear {
                 controller.updateCaptureRect(centeredOn: session.selectionRectGlobal,
@@ -225,4 +150,97 @@ struct ScreenSelectionMagnifierImage: View {
         )
     }
 
+}
+
+
+private struct LeftOverlayView: View {
+    
+    @Bindable var controller: StreamCaptureObserver
+    @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
+
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Menu {
+                if controller.isStreamLive {
+                    Button("Pause") {
+                        controller.pauseCapture()
+                    }
+                    Menu("Pause after…") {
+                        Button("1 second") {
+                            controller.pauseCapture(after: 1)
+                        }
+                        Button("2 seconds") {
+                            controller.pauseCapture(after: 2)
+                        }
+                        Button("5 seconds") {
+                            controller.pauseCapture(after: 5)
+                        }
+                    }
+                } else {
+                    Button("Go Live") {
+                        controller.restartCapture()
+                    }
+                }
+            } label: {
+                Text(controller.isStreamLive ? "Live" : "Paused")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(controller.isStreamLive ? Color.green.opacity(0.9) : Color.orange.opacity(0.85))
+                    .clipShape(.capsule)
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            
+            Menu {
+                Button(crosshairViewModel.isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
+                    crosshairViewModel.isPrimaryLocked.toggle()
+                }
+                .disabled(!crosshairViewModel.showCrosshair)
+                
+                Button(crosshairViewModel.isSecondaryLocked ? "Unlock Secondary" : "Lock Secondary") {
+                    crosshairViewModel.isSecondaryLocked.toggle()
+                }
+                .disabled(!crosshairViewModel.showSecondaryCrosshair)
+                
+                Divider()
+                
+                Button("Reset selected") {
+                    if crosshairViewModel.showSecondaryCrosshair {
+                        crosshairViewModel.resetSecondary()
+                    } else {
+                        crosshairViewModel.resetPrimary()
+                    }
+                }
+                
+                Button("Reset all") {
+                    crosshairViewModel.resetAll()
+                }
+                
+                Divider()
+                
+                Button("Crosshairs", systemImage: "scope") {
+                    let shouldEnableCrosshairs = !areCrosshairsEnabled
+                    crosshairViewModel.showCrosshair = shouldEnableCrosshairs
+                    crosshairViewModel.showSecondaryCrosshair = shouldEnableCrosshairs
+                }
+            } label: {
+                Label("Crosshairs", systemImage: "scope")
+                    .labelStyle(.iconOnly)
+                    .padding(6)
+                    .background(areCrosshairsEnabled ? .gray.opacity(0.3) : .black.opacity(0.2), in: .circle)
+                    .foregroundStyle(areCrosshairsEnabled ? .green : .primary)
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .help("Crosshair actions")
+            .padding(10)
+        }
+    }
+    
+    private var areCrosshairsEnabled: Bool {
+        crosshairViewModel.showCrosshair && crosshairViewModel.showSecondaryCrosshair
+    }
 }
