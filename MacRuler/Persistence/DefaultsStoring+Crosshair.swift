@@ -114,8 +114,4 @@ extension DefaultsStoring {
         set { set(newValue.rawValue, forKey: PersistenceKeys.magnifierColorOutputFormat) }
     }
 
-    var magnifierAutoCopyOnPickEnabled: Bool {
-        get { object(forKey: PersistenceKeys.magnifierAutoCopyOnPickEnabled) as? Bool ?? false }
-        set { set(newValue, forKey: PersistenceKeys.magnifierAutoCopyOnPickEnabled) }
-    }
 }

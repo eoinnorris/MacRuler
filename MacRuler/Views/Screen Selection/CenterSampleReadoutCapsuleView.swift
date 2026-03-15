@@ -19,8 +19,7 @@ struct CenterSampleReadoutCapsule: View {
     let showColorValues: Bool
     let showSecondaryReadouts: Bool
     @Binding var selectedColorOutputFormat: MagnifierColorOutputFormat
-    @Binding var autoCopyColorOnPick: Bool
-    let pickColorAction: (CenterSampleReadout) -> Void
+    @State private var color: Color = .red
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 6) {
@@ -62,14 +61,13 @@ struct CenterSampleReadoutCapsule: View {
                 .labelsHidden()
                 .pickerStyle(.menu)
 
-                Toggle("Auto-copy", isOn: $autoCopyColorOnPick)
-                    .toggleStyle(.switch)
-                    .font(.caption)
-
-                Button("Pick Color") {
-                    pickColorAction(sampleReadout)
-                }
-                .buttonStyle(.borderedProminent)
+                ColorPicker("Color", selection: $color)
+                    .onAppear {
+                        color = sampleColor
+                    }
+                    .onChange(of: sampleReadout.hexValue) { _, _ in
+                        color = sampleColor
+                    }
             }
         }
         .font(.body)
@@ -78,5 +76,13 @@ struct CenterSampleReadoutCapsule: View {
         .padding(.vertical, 6)
         .background(.black.opacity(0.65))
         .clipShape(.capsule)
+    }
+
+    private var sampleColor: Color {
+        Color(
+            red: sampleReadout.normalizedRGB.red,
+            green: sampleReadout.normalizedRGB.green,
+            blue: sampleReadout.normalizedRGB.blue
+        )
     }
 }
