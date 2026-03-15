@@ -45,12 +45,6 @@ final class MagnifierCrosshairViewModel {
         }
     }
 
-    var autoCopyColorOnPick: Bool {
-        didSet {
-            defaults.magnifierAutoCopyOnPickEnabled = autoCopyColorOnPick
-        }
-    }
-
     var lastPickedColorSample: CenterSampleReadout?
 
     var showMagnifierCrosshair: Bool {
@@ -82,7 +76,6 @@ final class MagnifierCrosshairViewModel {
         self.manualMeasurementScale = defaults.manualMeasurementScaleValue
         self.showMeasurementScaleOverrideBadge = defaults.measurementScaleOverrideBadgeEnabled
         self.selectedColorOutputFormat = defaults.magnifierColorOutputFormat
-        self.autoCopyColorOnPick = defaults.magnifierAutoCopyOnPickEnabled
     }
 
 
@@ -212,16 +205,6 @@ final class MagnifierCrosshairViewModel {
         case .nsColor:
             "NSColor(calibratedRed: \(sample.normalizedRGB.red.formatted(.number.precision(.fractionLength(3)))), green: \(sample.normalizedRGB.green.formatted(.number.precision(.fractionLength(3)))), blue: \(sample.normalizedRGB.blue.formatted(.number.precision(.fractionLength(3)))), alpha: 1.000)"
         }
-    }
-
-    @discardableResult
-    func pickColor(from sample: CenterSampleReadout) -> String {
-        lastPickedColorSample = sample
-        let output = formattedColor(for: sample)
-        if autoCopyColorOnPick {
-            ClipboardWriter.writeString(output)
-        }
-        return output
     }
 
     @discardableResult

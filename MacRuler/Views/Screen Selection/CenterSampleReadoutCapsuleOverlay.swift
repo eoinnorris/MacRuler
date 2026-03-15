@@ -20,8 +20,6 @@ struct CenterSampleReadoutCapsuleOverlay: View {
     let showColorValues: Bool
     let showSecondaryReadouts: Bool
     @Binding var selectedColorOutputFormat: MagnifierColorOutputFormat
-    @Binding var autoCopyColorOnPick: Bool
-    let pickColorAction: (CenterSampleReadout) -> Void
 
     var body: some View {
         let sampleReadout = CenterSampleReadout.make(
@@ -50,9 +48,7 @@ struct CenterSampleReadoutCapsuleOverlay: View {
                 showConvertedCenterCoordinates: showConvertedCenterCoordinates,
                 showColorValues: showColorValues,
                 showSecondaryReadouts: showSecondaryReadouts,
-                selectedColorOutputFormat: $selectedColorOutputFormat,
-                autoCopyColorOnPick: $autoCopyColorOnPick,
-                pickColorAction: pickColorAction
+                selectedColorOutputFormat: $selectedColorOutputFormat
             )
         } else {
             EmptyView()
