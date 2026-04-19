@@ -19,7 +19,6 @@ struct CenterSampleReadoutCapsule: View {
     let showColorValues: Bool
     let showSecondaryReadouts: Bool
     @Binding var selectedColorOutputFormat: MagnifierColorOutputFormat
-    @State private var color: Color = .red
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 6) {
@@ -61,13 +60,15 @@ struct CenterSampleReadoutCapsule: View {
                 .labelsHidden()
                 .pickerStyle(.menu)
 
-                ColorPicker("Color", selection: $color)
-                    .onAppear {
-                        color = sampleColor
+                Circle()
+                    .fill(sampleColor)
+                    .frame(width: 16, height: 16)
+                    .overlay {
+                        Circle()
+                            .stroke(.white.opacity(0.35), lineWidth: 0.5)
                     }
-                    .onChange(of: sampleReadout.hexValue) { _, _ in
-                        color = sampleColor
-                    }
+                    .accessibilityLabel("Sample color")
+                    .accessibilityValue(sampleReadout.hexValue)
             }
         }
         .font(.body)
