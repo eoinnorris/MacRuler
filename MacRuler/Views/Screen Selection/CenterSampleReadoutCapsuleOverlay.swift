@@ -19,7 +19,6 @@ struct CenterSampleReadoutCapsuleOverlay: View {
     let showConvertedCenterCoordinates: Bool
     let showColorValues: Bool
     let showSecondaryReadouts: Bool
-    @Binding var selectedColorOutputFormat: MagnifierColorOutputFormat
 
     var body: some View {
         let sampleReadout = CenterSampleReadout.make(
@@ -47,8 +46,7 @@ struct CenterSampleReadoutCapsuleOverlay: View {
                 showCenterPixelCoordinates: showCenterPixelCoordinates,
                 showConvertedCenterCoordinates: showConvertedCenterCoordinates,
                 showColorValues: showColorValues,
-                showSecondaryReadouts: showSecondaryReadouts,
-                selectedColorOutputFormat: $selectedColorOutputFormat
+                showSecondaryReadouts: showSecondaryReadouts
             )
         } else {
             EmptyView()
