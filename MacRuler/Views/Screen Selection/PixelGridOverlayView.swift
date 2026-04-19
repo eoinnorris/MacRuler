@@ -127,8 +127,6 @@ struct PixelGridOverlayView: View {
                             ),
                             in: proxy.size
                         ))
-                        .contentShape(.circle)
-                        .allowsHitTesting(true)
                         .gesture(primaryCrosshairDragGesture(in: proxy.size))
                         .contextMenu {
                             Button(isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
@@ -155,8 +153,6 @@ struct PixelGridOverlayView: View {
                                 ),
                                 in: proxy.size
                             ))
-                            .contentShape(.circle)
-                            .allowsHitTesting(true)
                             .gesture(secondaryCrosshairDragGesture(in: proxy.size))
                             .contextMenu {
                                 Button(isSecondaryLocked ? "Unlock Secondary" : "Lock Secondary") {
@@ -178,13 +174,11 @@ struct PixelGridOverlayView: View {
                     }
                 }
             }
-            .allowsHitTesting(false)
         }
         .onChange(of: magnification) { oldValue, newValue in
             guard newValue > oldValue else { return }
 //            recenterCrosshairsAroundPrimary()
         }
-        .allowsHitTesting(false)
         .accessibilityHidden(true)
     }
 
