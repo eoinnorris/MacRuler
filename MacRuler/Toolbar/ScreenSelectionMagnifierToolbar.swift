@@ -81,8 +81,6 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
 
     private var magnificationControls: some View {
         HStack(spacing: 6) {
-            Image(systemName: "plus.magnifyingglass")
-                .foregroundStyle(.secondary)
             Slider(
                 value: $session.magnification,
                 in: MagnificationViewModel.minimumMagnification...MagnificationViewModel.maximumMagnification,
