@@ -13,6 +13,7 @@ struct ScreenSelectionMagnifierImage: View {
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
     @State private var contentFrame: CGRect = .zero
+    @State private var gestureStartMagnification: Double?
 
     private var areCrosshairsEnabled: Bool {
         crosshairViewModel.showCrosshair && crosshairViewModel.showSecondaryCrosshair
@@ -78,6 +79,7 @@ struct ScreenSelectionMagnifierImage: View {
                 controller.updateCaptureRect(centeredOn: newValue,
                                              screenBound: session.screen?.frame ?? .zero)
             }
+            .simultaneousGesture(magnificationGesture)
         }
     }
 
@@ -150,6 +152,24 @@ struct ScreenSelectionMagnifierImage: View {
         )
     }
 
+    private var magnificationGesture: some Gesture {
+        MagnifyGesture()
+            .onChanged { value in
+                if gestureStartMagnification == nil {
+                    gestureStartMagnification = session.magnification
+                }
+
+                guard let gestureStartMagnification else { return }
+                let proposedMagnification = gestureStartMagnification * value.magnification
+                session.magnification = min(
+                    max(proposedMagnification, MagnificationViewModel.minimumMagnification),
+                    MagnificationViewModel.maximumMagnification
+                )
+            }
+            .onEnded { _ in
+                gestureStartMagnification = nil
+            }
+    }
 }
 
 
