@@ -75,7 +75,7 @@ struct CenterSampleReadoutCapsule: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(.black.opacity(0.65))
-        .clipShape(.capsule)
+//        .clipShape(.capsule)
     }
 
     private var sampleColor: Color {

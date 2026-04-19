@@ -21,17 +21,17 @@ private struct PixelReadoutTextStyleModifier: ViewModifier {
             .foregroundStyle(.primary)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background {
-                Capsule()
-                    .fill(.ultraThinMaterial)
-                    .overlay {
-                        Capsule()
-                            .stroke(
-                                .white.opacity(0.25),
-                                lineWidth: 0.5
-                            )
-                    }
-            }
+//            .background {
+//                Capsule()
+//                    .fill(.ultraThinMaterial)
+//                    .overlay {
+//                        Capsule()
+//                            .stroke(
+//                                .white.opacity(0.25),
+//                                lineWidth: 0.5
+//                            )
+//                    }
+//            }
             .shadow(
                 color: .black.opacity(0.15),
                 radius: 6,

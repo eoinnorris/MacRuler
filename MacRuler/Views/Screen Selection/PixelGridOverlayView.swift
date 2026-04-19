@@ -313,7 +313,7 @@ struct PixelGridOverlayView: View {
             .foregroundStyle(.brandPrimary)
             .padding(.horizontal, 6)
             .padding(.vertical, 3)
-            .background(.black.opacity(0.55), in: Capsule())
+//            .background(.black.opacity(0.55), in: Capsule())
     }
 }
 
