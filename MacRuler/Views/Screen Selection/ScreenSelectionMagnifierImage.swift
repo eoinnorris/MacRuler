@@ -14,9 +14,14 @@ struct ScreenSelectionMagnifierImage: View {
     @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
     @State private var contentFrame: CGRect = .zero
     @State private var gestureStartMagnification: Double?
+    @State private var isDeferringOverlayForScroll = false
 
     private var areCrosshairsEnabled: Bool {
         crosshairViewModel.showCrosshair && crosshairViewModel.showSecondaryCrosshair
+    }
+
+    private var shouldRenderCrosshairOverlay: Bool {
+        !isDeferringOverlayForScroll
     }
 
     var body: some View {
@@ -40,6 +45,9 @@ struct ScreenSelectionMagnifierImage: View {
                     }
                     .coordinateSpace(name: "magnifier-scroll")
                     .onFrameChange { contentFrame = $0 }
+                    .onScrollPhaseChange { _, newPhase in
+                        isDeferringOverlayForScroll = newPhase != .idle
+                    }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .overlay {
                         overlayLayer(proxy: proxy, frameImage: frameImage)
@@ -92,8 +100,8 @@ struct ScreenSelectionMagnifierImage: View {
                 contentOrigin: contentFrame.origin,
                 magnification: session.magnification,
                 screenScale: Constants.screenScale,
-                showCrosshair: crosshairViewModel.showCrosshair,
-                showSecondaryCrosshair: crosshairViewModel.showSecondaryCrosshair,
+                showCrosshair: shouldRenderCrosshairOverlay && crosshairViewModel.showCrosshair,
+                showSecondaryCrosshair: shouldRenderCrosshairOverlay && crosshairViewModel.showSecondaryCrosshair,
                 showPixelGrid: crosshairViewModel.showPixelGrid,
                 crosshairLineWidth: CGFloat(crosshairViewModel.crosshairLineWidth),
                 crosshairColor: crosshairViewModel.crosshairColor.swiftUIColor,
@@ -104,7 +112,8 @@ struct ScreenSelectionMagnifierImage: View {
                 isSecondaryLocked: $crosshairViewModel.isSecondaryLocked,
                 selectedCrosshair: $crosshairViewModel.selectedCrosshair
             )
-            .allowsHitTesting(crosshairViewModel.showCrosshair)
+            .allowsHitTesting(crosshairViewModel.showCrosshair && !isDeferringOverlayForScroll)
+            .highPriorityGesture(crosshairSwipeDismissGesture)
 
             VStack {
                 Spacer()
@@ -168,6 +177,19 @@ struct ScreenSelectionMagnifierImage: View {
             }
             .onEnded { _ in
                 gestureStartMagnification = nil
+            }
+    }
+
+    private var crosshairSwipeDismissGesture: some Gesture {
+        DragGesture(minimumDistance: 12)
+            .onChanged { value in
+                let horizontalDistance = abs(value.translation.width)
+                let verticalDistance = abs(value.translation.height)
+                guard horizontalDistance > verticalDistance,
+                      horizontalDistance > 18,
+                      crosshairViewModel.showCrosshair,
+                      !isDeferringOverlayForScroll else { return }
+                isDeferringOverlayForScroll = true
             }
     }
 }
