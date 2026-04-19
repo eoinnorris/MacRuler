@@ -18,7 +18,6 @@ struct CenterSampleReadoutCapsule: View {
     let showConvertedCenterCoordinates: Bool
     let showColorValues: Bool
     let showSecondaryReadouts: Bool
-    @Binding var selectedColorOutputFormat: MagnifierColorOutputFormat
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 6) {
@@ -49,27 +48,6 @@ struct CenterSampleReadoutCapsule: View {
                 }
             }
 
-            Divider().overlay(.white.opacity(0.35))
-
-            HStack(spacing: 8) {
-                Picker("Format", selection: $selectedColorOutputFormat) {
-                    ForEach(MagnifierColorOutputFormat.allCases) { format in
-                        Text(format.displayName).tag(format)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.menu)
-
-                Circle()
-                    .fill(sampleColor)
-                    .frame(width: 16, height: 16)
-                    .overlay {
-                        Circle()
-                            .stroke(.white.opacity(0.35), lineWidth: 0.5)
-                    }
-                    .accessibilityLabel("Sample color")
-                    .accessibilityValue(sampleReadout.hexValue)
-            }
         }
         .font(.body)
         .foregroundStyle(.brandPrimary)
@@ -79,11 +57,4 @@ struct CenterSampleReadoutCapsule: View {
 //        .clipShape(.capsule)
     }
 
-    private var sampleColor: Color {
-        Color(
-            red: sampleReadout.normalizedRGB.red,
-            green: sampleReadout.normalizedRGB.green,
-            blue: sampleReadout.normalizedRGB.blue
-        )
-    }
 }

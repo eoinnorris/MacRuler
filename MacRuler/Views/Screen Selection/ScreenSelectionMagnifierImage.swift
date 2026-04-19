@@ -120,8 +120,7 @@ struct ScreenSelectionMagnifierImage: View {
                         showCenterPixelCoordinates: crosshairViewModel.showCenterPixelCoordinates,
                         showConvertedCenterCoordinates: crosshairViewModel.showConvertedCenterCoordinates,
                         showColorValues: crosshairViewModel.showColorValues,
-                        showSecondaryReadouts: crosshairViewModel.showSecondaryReadouts,
-                        selectedColorOutputFormat: $crosshairViewModel.selectedColorOutputFormat
+                        showSecondaryReadouts: crosshairViewModel.showSecondaryReadouts
                     )
                     .padding(10)
                 }
