@@ -106,9 +106,6 @@ struct MacOSRulerApp: App {
 
                 Divider()
 
-                Button("Select Window") {
-                    appDelegate.beginWindowSelection()
-                }
                 Button("Screen selection") {
                     appDelegate.beginScreenSelection()
                 }
