@@ -113,7 +113,7 @@ struct ScreenSelectionMagnifierImage: View {
                 selectedCrosshair: $crosshairViewModel.selectedCrosshair
             )
             .allowsHitTesting(crosshairViewModel.showCrosshair && !isDeferringOverlayForScroll)
-            .highPriorityGesture(crosshairSwipeDismissGesture)
+//            .highPriorityGesture(crosshairSwipeDismissGesture)
 
             VStack {
                 Spacer()
@@ -174,22 +174,14 @@ struct ScreenSelectionMagnifierImage: View {
                     max(proposedMagnification, MagnificationViewModel.minimumMagnification),
                     MagnificationViewModel.maximumMagnification
                 )
+                isDeferringOverlayForScroll = true
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(2))
+                    isDeferringOverlayForScroll = false
+                }
             }
             .onEnded { _ in
                 gestureStartMagnification = nil
-            }
-    }
-
-    private var crosshairSwipeDismissGesture: some Gesture {
-        DragGesture(minimumDistance: 12)
-            .onChanged { value in
-                let horizontalDistance = abs(value.translation.width)
-                let verticalDistance = abs(value.translation.height)
-                guard horizontalDistance > verticalDistance,
-                      horizontalDistance > 18,
-                      crosshairViewModel.showCrosshair,
-                      !isDeferringOverlayForScroll else { return }
-                isDeferringOverlayForScroll = true
             }
     }
 }
