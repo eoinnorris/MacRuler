@@ -18,16 +18,12 @@ struct SelectionHintView: View {
                 .font(.headline)
                 .multilineTextAlignment(.center)
 
-            GroupBox("Window") {
+            GroupBox("Selection") {
                 VStack(spacing: 10) {
-                    largeButton(title: "Select Window") {
-                        appDelegate?.beginWindowSelection()
-                    }
-                    .keyboardShortcut(.defaultAction)
-
                     largeButton(title: "Screen Selection") {
                         appDelegate?.beginScreenSelection()
                     }
+                    .keyboardShortcut(.defaultAction)
                 }
                 .padding(.top, 4)
             }
@@ -44,7 +40,7 @@ struct SelectionHintView: View {
                 .padding(.top, 4)
             }
 
-            Text("Choose a window or draw a screen area to begin magnifying.\nUse crosshair tools any time to place guides and compare spacing.")
+            Text("Draw a screen area to begin magnifying.\nUse crosshair tools any time to place guides and compare spacing.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
