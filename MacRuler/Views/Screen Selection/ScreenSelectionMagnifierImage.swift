@@ -119,20 +119,24 @@ struct ScreenSelectionMagnifierImage: View {
                 Spacer()
                 HStack {
                     Spacer()
-                    CenterSampleReadoutCapsuleOverlay(
-                        frameImage: frameImage,
-                        viewportSize: proxy.size,
-                        contentFrame: contentFrame,
-                        magnification: session.magnification,
-                        readoutComposition: readoutComposition(),
-                        unitType: crosshairViewModel.unitType,
-                        measurementScale: crosshairViewModel.effectiveMeasurementScale(displayScale: Constants.screenScale,sourceCaptureScale: Constants.screenScale),
-                        sourceScreenScale: Constants.screenScale,
-                        showCenterPixelCoordinates: crosshairViewModel.showCenterPixelCoordinates,
-                        showConvertedCenterCoordinates: crosshairViewModel.showConvertedCenterCoordinates,
-                        showColorValues: crosshairViewModel.showColorValues,
-                        showSecondaryReadouts: crosshairViewModel.showSecondaryReadouts
-                    )
+                    HStack(alignment: .bottom, spacing: 6) {
+                        CenterSampleReadoutCapsuleOverlay(
+                            frameImage: frameImage,
+                            viewportSize: proxy.size,
+                            contentFrame: contentFrame,
+                            magnification: session.magnification,
+                            readoutComposition: readoutComposition(),
+                            unitType: crosshairViewModel.unitType,
+                            measurementScale: crosshairViewModel.effectiveMeasurementScale(displayScale: Constants.screenScale,sourceCaptureScale: Constants.screenScale),
+                            sourceScreenScale: Constants.screenScale,
+                            showCenterPixelCoordinates: crosshairViewModel.showCenterPixelCoordinates,
+                            showConvertedCenterCoordinates: crosshairViewModel.showConvertedCenterCoordinates,
+                            showColorValues: crosshairViewModel.showColorValues,
+                            showSecondaryReadouts: crosshairViewModel.showSecondaryReadouts
+                        )
+
+                        InfoReadoutSettingsMenu(crosshairViewModel: crosshairViewModel)
+                    }
                     .padding(10)
                 }
             }
@@ -191,6 +195,28 @@ struct ScreenSelectionMagnifierImage: View {
                       !isDeferringOverlayForScroll else { return }
                 isDeferringOverlayForScroll = true
             }
+    }
+}
+
+private struct InfoReadoutSettingsMenu: View {
+    @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
+
+    var body: some View {
+        Menu {
+            Toggle("Center coordinates", isOn: $crosshairViewModel.showCenterPixelCoordinates)
+            Toggle("Converted coordinates", isOn: $crosshairViewModel.showConvertedCenterCoordinates)
+            Toggle("Color values", isOn: $crosshairViewModel.showColorValues)
+            Toggle("Secondary readouts (H/V)", isOn: $crosshairViewModel.showSecondaryReadouts)
+        } label: {
+            Label("Info Layout Settings", systemImage: "gearshape")
+                .labelStyle(.iconOnly)
+                .padding(6)
+                .background(.black.opacity(0.2), in: .circle)
+                .foregroundStyle(.primary)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .help("Info layout settings")
     }
 }
 
