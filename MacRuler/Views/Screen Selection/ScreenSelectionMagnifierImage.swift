@@ -15,6 +15,7 @@ struct ScreenSelectionMagnifierImage: View {
     @State private var contentFrame: CGRect = .zero
     @State private var gestureStartMagnification: Double?
     @State private var isDeferringOverlayForScroll = false
+    @State private var overlayResetTask: Task<Void, Never>?
 
     private var areCrosshairsEnabled: Bool {
         crosshairViewModel.showCrosshair && crosshairViewModel.showSecondaryCrosshair
@@ -46,7 +47,9 @@ struct ScreenSelectionMagnifierImage: View {
                     .coordinateSpace(name: "magnifier-scroll")
                     .onFrameChange { contentFrame = $0 }
                     .onScrollPhaseChange { _, newPhase in
-                        isDeferringOverlayForScroll = newPhase != .idle
+                        if newPhase == .idle {
+                           removeThenAddOverlay()
+                        }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .overlay {
@@ -87,7 +90,7 @@ struct ScreenSelectionMagnifierImage: View {
                 controller.updateCaptureRect(centeredOn: newValue,
                                              screenBound: session.screen?.frame ?? .zero)
             }
-            .simultaneousGesture(magnificationGesture)
+            .simultaneousGesture(magnificationAndSwipeGesture)
         }
     }
 
@@ -113,7 +116,6 @@ struct ScreenSelectionMagnifierImage: View {
                 selectedCrosshair: $crosshairViewModel.selectedCrosshair
             )
             .allowsHitTesting(crosshairViewModel.showCrosshair && !isDeferringOverlayForScroll)
-//            .highPriorityGesture(crosshairSwipeDismissGesture)
 
             VStack {
                 Spacer()
@@ -186,6 +188,81 @@ struct ScreenSelectionMagnifierImage: View {
             }
             .onEnded { _ in
                 gestureStartMagnification = nil
+            }
+    }
+    
+
+    private func removeThenAddOverlay() {
+        isDeferringOverlayForScroll = true
+
+        overlayResetTask?.cancel()
+
+        overlayResetTask = Task { @MainActor in
+            do {
+                try await Task.sleep(for: .seconds(2))
+                isDeferringOverlayForScroll = false
+            } catch {
+                // cancelled — ignore
+            }
+        }
+    }
+    
+    private var magnificationAndSwipeGesture: some Gesture {
+        MagnifyGesture()
+            .simultaneously(with: DragGesture(minimumDistance: 1))
+            .onChanged { value in
+                let magnifyValue = value.first
+                let dragValue = value.second
+
+                if let magnifyValue {
+                    if gestureStartMagnification == nil {
+                        gestureStartMagnification = session.magnification
+                    }
+
+                    guard let gestureStartMagnification else { return }
+                    let proposedMagnification = gestureStartMagnification * magnifyValue.magnification
+                    session.magnification = min(
+                        max(proposedMagnification, MagnificationViewModel.minimumMagnification),
+                        MagnificationViewModel.maximumMagnification
+                    )
+                }
+
+                if let dragValue {
+                    let translation = dragValue.translation
+
+                    // Example: detect a horizontal swipe while pinching
+                    if abs(translation.width) > abs(translation.height),
+                       abs(translation.width) > 5 {
+                        if translation.width > 1 {
+                            // swipe right
+                        } else {
+                            // swipe left
+                        }
+                    }
+                }
+
+                isDeferringOverlayForScroll = true
+                removeThenAddOverlay()
+            }
+            .onEnded { value in
+                gestureStartMagnification = nil
+
+                if let dragValue = value.second {
+                    let translation = dragValue.translation
+
+                    if abs(translation.width) > abs(translation.height),
+                       abs(translation.width) > 50 {
+                        if translation.width > 0 {
+                            isDeferringOverlayForScroll = true
+                            // final swipe right action
+                            removeThenAddOverlay()
+                        } else {
+                            isDeferringOverlayForScroll = false
+                            // final swipe left action
+                            removeThenAddOverlay()
+                        }
+                    }
+                }
             }
     }
 }
