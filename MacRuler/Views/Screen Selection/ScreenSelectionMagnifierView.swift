@@ -25,6 +25,7 @@ struct ScreenSelectionMagnifierView: View {
     var body: some View {
         SelectionMagnifierContentView(session: session,
                                       controller: controller,
+                                      edgeDetectionOverlayController: edgeDetectionOverlayController,
                                       horizontalOverlayViewModel:horizontalOverlayViewModel,
                                       verticalOverlayViewModel:verticalOverlayViewModel,
                                       magnifierCrosshairViewModel: magnifierCrosshairViewModel)

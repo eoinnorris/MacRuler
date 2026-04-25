@@ -9,6 +9,7 @@ import CoreGraphics
 struct ScreenSelectionMagnifierImage: View {
     @Bindable var session: SelectionSession
     @Bindable var controller: StreamCaptureObserver
+    @Bindable var edgeDetectionOverlayController: EdgeDetectionOverlayController
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var crosshairViewModel: MagnifierCrosshairViewModel
@@ -97,6 +98,11 @@ struct ScreenSelectionMagnifierImage: View {
 
     @ViewBuilder
     private func overlayLayer(proxy: GeometryProxy, frameImage: CGImage) -> some View {
+        let imageSize = CGSize(
+            width: CGFloat(CGFloat(frameImage.width) / Constants.screenScale) * session.magnification,
+            height: CGFloat(CGFloat(frameImage.height) / Constants.screenScale) * session.magnification
+        )
+
         ZStack {
             PixelGridOverlayView(
                 viewportSize: proxy.size,
@@ -116,6 +122,14 @@ struct ScreenSelectionMagnifierImage: View {
                 selectedCrosshair: $crosshairViewModel.selectedCrosshair
             )
             .allowsHitTesting(crosshairViewModel.showCrosshair && !isDeferringOverlayForScroll)
+
+            if session.showEdgeDetectionOverlay {
+                ContourOverlayView(
+                    normalizedContours: edgeDetectionOverlayController.normalizedContours,
+                    contentOrigin: contentFrame.origin,
+                    imageSize: imageSize
+                )
+            }
 
             VStack {
                 Spacer()
