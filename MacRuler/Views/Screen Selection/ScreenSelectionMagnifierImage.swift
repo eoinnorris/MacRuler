@@ -159,6 +159,20 @@ struct ScreenSelectionMagnifierImage: View {
         }
     }
 
+    private func imageOriginInScrollView(
+        viewportSize: CGSize,
+        magnifiedImageSize: CGSize,
+        trackedContentFrame: CGRect
+    ) -> CGPoint {
+        let insetX = max(0, (viewportSize.width - magnifiedImageSize.width) / 2)
+        let insetY = max(0, (viewportSize.height - magnifiedImageSize.height) / 2)
+
+        return CGPoint(
+            x: trackedContentFrame.minX + insetX,
+            y: trackedContentFrame.minY + insetY
+        )
+    }
+
 
     private func readoutComposition() -> MagnifierReadoutComposition {
         MagnifierReadoutComposition.compose(
