@@ -6,8 +6,8 @@
 //
 
 import AppKit
-import CoreMedia
-import CoreVideo
+@preconcurrency import CoreMedia
+@preconcurrency import CoreVideo
 @preconcurrency import ScreenCaptureKit
 import SwiftUI
 

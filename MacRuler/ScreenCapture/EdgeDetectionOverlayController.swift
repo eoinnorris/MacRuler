@@ -151,7 +151,7 @@ private final class ContourOverlayView: NSView {
 
     func updateContours(_ normalizedPaths: [CGPath]) {
         let mutablePath = CGMutablePath()
-        let transform = CGAffineTransform(
+        var transform = CGAffineTransform(
             a: bounds.width,
             b: 0,
             c: 0,

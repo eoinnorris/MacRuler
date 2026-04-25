@@ -15,8 +15,6 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .automatic) {
-            magnificationControls
-
             Button(action: snapshotAction) {
                 Label("Snapshot", systemImage: "camera")
             }
