@@ -10,6 +10,7 @@ import SwiftUI
 struct SelectionMagnifierContentView: View {
     @Bindable var session: SelectionSession
     @Bindable var controller: StreamCaptureObserver
+    @Bindable var edgeDetectionOverlayController: EdgeDetectionOverlayController
     @Bindable var horizontalOverlayViewModel: OverlayViewModel
     @Bindable var verticalOverlayViewModel: OverlayVerticalViewModel
     @Bindable var magnifierCrosshairViewModel: MagnifierCrosshairViewModel
@@ -18,6 +19,7 @@ struct SelectionMagnifierContentView: View {
         ScreenSelectionMagnifierImage(
             session: session,
             controller: controller,
+            edgeDetectionOverlayController: edgeDetectionOverlayController,
             horizontalOverlayViewModel: horizontalOverlayViewModel,
             verticalOverlayViewModel: verticalOverlayViewModel,
             crosshairViewModel: magnifierCrosshairViewModel
