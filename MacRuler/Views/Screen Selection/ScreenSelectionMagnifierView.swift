@@ -16,6 +16,7 @@ struct ScreenSelectionMagnifierView: View {
     @Bindable var controller: StreamCaptureObserver
     @State private var selectionPreviewWindow: NSWindow?
     @State private var selectionPreviewTask: Task<Void, Never>?
+    @State private var edgeDetectionOverlayController = EdgeDetectionOverlayController()
 
     var horizontalOverlayViewModel: OverlayViewModel
     var verticalOverlayViewModel: OverlayVerticalViewModel
@@ -51,11 +52,29 @@ struct ScreenSelectionMagnifierView: View {
         .onChange(of: session.showVerticalRuler) { _, shouldShow in
             handleVerticalRulerToggle(isOn: shouldShow)
         }
+        .onChange(of: session.showEdgeDetectionOverlay) { _, isEnabled in
+            edgeDetectionOverlayController.setEnabled(isEnabled, sourceFrame: overlaySourceFrame())
+            if isEnabled, let pixelBuffer = controller.latestPixelBuffer {
+                edgeDetectionOverlayController.processFrame(pixelBuffer, sourceFrame: overlaySourceFrame())
+            }
+        }
+        .onChange(of: controller.latestFrameSequence) { _, _ in
+            guard session.showEdgeDetectionOverlay,
+                  let pixelBuffer = controller.latestPixelBuffer else { return }
+            edgeDetectionOverlayController.processFrame(pixelBuffer, sourceFrame: overlaySourceFrame())
+        }
+        .onChange(of: session.selectionRectGlobal) { _, _ in
+            guard session.showEdgeDetectionOverlay else { return }
+            edgeDetectionOverlayController.updateOverlayFrame(overlaySourceFrame())
+        }
         .onAppear {
             syncRulerToggleStateWithVisibility()
             let normalizedMagnification = magnificationViewModel.normalizedMagnification(session.magnification)
             session.magnification = normalizedMagnification
             magnificationViewModel.magnification = normalizedMagnification
+            if session.showEdgeDetectionOverlay {
+                edgeDetectionOverlayController.setEnabled(true, sourceFrame: overlaySourceFrame())
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .rulerVisibilityDidChange)) { notification in
             syncRulerToggleStateWithVisibility(from: notification)
@@ -71,8 +90,10 @@ struct ScreenSelectionMagnifierView: View {
         .onDisappear {
             selectionPreviewTask?.cancel()
             dismissSelectionWindow()
+            edgeDetectionOverlayController.clear()
             session.showHorizontalRuler = false
             session.showVerticalRuler = false
+            session.showEdgeDetectionOverlay = false
             appDelegate?.setHorizontalRulerVisible(false)
             appDelegate?.setVerticalRulerVisible(false)
         }
@@ -152,6 +173,10 @@ struct ScreenSelectionMagnifierView: View {
     private func selectionRectInGlobalCoordinates() -> CGRect {
         guard let screen = session.screen else { return session.selectionRectGlobal }
         return Constants.scRectToGlobalRect(session.selectionRectGlobal, containerHeight: screen.frame.height)
+    }
+
+    private func overlaySourceFrame() -> CGRect {
+        selectionRectInGlobalCoordinates()
     }
 }
 

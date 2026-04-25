@@ -27,6 +27,7 @@ final class SelectionSession: Identifiable {
     var showRulerOverlay: Bool
     var showHorizontalRuler: Bool
     var showVerticalRuler: Bool
+    var showEdgeDetectionOverlay: Bool
     var isWindowVisible: Bool
 
     var magnifierReadoutMode: MagnifierReadoutMode {
@@ -47,6 +48,7 @@ final class SelectionSession: Identifiable {
         showRulerOverlay: Bool = false,
         showHorizontalRuler: Bool = false,
         showVerticalRuler: Bool = false,
+        showEdgeDetectionOverlay: Bool = false,
         isWindowVisible: Bool = true
     ) {
         self.id = id
@@ -57,6 +59,7 @@ final class SelectionSession: Identifiable {
         self.showRulerOverlay = showRulerOverlay
         self.showHorizontalRuler = showHorizontalRuler
         self.showVerticalRuler = showVerticalRuler
+        self.showEdgeDetectionOverlay = showEdgeDetectionOverlay
         self.isWindowVisible = isWindowVisible
         self.selectionRectScreen = selectionRectScreen
     }
