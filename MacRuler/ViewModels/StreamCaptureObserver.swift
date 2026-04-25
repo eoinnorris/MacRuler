@@ -7,6 +7,7 @@
 
 import AppKit
 import CoreMedia
+import CoreVideo
 @preconcurrency import ScreenCaptureKit
 import SwiftUI
 
@@ -15,6 +16,8 @@ import SwiftUI
 @MainActor
 final class StreamCaptureObserver: NSObject {
    var frameImage: CGImage?
+    var latestPixelBuffer: CVPixelBuffer?
+    var latestFrameSequence: UInt64 = 0
     var isStreamLive = false
 
     private let captureQueue = DispatchQueue(label: "ScreenCaptureMagnifier.Capture")
@@ -198,6 +201,8 @@ extension StreamCaptureObserver: SCStreamOutput {
         guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
         Task { @MainActor [weak self] in
             self?.frameImage = cgImage
+            self?.latestPixelBuffer = pixelBuffer
+            self?.latestFrameSequence &+= 1
             self?.isStreamLive = true
         }
     }

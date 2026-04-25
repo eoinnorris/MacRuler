@@ -49,6 +49,18 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
             .toggleStyle(.button)
             .help("Show pixel grid")
 
+            Toggle(isOn: $session.showEdgeDetectionOverlay) {
+                Label(
+                    "Edge detection",
+                    systemImage: session.showEdgeDetectionOverlay
+                        ? "waveform.path.ecg.rectangle.fill"
+                        : "waveform.path.ecg.rectangle"
+                )
+            }
+            .toggleStyle(.button)
+            .tint(.pink)
+            .help("Show detected edges overlay")
+
 
             Menu("Crosshair") {
                 Button(crosshairViewModel.isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
