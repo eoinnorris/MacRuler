@@ -54,25 +54,29 @@ struct ScreenSelectionMagnifierImage: View {
                                     frameImage: frameImage
                                 )
                             }
-                            .onChange(of: proxy.size) { _, newViewport in
+                            .onChange(of: proxy.size) { oldViewport, newViewport in
+                                guard oldViewport != newViewport else { return }
                                 applyFittedMagnificationIfNeeded(
                                     viewportSize: newViewport,
                                     frameImage: frameImage
                                 )
                             }
-                            .onChange(of: controller.frameImage?.width) { _, _ in
+                            .onChange(of: controller.frameImage?.width) { oldWidth, newWidth in
+                                guard oldWidth != newWidth else { return }
                                 applyFittedMagnificationIfNeeded(
                                     viewportSize: proxy.size,
                                     frameImage: frameImage
                                 )
                             }
-                            .onChange(of: controller.frameImage?.height) { _, _ in
+                            .onChange(of: controller.frameImage?.height) { oldHeight, newHeight in
+                                guard oldHeight != newHeight else { return }
                                 applyFittedMagnificationIfNeeded(
                                     viewportSize: proxy.size,
                                     frameImage: frameImage
                                 )
                             }
-                            .onChange(of: minimumMagnificationToFillWindow) { _, _ in
+                            .onChange(of: minimumMagnificationToFillWindow) { oldMinimum, newMinimum in
+                                guard oldMinimum != newMinimum else { return }
                                 applyFittedMagnificationIfNeeded(
                                     viewportSize: proxy.size,
                                     frameImage: frameImage
@@ -121,7 +125,8 @@ struct ScreenSelectionMagnifierImage: View {
                 controller.updateCaptureRect(centeredOn: session.selectionRectGlobal,
                                              screenBound: session.screen?.frame ?? .zero)
             }
-            .onChange(of: session.selectionRectGlobal) { _, newValue in
+            .onChange(of: session.selectionRectGlobal) { oldValue, newValue in
+                guard oldValue != newValue else { return }
                 controller.updateCaptureRect(centeredOn: newValue,
                                              screenBound: session.screen?.frame ?? .zero)
             }

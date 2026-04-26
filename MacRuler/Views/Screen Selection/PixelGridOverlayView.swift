@@ -176,6 +176,7 @@ struct PixelGridOverlayView: View {
             }
         }
         .onChange(of: magnification) { oldValue, newValue in
+            guard oldValue != newValue else { return }
             guard newValue > oldValue else { return }
 //            recenterCrosshairsAroundPrimary()
         }

@@ -128,7 +128,8 @@ struct SlidingDrawerView<Content: View>: View {
                 GeometryReader { geo in
                     Color.clear
                         .onAppear { contentWidth = geo.size.width }
-                        .onChange(of: geo.size.width) { _, newWidth in
+                        .onChange(of: geo.size.width) { oldWidth, newWidth in
+                            guard oldWidth != newWidth else { return }
                             Task { @MainActor in
                                 contentWidth = newWidth
                             }

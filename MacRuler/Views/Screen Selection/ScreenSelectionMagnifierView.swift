@@ -39,7 +39,8 @@ struct ScreenSelectionMagnifierView: View {
                 canTakeSnapshot: controller.frameImage != nil
             )
         }
-        .onChange(of: session.showSelection) { _, shouldShow in
+        .onChange(of: session.showSelection) { previousValue, shouldShow in
+            guard previousValue != shouldShow else { return }
             if shouldShow {
                 appDelegate?.beginScreenSelection()
             } else {
@@ -47,24 +48,29 @@ struct ScreenSelectionMagnifierView: View {
                 dismissSelectionWindow()
             }
         }
-        .onChange(of: session.showHorizontalRuler) { _, shouldShow in
+        .onChange(of: session.showHorizontalRuler) { previousValue, shouldShow in
+            guard previousValue != shouldShow else { return }
             handleHorizontalRulerToggle(isOn: shouldShow)
         }
-        .onChange(of: session.showVerticalRuler) { _, shouldShow in
+        .onChange(of: session.showVerticalRuler) { previousValue, shouldShow in
+            guard previousValue != shouldShow else { return }
             handleVerticalRulerToggle(isOn: shouldShow)
         }
-        .onChange(of: session.showEdgeDetectionOverlay) { _, isEnabled in
+        .onChange(of: session.showEdgeDetectionOverlay) { previousValue, isEnabled in
+            guard previousValue != isEnabled else { return }
             edgeDetectionOverlayController.setEnabled(isEnabled, sourceFrame: overlaySourceFrame())
             if isEnabled, let pixelBuffer = controller.latestPixelBuffer {
                 edgeDetectionOverlayController.processFrame(pixelBuffer, sourceFrame: overlaySourceFrame())
             }
         }
-        .onChange(of: controller.latestFrameSequence) { _, _ in
+        .onChange(of: controller.latestFrameSequence) { oldSequence, newSequence in
+            guard oldSequence != newSequence else { return }
             guard session.showEdgeDetectionOverlay,
                   let pixelBuffer = controller.latestPixelBuffer else { return }
             edgeDetectionOverlayController.processFrame(pixelBuffer, sourceFrame: overlaySourceFrame())
         }
-        .onChange(of: session.selectionRectGlobal) { _, _ in
+        .onChange(of: session.selectionRectGlobal) { oldRect, newRect in
+            guard oldRect != newRect else { return }
             guard session.showEdgeDetectionOverlay else { return }
             edgeDetectionOverlayController.updateOverlayFrame(overlaySourceFrame())
         }
@@ -80,7 +86,8 @@ struct ScreenSelectionMagnifierView: View {
         .onReceive(NotificationCenter.default.publisher(for: .rulerVisibilityDidChange)) { notification in
             syncRulerToggleStateWithVisibility(from: notification)
         }
-        .onChange(of: session.magnification) { _, newValue in
+        .onChange(of: session.magnification) { oldValue, newValue in
+            guard oldValue != newValue else { return }
             let normalizedValue = magnificationViewModel.normalizedMagnification(newValue)
             if normalizedValue != newValue {
                 session.magnification = normalizedValue
