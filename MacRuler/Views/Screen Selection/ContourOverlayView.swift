@@ -46,7 +46,7 @@ struct ContourOverlayView: View {
                     if !bounds.isNull && !bounds.isInfinite && bounds.width > 2 && bounds.height > 2 {
                         context.stroke(
                             Path(bounds),
-                            with: .color(.orange.opacity(0.9)),
+                            with: .color(.orange.opacity(0.95)),
                             style: StrokeStyle(lineWidth: 1, lineCap: .square, lineJoin: .miter, dash: [4, 3])
                         )
                     }
