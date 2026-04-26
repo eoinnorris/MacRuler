@@ -33,6 +33,10 @@ struct ScreenSelectionMagnifierImage: View {
                     ScrollView([.horizontal, .vertical]) {
                         let baseSize = CGSize(width: CGFloat(CGFloat(frameImage.width) / Constants.screenScale),
                                               height: CGFloat(CGFloat(frameImage.height) / Constants.screenScale))
+                        let minimumMagnificationToFillWindow = max(
+                            proxy.size.width / max(baseSize.width, 1),
+                            proxy.size.height / max(baseSize.height, 1)
+                        )
                         let magnifiedSize = CGSize(width: baseSize.width * session.magnification,
                                                    height: baseSize.height * session.magnification)
                         Image(decorative: frameImage, scale: 4.0)
@@ -41,9 +45,39 @@ struct ScreenSelectionMagnifierImage: View {
                             .frame(
                                 width: max(magnifiedSize.width, proxy.size.width),
                                 height: max(magnifiedSize.height, proxy.size.height),
-                                alignment: .center
+                                alignment: .topLeading
                             )
                             .trackFrame(in: .named("magnifier-scroll"))
+                            .onAppear {
+                                applyFittedMagnificationIfNeeded(
+                                    viewportSize: proxy.size,
+                                    frameImage: frameImage
+                                )
+                            }
+                            .onChange(of: proxy.size) { _, newViewport in
+                                applyFittedMagnificationIfNeeded(
+                                    viewportSize: newViewport,
+                                    frameImage: frameImage
+                                )
+                            }
+                            .onChange(of: controller.frameImage?.width) { _, _ in
+                                applyFittedMagnificationIfNeeded(
+                                    viewportSize: proxy.size,
+                                    frameImage: frameImage
+                                )
+                            }
+                            .onChange(of: controller.frameImage?.height) { _, _ in
+                                applyFittedMagnificationIfNeeded(
+                                    viewportSize: proxy.size,
+                                    frameImage: frameImage
+                                )
+                            }
+                            .onChange(of: minimumMagnificationToFillWindow) { _, _ in
+                                applyFittedMagnificationIfNeeded(
+                                    viewportSize: proxy.size,
+                                    frameImage: frameImage
+                                )
+                            }
                     }
                     .coordinateSpace(name: "magnifier-scroll")
                     .onFrameChange { contentFrame = $0 }
@@ -194,6 +228,28 @@ struct ScreenSelectionMagnifierImage: View {
             },
             showMeasurementScaleOverride: crosshairViewModel.shouldShowMeasurementScaleOverride
         )
+    }
+
+    private func applyFittedMagnificationIfNeeded(viewportSize: CGSize, frameImage: CGImage) {
+        let baseSize = CGSize(
+            width: CGFloat(CGFloat(frameImage.width) / Constants.screenScale),
+            height: CGFloat(CGFloat(frameImage.height) / Constants.screenScale)
+        )
+
+        guard baseSize.width > 0, baseSize.height > 0 else { return }
+
+        let magnificationNeededToFillWindow = max(
+            viewportSize.width / baseSize.width,
+            viewportSize.height / baseSize.height
+        )
+        let clampedMagnification = min(
+            max(magnificationNeededToFillWindow, MagnificationViewModel.minimumMagnification),
+            MagnificationViewModel.maximumMagnification
+        )
+
+        if session.magnification < clampedMagnification {
+            session.magnification = clampedMagnification
+        }
     }
 
     private var magnificationGesture: some Gesture {
