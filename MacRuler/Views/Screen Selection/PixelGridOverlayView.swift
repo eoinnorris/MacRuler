@@ -317,36 +317,3 @@ struct PixelGridOverlayView: View {
 //            .background(.black.opacity(0.55), in: Capsule())
     }
 }
-
-private struct MagnifierContentFramePreferenceKey: PreferenceKey {
-    static var defaultValue: CGRect = .zero
-
-    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
-        value = nextValue()
-    }
-}
-
-private struct MagnifierFrameTrackingModifier: ViewModifier {
-    let coordinateSpace: CoordinateSpace
-
-    func body(content: Content) -> some View {
-        content.background {
-            GeometryReader { proxy in
-                Color.clear.preference(
-                    key: MagnifierContentFramePreferenceKey.self,
-                    value: proxy.frame(in: coordinateSpace)
-                )
-            }
-        }
-    }
-}
-
-extension View {
-    func trackFrame(in coordinateSpace: CoordinateSpace) -> some View {
-        modifier(MagnifierFrameTrackingModifier(coordinateSpace: coordinateSpace))
-    }
-
-    func onFrameChange(_ action: @escaping (CGRect) -> Void) -> some View {
-        onPreferenceChange(MagnifierContentFramePreferenceKey.self, perform: action)
-    }
-}
