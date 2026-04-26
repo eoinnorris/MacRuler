@@ -10,6 +10,7 @@ import CoreVideo
 @preconcurrency import Vision
 
 @Observable
+@MainActor
 final class EdgeDetectionOverlayController {
     var normalizedContours: [CGPath] = []
     var sourceFrame: CGRect = .zero
@@ -21,34 +22,56 @@ final class EdgeDetectionOverlayController {
     @ObservationIgnored
     private var latestFrameToken: UInt64 = 0
 
+    @ObservationIgnored
+    private var pendingPixelBuffer: CVPixelBuffer?
+
+    @ObservationIgnored
+    private var latestPixelBuffer: CVPixelBuffer?
+
+    @ObservationIgnored
+    private var isDetectionInFlight = false
+
+    @ObservationIgnored
+    private var nextAllowedProcessingDate = Date.distantPast
+
+    @ObservationIgnored
+    private var deferredProcessingTask: Task<Void, Never>?
+
+    private let targetDetectionFPS: TimeInterval = 12
+
+    func connect(to streamCaptureObserver: StreamCaptureObserver) {
+        streamCaptureObserver.setEdgeDetectionFrameHandler { [weak self] pixelBuffer in
+            self?.receiveFrame(pixelBuffer)
+        }
+    }
+
+    func disconnect(from streamCaptureObserver: StreamCaptureObserver) {
+        streamCaptureObserver.setEdgeDetectionFrameHandler(nil)
+    }
+
     func setEnabled(_ enabled: Bool, sourceFrame: CGRect) {
         isEnabled = enabled
         self.sourceFrame = sourceFrame
 
         guard enabled else {
+            deferredProcessingTask?.cancel()
+            deferredProcessingTask = nil
+            pendingPixelBuffer = nil
+            isDetectionInFlight = false
             normalizedContours = []
             return
         }
+
+        pendingPixelBuffer = latestPixelBuffer
+        scheduleProcessingIfNeeded()
     }
 
-    func processFrame(_ pixelBuffer: CVPixelBuffer, sourceFrame: CGRect) {
+    func receiveFrame(_ pixelBuffer: CVPixelBuffer) {
+        latestPixelBuffer = pixelBuffer
         guard isEnabled else { return }
 
-        latestFrameToken &+= 1
-        let frameToken = latestFrameToken
-        self.sourceFrame = sourceFrame
-
-        processingQueue.async { [weak self] in
-            guard let self else { return }
-            let contourPaths = Self.detectContours(in: pixelBuffer)
-
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
-                guard self.isEnabled, frameToken == self.latestFrameToken else { return }
-                self.sourceFrame = sourceFrame
-                self.normalizedContours = contourPaths
-            }
-        }
+        pendingPixelBuffer = pixelBuffer
+        scheduleProcessingIfNeeded()
     }
 
     func updateOverlayFrame(_ frame: CGRect) {
@@ -58,15 +81,76 @@ final class EdgeDetectionOverlayController {
 
     func clear() {
         isEnabled = false
+        deferredProcessingTask?.cancel()
+        deferredProcessingTask = nil
         latestFrameToken &+= 1
+        pendingPixelBuffer = nil
+        latestPixelBuffer = nil
+        isDetectionInFlight = false
         normalizedContours = []
     }
 
+    private func scheduleProcessingIfNeeded() {
+        guard isEnabled, !isDetectionInFlight else { return }
+        guard pendingPixelBuffer != nil else { return }
+
+        let delay = max(0, nextAllowedProcessingDate.timeIntervalSinceNow)
+        guard deferredProcessingTask == nil else { return }
+
+        if delay == 0 {
+            startProcessingPendingFrame()
+            return
+        }
+
+        deferredProcessingTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled else { return }
+            self?.runDeferredProcessingIfNeeded()
+        }
+    }
+
+    private func runDeferredProcessingIfNeeded() {
+        deferredProcessingTask = nil
+        startProcessingPendingFrame()
+    }
+
+    private func startProcessingPendingFrame() {
+        guard isEnabled, !isDetectionInFlight else { return }
+        guard let pixelBuffer = pendingPixelBuffer else { return }
+
+        isDetectionInFlight = true
+        pendingPixelBuffer = nil
+        latestFrameToken &+= 1
+        let frameToken = latestFrameToken
+        let frameSnapshot = sourceFrame
+        let minimumFrameInterval = 1.0 / targetDetectionFPS
+        nextAllowedProcessingDate = Date().addingTimeInterval(minimumFrameInterval)
+
+        processingQueue.async { [weak self] in
+            guard let self else { return }
+            let contourPaths = Self.detectContours(in: pixelBuffer)
+
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                guard self.isEnabled, frameToken == self.latestFrameToken else {
+                    self.isDetectionInFlight = false
+                    self.scheduleProcessingIfNeeded()
+                    return
+                }
+
+                self.sourceFrame = frameSnapshot
+                self.normalizedContours = contourPaths
+                self.isDetectionInFlight = false
+                self.scheduleProcessingIfNeeded()
+            }
+        }
+    }
+
     private static func detectContours(in pixelBuffer: CVPixelBuffer) -> [CGPath] {
-        
+
         let width = CVPixelBufferGetWidth(pixelBuffer)
         let height = CVPixelBufferGetHeight(pixelBuffer)
-        
+
         // Run two passes — one for dark-on-light, one for light-on-dark —
         // then merge, deduplicating paths that are near-identical in bounds.
         let paths = [true, false].flatMap { darkOnLight -> [CGPath] in
@@ -78,7 +162,7 @@ final class EdgeDetectionOverlayController {
             // Dark on light pass — pivot below centre, background is bright
             request.contrastPivot = darkOnLight ? 0.2 : 0.7
 
-            
+
             let handler = VNImageRequestHandler(
                 cvPixelBuffer: pixelBuffer,
                 orientation: .up

@@ -59,15 +59,6 @@ struct ScreenSelectionMagnifierView: View {
         .onChange(of: session.showEdgeDetectionOverlay) { previousValue, isEnabled in
             guard previousValue != isEnabled else { return }
             edgeDetectionOverlayController.setEnabled(isEnabled, sourceFrame: overlaySourceFrame())
-            if isEnabled, let pixelBuffer = controller.latestPixelBuffer {
-                edgeDetectionOverlayController.processFrame(pixelBuffer, sourceFrame: overlaySourceFrame())
-            }
-        }
-        .onChange(of: controller.latestFrameSequence) { oldSequence, newSequence in
-            guard oldSequence != newSequence else { return }
-            guard session.showEdgeDetectionOverlay,
-                  let pixelBuffer = controller.latestPixelBuffer else { return }
-            edgeDetectionOverlayController.processFrame(pixelBuffer, sourceFrame: overlaySourceFrame())
         }
         .onChange(of: session.selectionRectGlobal) { oldRect, newRect in
             guard oldRect != newRect else { return }
@@ -79,6 +70,7 @@ struct ScreenSelectionMagnifierView: View {
             let normalizedMagnification = magnificationViewModel.normalizedMagnification(session.magnification)
             session.magnification = normalizedMagnification
             magnificationViewModel.magnification = normalizedMagnification
+            edgeDetectionOverlayController.connect(to: controller)
             if session.showEdgeDetectionOverlay {
                 edgeDetectionOverlayController.setEnabled(true, sourceFrame: overlaySourceFrame())
             }
@@ -98,6 +90,7 @@ struct ScreenSelectionMagnifierView: View {
         .onDisappear {
             selectionPreviewTask?.cancel()
             dismissSelectionWindow()
+            edgeDetectionOverlayController.disconnect(from: controller)
             edgeDetectionOverlayController.clear()
             session.showHorizontalRuler = false
             session.showVerticalRuler = false
