@@ -63,23 +63,59 @@ final class EdgeDetectionOverlayController {
     }
 
     private static func detectContours(in pixelBuffer: CVPixelBuffer) -> [CGPath] {
-        let request = VNDetectContoursRequest()
-        request.detectsDarkOnLight = true
-        request.contrastAdjustment = 1.0
-        request.maximumImageDimension = 512
+        
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
+        
+        // Run two passes — one for dark-on-light, one for light-on-dark —
+        // then merge, deduplicating paths that are near-identical in bounds.
+        let paths = [true, false].flatMap { darkOnLight -> [CGPath] in
+            let request = VNDetectContoursRequest()
+            request.detectsDarkOnLight = darkOnLight
+            request.contrastAdjustment = 2.0
+            request.maximumImageDimension = max(width, height)
 
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up)
+            // Dark on light pass — pivot below centre, background is bright
+            request.contrastPivot = darkOnLight ? 0.2 : 0.7
 
-        do {
-            try handler.perform([request])
-            guard let contoursObservation = request.results?.first else {
+            
+            let handler = VNImageRequestHandler(
+                cvPixelBuffer: pixelBuffer,
+                orientation: .up
+            )
+
+            do {
+                try handler.perform([request])
+                guard let observation = request.results?.first else { return [] }
+                // Only top-level contours — no children, so no internal boxes
+                return observation.topLevelContours.map(\.normalizedPath)
+            } catch {
+                NSLog("Contour detection failed: \(error.localizedDescription)")
                 return []
             }
-            return allContours(from: contoursObservation.topLevelContours).map(\.normalizedPath)
-        } catch {
-            NSLog("Contour detection failed: \(error.localizedDescription)")
-            return []
         }
+
+        // Deduplicate: if two paths from the two passes have bounding boxes
+        // that are within 1% of each other, keep only one.
+        return deduplicated(paths)
+    }
+
+    private static func deduplicated(_ paths: [CGPath]) -> [CGPath] {
+        var kept: [CGPath] = []
+        for path in paths {
+            let b = path.boundingBoxOfPath
+            let isDuplicate = kept.contains { existing in
+                let e = existing.boundingBoxOfPath
+                guard e.width > 0, e.height > 0 else { return false }
+                let dx = abs(b.midX - e.midX) / e.width
+                let dy = abs(b.midY - e.midY) / e.height
+                let dw = abs(b.width - e.width) / e.width
+                let dh = abs(b.height - e.height) / e.height
+                return dx < 0.01 && dy < 0.01 && dw < 0.01 && dh < 0.01
+            }
+            if !isDuplicate { kept.append(path) }
+        }
+        return kept
     }
 
     private static func allContours(from contours: [VNContour]) -> [VNContour] {
