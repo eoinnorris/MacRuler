@@ -29,9 +29,13 @@ final class StreamCaptureObserver: NSObject {
     private var sleepObserver: NSObjectProtocol?
     private var wakeObserver: NSObjectProtocol?
     private var pauseTask: Task<Void, Never>?
+    nonisolated(unsafe) private let ciContext = CIContext()
 
     @ObservationIgnored
     private var latestPixelBuffer: CVPixelBuffer?
+
+    @ObservationIgnored
+    private var latestFrameSequence: UInt64 = 0
 
     @ObservationIgnored
     private var edgeDetectionFrameHandler: (@MainActor (CVPixelBuffer) -> Void)?
@@ -209,13 +213,17 @@ extension StreamCaptureObserver: SCStreamOutput {
         guard outputType == .screen,
               let pixelBuffer = sampleBuffer.imageBuffer else { return }
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-        let context = CIContext()
-        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
+        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else { return }
+
         Task { @MainActor [weak self] in
-            self?.frameImage = cgImage
-            self?.latestPixelBuffer = pixelBuffer
-            self?.edgeDetectionFrameHandler?(pixelBuffer)
-            self?.isStreamLive = true
+            guard let self else { return }
+            let nextFrameSequence = self.latestFrameSequence &+ 1
+
+            self.frameImage = cgImage
+            self.latestPixelBuffer = pixelBuffer
+            self.latestFrameSequence = nextFrameSequence
+            self.edgeDetectionFrameHandler?(pixelBuffer)
+            self.isStreamLive = true
         }
     }
 }
