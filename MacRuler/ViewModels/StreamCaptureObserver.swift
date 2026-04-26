@@ -10,14 +10,13 @@ import AppKit
 @preconcurrency import CoreVideo
 @preconcurrency import ScreenCaptureKit
 import SwiftUI
+import Observation
 
 
 @Observable
 @MainActor
 final class StreamCaptureObserver: NSObject {
    var frameImage: CGImage?
-    var latestPixelBuffer: CVPixelBuffer?
-    var latestFrameSequence: UInt64 = 0
     var isStreamLive = false
 
     private let captureQueue = DispatchQueue(label: "ScreenCaptureMagnifier.Capture")
@@ -30,6 +29,12 @@ final class StreamCaptureObserver: NSObject {
     private var sleepObserver: NSObjectProtocol?
     private var wakeObserver: NSObjectProtocol?
     private var pauseTask: Task<Void, Never>?
+
+    @ObservationIgnored
+    private var latestPixelBuffer: CVPixelBuffer?
+
+    @ObservationIgnored
+    private var edgeDetectionFrameHandler: (@MainActor (CVPixelBuffer) -> Void)?
 
     override init() {
         super.init()
@@ -156,6 +161,13 @@ final class StreamCaptureObserver: NSObject {
         }
     }
 
+
+    func setEdgeDetectionFrameHandler(_ handler: (@MainActor (CVPixelBuffer) -> Void)?) {
+        edgeDetectionFrameHandler = handler
+        guard let handler, let latestPixelBuffer else { return }
+        handler(latestPixelBuffer)
+    }
+
     func updateCaptureRect(centeredOn rulerFrame: CGRect, screenBound: CGRect) {
         guard rulerFrame != .zero else { return }
         let SCRect = Constants.globalRectToSCRect(rulerFrame, containerHeight: screenBound.height)
@@ -202,7 +214,7 @@ extension StreamCaptureObserver: SCStreamOutput {
         Task { @MainActor [weak self] in
             self?.frameImage = cgImage
             self?.latestPixelBuffer = pixelBuffer
-            self?.latestFrameSequence &+= 1
+            self?.edgeDetectionFrameHandler?(pixelBuffer)
             self?.isStreamLive = true
         }
     }
