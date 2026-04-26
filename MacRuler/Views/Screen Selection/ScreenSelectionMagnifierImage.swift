@@ -127,7 +127,8 @@ struct ScreenSelectionMagnifierImage: View {
                 ContourOverlayView(
                     normalizedContours: edgeDetectionOverlayController.normalizedContours,
                     contentOrigin: contentFrame.origin,
-                    imageSize: imageSize
+                    imageSize: imageSize,
+                    pathOffset: CGPoint(x: 1.1, y: 1.0)
                 )
             }
 
