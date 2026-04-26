@@ -47,7 +47,11 @@ struct ScreenSelectionMagnifierImage: View {
                                 height: max(magnifiedSize.height, proxy.size.height),
                                 alignment: .topLeading
                             )
-                            .trackFrame(in: .named("magnifier-scroll"))
+                            .onGeometryChange(for: CGRect.self) { imageProxy in
+                                imageProxy.frame(in: .named("magnifier-scroll"))
+                            } action: { oldValue, newValue in
+                                updateContentFrameIfNeeded(oldValue: oldValue, newValue: newValue)
+                            }
                             .onAppear {
                                 applyFittedMagnificationIfNeeded(
                                     viewportSize: proxy.size,
@@ -84,7 +88,6 @@ struct ScreenSelectionMagnifierImage: View {
                             }
                     }
                     .coordinateSpace(name: "magnifier-scroll")
-                    .onFrameChange { contentFrame = $0 }
                     .onScrollPhaseChange { _, newPhase in
                         if newPhase == .idle {
                            removeThenAddOverlay()
@@ -273,6 +276,12 @@ struct ScreenSelectionMagnifierImage: View {
         )
     }
 
+    private func updateContentFrameIfNeeded(oldValue: CGRect, newValue: CGRect) {
+        guard !oldValue.isApproximatelyEqual(to: newValue, tolerance: 0.5) else { return }
+        guard !contentFrame.isApproximatelyEqual(to: newValue, tolerance: 0.5) else { return }
+        contentFrame = newValue
+    }
+
     private func magnificationGesture(viewportSize: CGSize, frameImage: CGImage?) -> some Gesture {
         MagnifyGesture()
             .onChanged { value in
@@ -319,6 +328,15 @@ struct ScreenSelectionMagnifierImage: View {
                 // cancelled — ignore
             }
         }
+    }
+}
+
+private extension CGRect {
+    func isApproximatelyEqual(to other: CGRect, tolerance: CGFloat) -> Bool {
+        abs(origin.x - other.origin.x) <= tolerance &&
+        abs(origin.y - other.origin.y) <= tolerance &&
+        abs(size.width - other.size.width) <= tolerance &&
+        abs(size.height - other.size.height) <= tolerance
     }
 }
 
