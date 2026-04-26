@@ -64,7 +64,8 @@ private struct RulerMagnifierView: View {
         .onDisappear {
             controller.stop()
         }
-        .onChange(of: viewModel.rulerWindowFrame) { _, newValue in
+        .onChange(of: viewModel.rulerWindowFrame) { oldValue, newValue in
+            guard oldValue != newValue else { return }
             controller.updateCaptureRect(centeredOn: newValue,
                                          screenBound: viewModel.screen?.frame ?? CGRect.zero)
         }

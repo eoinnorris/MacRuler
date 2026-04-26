@@ -685,7 +685,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     magnifierCrosshairViewModel: dependencies.magnifierCrosshair
                 )
             )
-            window.title = "Selection Magnification"
+            window.title = "MacRuler"
             controller.showWindow(nil)
             window.makeKeyAndOrderFront(nil)
             currentSelectionSession?.isWindowVisible = true
@@ -740,7 +740,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = "Selection Magnification"
+        window.title = "MacRuler"
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 240, height: 180)
         window.contentView = NSHostingView(

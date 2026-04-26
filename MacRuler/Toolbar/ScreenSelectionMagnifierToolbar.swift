@@ -15,27 +15,6 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .automatic) {
-            Button(action: snapshotAction) {
-                Label("Snapshot", systemImage: "camera")
-            }
-            .help("Save snapshot")
-            .disabled(!canTakeSnapshot)
-
-            Toggle(isOn: $session.showSelection) {
-                Label("Show selection", systemImage: "rectangle.dashed.and.paperclip")
-            }
-            .toggleStyle(.button)
-            .help("Show selection for 2 seconds")
-
-
-            Button {
-                _ = crosshairViewModel.copyColor(sample: crosshairViewModel.lastPickedColorSample)
-            } label: {
-                Label("Copy Color", systemImage: "doc.on.doc")
-            }
-            .help("Copy picked color")
-            .disabled(crosshairViewModel.lastPickedColorSample == nil)
-
             Toggle(isOn: $crosshairViewModel.showPixelGrid) {
                 Label(
                     "Pixel grid",
@@ -45,6 +24,7 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
                 )
             }
             .toggleStyle(.button)
+            .tint(.pink)
             .help("Show pixel grid")
 
             Toggle(isOn: $session.showEdgeDetectionOverlay) {
@@ -59,8 +39,19 @@ struct ScreenSelectionMagnifierToolbar: ToolbarContent {
             .tint(.pink)
             .help("Show detected edges overlay")
 
+            Toggle(isOn: $crosshairViewModel.showCrosshair) {
+                Label(
+                    "Show crosshair",
+                    systemImage: session.showEdgeDetectionOverlay
+                        ? "dot.crosshair"
+                        : "dot.crosshair"
+                )
+            }
+            .toggleStyle(.button)
+            .tint(.pink)
+            .help("Toggle crosshair visibility")
 
-            Menu("Crosshair") {
+            Menu("") {
                 Button(crosshairViewModel.isPrimaryLocked ? "Unlock Primary" : "Lock Primary") {
                     crosshairViewModel.isPrimaryLocked.toggle()
                 }

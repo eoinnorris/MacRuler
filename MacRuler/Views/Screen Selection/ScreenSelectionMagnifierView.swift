@@ -135,11 +135,11 @@ struct ScreenSelectionMagnifierView: View {
     @MainActor
     private func magnifierWindowFrame() -> CGRect? {
         if let window = NSApplication.shared.keyWindow,
-           window.title == "Selection Magnification" {
+           window.title == "MacRuler" {
             return window.frame
         }
 
-        return NSApplication.shared.windows.first(where: { $0.title == "Selection Magnification" })?.frame
+        return NSApplication.shared.windows.first(where: { $0.title == "MacRuler" })?.frame
     }
 
     private func takeSnapshot() {

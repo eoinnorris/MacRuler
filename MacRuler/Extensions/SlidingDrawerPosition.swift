@@ -129,7 +129,9 @@ struct SlidingDrawerView<Content: View>: View {
                     Color.clear
                         .onAppear { contentWidth = geo.size.width }
                         .onChange(of: geo.size.width) { _, newWidth in
-                            contentWidth = newWidth
+                            Task { @MainActor in
+                                contentWidth = newWidth
+                            }
                         }
                 }
             )
