@@ -125,7 +125,12 @@ struct ScreenSelectionMagnifierImage: View {
                 controller.updateCaptureRect(centeredOn: newValue,
                                              screenBound: session.screen?.frame ?? .zero)
             }
-            .simultaneousGesture(magnificationGesture)
+            .simultaneousGesture(
+                magnificationGesture(
+                    viewportSize: proxy.size,
+                    frameImage: controller.frameImage
+                )
+            )
         }
     }
 
@@ -231,20 +236,9 @@ struct ScreenSelectionMagnifierImage: View {
     }
 
     private func applyFittedMagnificationIfNeeded(viewportSize: CGSize, frameImage: CGImage) {
-        let baseSize = CGSize(
-            width: CGFloat(CGFloat(frameImage.width) / Constants.screenScale),
-            height: CGFloat(CGFloat(frameImage.height) / Constants.screenScale)
-        )
-
-        guard baseSize.width > 0, baseSize.height > 0 else { return }
-
-        let magnificationNeededToFillWindow = max(
-            viewportSize.width / baseSize.width,
-            viewportSize.height / baseSize.height
-        )
-        let clampedMagnification = min(
-            max(magnificationNeededToFillWindow, MagnificationViewModel.minimumMagnification),
-            MagnificationViewModel.maximumMagnification
+        let clampedMagnification = minimumFittedMagnification(
+            viewportSize: viewportSize,
+            frameImage: frameImage
         )
 
         if session.magnification < clampedMagnification {
@@ -252,7 +246,28 @@ struct ScreenSelectionMagnifierImage: View {
         }
     }
 
-    private var magnificationGesture: some Gesture {
+    private func minimumFittedMagnification(viewportSize: CGSize, frameImage: CGImage) -> Double {
+        let baseSize = CGSize(
+            width: CGFloat(CGFloat(frameImage.width) / Constants.screenScale),
+            height: CGFloat(CGFloat(frameImage.height) / Constants.screenScale)
+        )
+
+        guard baseSize.width > 0, baseSize.height > 0 else {
+            return MagnificationViewModel.minimumMagnification
+        }
+
+        let magnificationNeededToFillWindow = max(
+            viewportSize.width / baseSize.width,
+            viewportSize.height / baseSize.height
+        )
+
+        return min(
+            max(magnificationNeededToFillWindow, MagnificationViewModel.minimumMagnification),
+            MagnificationViewModel.maximumMagnification
+        )
+    }
+
+    private func magnificationGesture(viewportSize: CGSize, frameImage: CGImage?) -> some Gesture {
         MagnifyGesture()
             .onChanged { value in
                 if gestureStartMagnification == nil {
@@ -261,8 +276,16 @@ struct ScreenSelectionMagnifierImage: View {
 
                 guard let gestureStartMagnification else { return }
                 let proposedMagnification = gestureStartMagnification * value.magnification
+                let minimumMagnification = if let frameImage {
+                    minimumFittedMagnification(
+                        viewportSize: viewportSize,
+                        frameImage: frameImage
+                    )
+                } else {
+                    MagnificationViewModel.minimumMagnification
+                }
                 session.magnification = min(
-                    max(proposedMagnification, MagnificationViewModel.minimumMagnification),
+                    max(proposedMagnification, minimumMagnification),
                     MagnificationViewModel.maximumMagnification
                 )
                 isDeferringOverlayForScroll = true
