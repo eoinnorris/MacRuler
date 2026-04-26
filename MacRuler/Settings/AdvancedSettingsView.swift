@@ -69,7 +69,8 @@ struct AdvancedSettingsView: View {
 
             Toggle("Dual-stroke contrast", isOn: $rulerSettingsViewModel.magnifierCrosshairDualStrokeEnabled)
         }
-        .onChange(of: rulerSettingsViewModel.magnifierCrosshairPreset) { _, preset in
+        .onChange(of: rulerSettingsViewModel.magnifierCrosshairPreset) { previousPreset, preset in
+            guard previousPreset != preset else { return }
             rulerSettingsViewModel.applyMagnifierCrosshairPreset(preset)
         }
 
