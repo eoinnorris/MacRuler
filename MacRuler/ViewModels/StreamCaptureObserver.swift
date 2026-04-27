@@ -29,7 +29,7 @@ final class StreamCaptureObserver: NSObject {
     private var sleepObserver: NSObjectProtocol?
     private var wakeObserver: NSObjectProtocol?
     private var pauseTask: Task<Void, Never>?
-    nonisolated(unsafe) private let ciContext = CIContext()
+    private let ciContext = CIContext()
 
     @ObservationIgnored
     private var latestPixelBuffer: CVPixelBuffer?

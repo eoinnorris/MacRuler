@@ -146,6 +146,7 @@ final class EdgeDetectionOverlayController {
         }
     }
 
+    nonisolated
     private static func detectContours(in pixelBuffer: CVPixelBuffer) -> [CGPath] {
 
         let width = CVPixelBufferGetWidth(pixelBuffer)
@@ -184,6 +185,7 @@ final class EdgeDetectionOverlayController {
         return deduplicated(paths)
     }
 
+    nonisolated
     private static func deduplicated(_ paths: [CGPath]) -> [CGPath] {
         var kept: [CGPath] = []
         for path in paths {
