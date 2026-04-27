@@ -277,8 +277,8 @@ struct ScreenSelectionMagnifierImage: View {
     }
 
     private func updateContentFrameIfNeeded(oldValue: CGRect, newValue: CGRect) {
-        guard !oldValue.isApproximatelyEqual(to: newValue, tolerance: 0.5) else { return }
-        guard !contentFrame.isApproximatelyEqual(to: newValue, tolerance: 0.5) else { return }
+        guard oldValue != newValue else { return }
+        guard contentFrame != newValue else { return }
         contentFrame = newValue
     }
 
@@ -328,15 +328,6 @@ struct ScreenSelectionMagnifierImage: View {
                 // cancelled — ignore
             }
         }
-    }
-}
-
-private extension CGRect {
-    func isApproximatelyEqual(to other: CGRect, tolerance: CGFloat) -> Bool {
-        abs(origin.x - other.origin.x) <= tolerance &&
-        abs(origin.y - other.origin.y) <= tolerance &&
-        abs(size.width - other.size.width) <= tolerance &&
-        abs(size.height - other.size.height) <= tolerance
     }
 }
 
